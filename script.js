@@ -13,6 +13,8 @@ function checkAdminAccess() {
       isAdmin = true;
       // Show the admin button
       document.getElementById("admin-btn").style.display = "inline-block";
+      const hiddenBtn = document.getElementById("hidden-mgr-btn");
+      if (hiddenBtn) hiddenBtn.style.display = "inline-block";
       // Open the modal immediately
       toggleAdminModal();
       alert("Welcome back, Lily! Admin mode enabled.");
@@ -42,6 +44,13 @@ window.onload = function () {
   if (storedCart) {
     try {
       cart = JSON.parse(storedCart);
+      // Remove hidden items from cart on load
+      const initialCount = cart.length;
+      cart = cart.filter(item => {
+        const product = products.find(p => p.id === item.id);
+        return !product || !product.hidden;
+      });
+      if (cart.length !== initialCount) localStorage.setItem('cactusCart', JSON.stringify(cart));
       updateCartUI();
     } catch (e) {
       console.error("Error loading cart from localStorage:", e);
@@ -49,6 +58,7 @@ window.onload = function () {
   }
   renderProducts();
   localStorage.setItem('cactusProducts', JSON.stringify(products));
+  injectAdminUI();
   checkAdminAccess();
 };
 
@@ -63,6 +73,7 @@ function renderProducts() {
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
   products.forEach((product) => {
+    if (product.hidden) return;
     // Check if scientific name exists
     const sciName = product.scientific
       ? `<div style="color:#666; font-style:italic; font-size:0.9rem; margin-bottom:5px;">${product.scientific}</div>`
@@ -103,6 +114,11 @@ function openImageModal(id) {
     document.getElementById("new-price").value = product.price;
     document.getElementById("new-image").value = product.image;
     editingProductId = product.id;
+    
+    const hideCheck = document.getElementById("hide-check");
+    if (hideCheck) {
+      hideCheck.checked = !!product.hidden;
+    }
 
     const btn = document.querySelector("#admin-modal .add-btn");
     if (btn) btn.innerText = "Update Product";
@@ -150,6 +166,8 @@ function toggleAdminModal() {
     document.getElementById("new-name").value = "";
     document.getElementById("new-price").value = "";
     document.getElementById("new-image").value = "";
+    const hideCheck = document.getElementById("hide-check");
+    if (hideCheck) hideCheck.checked = false;
     const btn = document.querySelector("#admin-modal .add-btn");
     if (btn) btn.innerText = "Add to Inventory";
   }
@@ -160,6 +178,7 @@ function addProduct() {
   const name = document.getElementById("new-name").value;
   const price = parseFloat(document.getElementById("new-price").value);
   const image = document.getElementById("new-image").value;
+  const isHidden = document.getElementById("hide-check")?.checked || false;
 
   if (name && price && image) {
     if (editingProductId) {
@@ -168,6 +187,12 @@ function addProduct() {
         product.name = name;
         product.price = price;
         product.image = image;
+        product.hidden = isHidden;
+        if (isHidden) {
+          cart = cart.filter((item) => item.id !== product.id);
+          localStorage.setItem('cactusCart', JSON.stringify(cart));
+          updateCartUI();
+        }
         alert("Cactus updated!");
       }
     } else {
@@ -176,6 +201,7 @@ function addProduct() {
         name: name,
         price: price,
         image: image,
+        hidden: isHidden,
       };
       products.push(newProduct);
       alert("Cactus added to inventory!");
@@ -188,6 +214,8 @@ function addProduct() {
     document.getElementById("new-name").value = "";
     document.getElementById("new-price").value = "";
     document.getElementById("new-image").value = "";
+    const hideCheck = document.getElementById("hide-check");
+    if (hideCheck) hideCheck.checked = false;
 
     editingProductId = null;
     const btn = document.querySelector("#admin-modal .add-btn");
@@ -195,6 +223,96 @@ function addProduct() {
   } else {
     alert("Please fill in all fields.");
   }
+}
+
+function injectAdminUI() {
+  const imgInput = document.getElementById("new-image");
+  if (imgInput && !document.getElementById("vis-container")) {
+    const div = document.createElement("div");
+    div.id = "vis-container";
+    div.style.marginTop = "10px";
+    div.innerHTML = `
+      <label><input type="checkbox" id="hide-check"> Hide Product</label>
+    `;
+    imgInput.parentNode.insertBefore(div, imgInput.nextSibling);
+  }
+
+  const saveBtn = document.querySelector("#admin-modal .add-btn");
+  if (saveBtn && saveBtn.parentNode.id !== "admin-btn-row") {
+    const row = document.createElement("div");
+    row.id = "admin-btn-row";
+    row.style.cssText = "display:flex; gap:10px; margin-top:15px;";
+    
+    saveBtn.parentNode.insertBefore(row, saveBtn);
+    row.appendChild(saveBtn);
+    
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerText = "Cancel";
+    cancelBtn.className = "add-btn";
+    cancelBtn.style.backgroundColor = "#dc3545";
+    cancelBtn.onclick = toggleAdminModal;
+    row.appendChild(cancelBtn);
+  }
+
+  const adminBtn = document.getElementById("admin-btn");
+  if (adminBtn && !document.getElementById("hidden-mgr-btn")) {
+    const btn = document.createElement("button");
+    btn.id = "hidden-mgr-btn";
+    btn.innerText = "Hidden Items";
+    btn.className = "add-btn"; 
+    btn.style.display = "none";
+    btn.style.marginLeft = "10px";
+    btn.style.backgroundColor = "#555";
+    btn.onclick = openHiddenManager;
+    adminBtn.parentNode.insertBefore(btn, adminBtn.nextSibling);
+  }
+
+  if (!document.getElementById("hidden-modal")) {
+    const modal = document.createElement("div");
+    modal.id = "hidden-modal";
+    modal.style.cssText = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;";
+    modal.innerHTML = `
+      <div style="background:white; padding:20px; border-radius:8px; width:300px; max-height:80vh; overflow-y:auto;">
+        <h3>Hidden Products</h3>
+        <div id="hidden-list" style="margin-bottom:15px;"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:15px;">
+          <button onclick="closeHiddenManager()" class="add-btn" style="background-color:#dc3545;">Cancel</button>
+          <button onclick="saveHiddenChanges()" class="add-btn">Save</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+}
+
+function openHiddenManager() {
+  const list = document.getElementById("hidden-list");
+  list.innerHTML = "";
+  const hiddenProducts = products.filter(p => p.hidden);
+  if (hiddenProducts.length === 0) {
+    list.innerHTML = "<em>No hidden products.</em>";
+  } else {
+    hiddenProducts.forEach(p => {
+      list.innerHTML += `<div style="margin-bottom:5px;"><label><input type="checkbox" class="hidden-toggle" data-id="${p.id}"> Show <strong>${p.name}</strong></label></div>`;
+    });
+  }
+  document.getElementById("hidden-modal").style.display = "flex";
+}
+
+function closeHiddenManager() {
+  document.getElementById("hidden-modal").style.display = "none";
+}
+
+function saveHiddenChanges() {
+  const checkboxes = document.querySelectorAll(".hidden-toggle:checked");
+  checkboxes.forEach(cb => {
+    const id = parseInt(cb.getAttribute("data-id"));
+    const product = products.find(p => p.id === id);
+    if (product) product.hidden = false;
+  });
+  localStorage.setItem('cactusProducts', JSON.stringify(products));
+  renderProducts();
+  closeHiddenManager();
 }
 
 // 4. Cart Functions
