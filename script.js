@@ -2,22 +2,27 @@
 let cart = [];
 let isAdmin = false;
 let editingProductId = null;
+let currentUser = null;
+let defaultProducts = [];
 
 // --- SECURITY / ADMIN CHECK LOGIC ---
 // Simple hash-based admin check. If URL ends in #admin, prompts for password.
 function checkAdminAccess() {
+  if (isAdmin) return;
   // Check if URL ends with #admin
   if (window.location.hash === "#admin") {
     const password = prompt("Enter Admin Password:");
     if (password === "LILY") {
       isAdmin = true;
+      currentUser = "admin";
+      if (document.getElementById("login-modal")) document.getElementById("login-modal").style.display = "none";
+      loadUserData();
+      injectLogoutButton();
+      alert("Admin access granted.");
       // Show the admin button
       document.getElementById("admin-btn").style.display = "inline-block";
       const hiddenBtn = document.getElementById("hidden-mgr-btn");
       if (hiddenBtn) hiddenBtn.style.display = "inline-block";
-      // Open the modal immediately
-      toggleAdminModal();
-      alert("Welcome back, Lily! Admin mode enabled.");
     } else {
       alert("Incorrect Password.");
       // Remove the hash to prevent loop
@@ -26,21 +31,89 @@ function checkAdminAccess() {
         document.title,
         window.location.pathname + window.location.search
       );
+      currentUser = null;
     }
   }
 }
 
-// Initialize application on page load
-window.onload = function () {
-  const storedProducts = localStorage.getItem('cactusProducts');
+function getStorageKey(key) {
+  return currentUser ? `${key}_${currentUser}` : key;
+}
+
+function injectLoginUI() {
+  if (document.getElementById("login-modal")) {
+    document.getElementById("login-modal").style.display = "flex";
+    return;
+  }
+  const modal = document.createElement("div");
+  modal.id = "login-modal";
+  modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;";
+  modal.innerHTML = `
+    <h2 style="margin-bottom:20px;">Cactus Shop Login</h2>
+    <input type="text" id="login-phone" placeholder="Enter WhatsApp Number" style="padding:10px; width:250px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
+    <button onclick="loginUser()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;">Login</button>
+  `;
+  document.body.appendChild(modal);
+}
+
+function loginUser() {
+  const phone = document.getElementById("login-phone").value.trim();
+  if (!phone) {
+    alert("Please enter a valid number.");
+    return;
+  }
+  currentUser = phone;
+  document.getElementById("login-modal").style.display = "none";
+  loadUserData();
+  injectLogoutButton();
+}
+
+function logoutUser() {
+  const wasAdmin = isAdmin;
+  currentUser = null;
+  cart = [];
+  updateCartUI();
+  document.getElementById("product-grid").innerHTML = "";
+  const btn = document.getElementById("logout-btn");
+  if (btn) btn.remove();
+  
+  isAdmin = false;
+  const adminBtn = document.getElementById("admin-btn");
+  if(adminBtn) adminBtn.style.display = "none";
+  const hiddenMgrBtn = document.getElementById("hidden-mgr-btn");
+  if(hiddenMgrBtn) hiddenMgrBtn.style.display = "none";
+  
+  injectLoginUI();
+  document.getElementById("login-phone").value = "";
+
+  if (wasAdmin) {
+    window.location.href = window.location.pathname;
+  }
+}
+
+function injectLogoutButton() {
+  if (document.getElementById("logout-btn")) return;
+  const btn = document.createElement("button");
+  btn.id = "logout-btn";
+  btn.innerText = "Logout";
+  btn.style.cssText = "position:fixed; top:10px; left:200px; z-index:1001; padding:8px 15px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;";
+  btn.onclick = logoutUser;
+  document.body.appendChild(btn);
+}
+
+function loadUserData() {
+  const storedProducts = localStorage.getItem(getStorageKey('cactusProducts'));
   if (storedProducts) {
     try {
       products = JSON.parse(storedProducts);
     } catch (e) {
       console.error("Error loading products from localStorage:", e);
+      products = JSON.parse(JSON.stringify(defaultProducts));
     }
+  } else {
+    products = JSON.parse(JSON.stringify(defaultProducts));
   }
-  const storedCart = localStorage.getItem('cactusCart');
+  const storedCart = localStorage.getItem(getStorageKey('cactusCart'));
   if (storedCart) {
     try {
       cart = JSON.parse(storedCart);
@@ -50,16 +123,30 @@ window.onload = function () {
         const product = products.find(p => p.id === item.id);
         return !product || !product.hidden;
       });
-      if (cart.length !== initialCount) localStorage.setItem('cactusCart', JSON.stringify(cart));
+      if (cart.length !== initialCount) localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
       updateCartUI();
     } catch (e) {
       console.error("Error loading cart from localStorage:", e);
     }
+  } else {
+    cart = [];
+    updateCartUI();
   }
   renderProducts();
-  localStorage.setItem('cactusProducts', JSON.stringify(products));
+  localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
   injectAdminUI();
+  updateHiddenCount();
   checkAdminAccess();
+}
+
+// Initialize application on page load
+window.onload = function () {
+  defaultProducts = JSON.parse(JSON.stringify(products));
+  if (window.location.hash === "#admin") {
+    loadUserData();
+  } else {
+    injectLoginUI();
+  }
 };
 
 // Listen for hash changes to trigger admin check dynamically
@@ -190,7 +277,7 @@ function addProduct() {
         product.hidden = isHidden;
         if (isHidden) {
           cart = cart.filter((item) => item.id !== product.id);
-          localStorage.setItem('cactusCart', JSON.stringify(cart));
+          localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
           updateCartUI();
         }
         alert("Cactus updated!");
@@ -206,8 +293,9 @@ function addProduct() {
       products.push(newProduct);
       alert("Cactus added to inventory!");
     }
-    localStorage.setItem('cactusProducts', JSON.stringify(products));
+    localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
     renderProducts();
+    updateHiddenCount();
     // Close modal
     toggleAdminModal();
     // Clear inputs
@@ -226,6 +314,29 @@ function addProduct() {
 }
 
 function injectAdminUI() {
+  if (!document.getElementById("admin-btn")) {
+    const btn = document.createElement("button");
+    btn.id = "admin-btn";
+    btn.innerText = "Add Item";
+    btn.className = "add-btn";
+    btn.style.cssText = "display:none; position:fixed; bottom:20px; right:20px; z-index:1000; padding:10px 20px; background:#555; color:white; border:none; border-radius:4px; cursor:pointer;";
+    btn.onclick = toggleAdminModal;
+    document.body.appendChild(btn);
+  }
+  if (!document.getElementById("admin-modal")) {
+    const modal = document.createElement("div");
+    modal.id = "admin-modal";
+    modal.style.cssText = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001; justify-content:center; align-items:center;";
+    modal.innerHTML = `
+      <div style="background:white; padding:20px; border-radius:8px; width:300px; display:flex; flex-direction:column; gap:10px;">
+        <h3>Manage Cactus</h3>
+        <input type="text" id="new-name" placeholder="Name" style="padding:5px;">
+        <input type="number" id="new-price" placeholder="Price" style="padding:5px;">
+        <input type="text" id="new-image" placeholder="Image URL" style="padding:5px;">
+        <button class="add-btn" onclick="addProduct()">Add to Inventory</button>
+      </div>`;
+    document.body.appendChild(modal);
+  }
   const imgInput = document.getElementById("new-image");
   if (imgInput && !document.getElementById("vis-container")) {
     const div = document.createElement("div");
@@ -258,7 +369,7 @@ function injectAdminUI() {
   if (adminBtn && !document.getElementById("hidden-mgr-btn")) {
     const btn = document.createElement("button");
     btn.id = "hidden-mgr-btn";
-    btn.innerText = "Hidden Items";
+    btn.innerHTML = 'Hidden<span id="hidden-count" class="cart-count">0</span>';
     btn.className = "add-btn"; 
     btn.style.display = "none";
     btn.style.marginLeft = "10px";
@@ -310,9 +421,16 @@ function saveHiddenChanges() {
     const product = products.find(p => p.id === id);
     if (product) product.hidden = false;
   });
-  localStorage.setItem('cactusProducts', JSON.stringify(products));
+  localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
   renderProducts();
+  updateHiddenCount();
   closeHiddenManager();
+}
+
+function updateHiddenCount() {
+  const count = products.filter(p => p.hidden).length;
+  const badge = document.getElementById("hidden-count");
+  if (badge) badge.innerText = count;
 }
 
 // 4. Cart Functions
@@ -326,7 +444,7 @@ function toggleCart() {
 function addToCart(id) {
   const product = products.find((p) => p.id === id);
   cart.push(product);
-  localStorage.setItem('cactusCart', JSON.stringify(cart));
+  localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
   updateCartUI();
   toggleCart();
 }
@@ -366,7 +484,7 @@ function updateCartUI() {
 // Removes an item from the cart by index
 function removeFromCart(index) {
   cart.splice(index, 1);
-  localStorage.setItem('cactusCart', JSON.stringify(cart));
+  localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
   updateCartUI();
 }
 

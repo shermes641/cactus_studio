@@ -1,80 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Cactus Studio</title>
-    <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-
-<!-- Navigation -->
-<header>
-    <div class="logo">🌵 Cactus Studio</div>
-    <div class="nav-links">
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <header>
+      <div class="logo">🌵 Cactus Studio</div>
+      <div class="nav-links">
         <!-- This button is now HIDDEN by default -->
-        <button id="admin-btn" onclick="toggleAdminModal()">Admin Panel</button>
-        <button onclick="toggleCart()">Cart <span id="cart-count" class="cart-count">0</span></button>
+        <button
+          id="admin-btn"
+          onclick="toggleAdminModal()"
+          style="display: none; min-width: 100px;"
+        >
+          Add Item
+        </button>
+        <button
+          id="hidden-mgr-btn"
+          class="add-btn"
+          style="background: grey; display: none; max-width: 85px;"
+        >
+          Hidden
+          <span id="hidden-count" class="cart-count"></span>
+        </button>
+
+        <button onclick="toggleCart()">
+          Cart
+          <span id="cart-count" class="cart-count">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Rare & Exotic Cacti</h1>
+      <p>Delivered safely from our nursery to your doorstep.</p>
     </div>
-</header>
 
-<!-- Hero Section -->
-<div class="hero">
-    <h1>Rare & Exotic Cacti</h1>
-    <p>Delivered safely from our nursery to your doorstep.</p>
-</div>
-
-<!-- Main Inventory -->
-<div class="container">
-    <h2 class="section-title">Current Inventory</h2>
-    <div class="product-grid" id="product-grid">
+    <!-- Main Inventory -->
+    <div class="container">
+      <h2 class="section-title">Current Inventory</h2>
+      <div class="product-grid" id="product-grid">
         <!-- Products will be injected here by JavaScript -->
+      </div>
     </div>
-</div>
 
-<!-- Admin Upload Modal -->
-<div class="modal" id="admin-modal">
-    <div class="modal-content">
+    <!-- Admin Upload Modal -->
+    <div class="modal" id="admin-modal">
+      <div class="modal-content">
         <span class="close-btn" onclick="toggleAdminModal()">&times;</span>
         <h2>Upload New Cactus</h2>
         <div class="form-group">
-            <label>Cactus Name</label>
-            <input type="text" id="new-name" placeholder="e.g. Golden Barrel">
+          <label>Cactus Name</label>
+          <input type="text" id="new-name" placeholder="e.g. Golden Barrel" />
         </div>
         <div class="form-group">
-            <label>Price ($)</label>
-            <input type="number" id="new-price" placeholder="25.00">
+          <label>Price ($)</label>
+          <input type="number" id="new-price" placeholder="25.00" />
         </div>
         <div class="form-group">
-            <label>Image URL</label>
-            <input type="text" id="new-image" placeholder="Paste image link here">
-            <small style="color: #666; font-size: 0.8rem;">(For demo, right click any image on Google Images and 'Copy Image Address')</small>
+          <label>Image URL</label>
+          <input
+            type="text"
+            id="new-image"
+            placeholder="Paste image link here"
+          />
+          <small style="color: #666; font-size: 0.8rem"
+            >(For demo, right click any image on Google Images and 'Copy Image
+            Address')</small
+          >
         </div>
         <button class="add-btn" onclick="addProduct()">Add to Inventory</button>
+      </div>
     </div>
-</div>
 
-<!-- Cart Sidebar -->
-<div class="cart-sidebar" id="cart-sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cart-sidebar">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
         <h2>Your Cart</h2>
-        <span style="cursor:pointer; font-size:1.5rem;" onclick="toggleCart()">&times;</span>
-    </div>
-    <div class="cart-items" id="cart-items">
+        <span style="cursor: pointer; font-size: 1.5rem" onclick="toggleCart()"
+          >&times;</span
+        >
+      </div>
+      <div class="cart-items" id="cart-items">
         <p>Your cart is empty.</p>
+      </div>
+      <div id="cart-footer" style="display: none">
+        <h3 style="text-align: right">
+          Total: $<span id="cart-total">0.00</span>
+        </h3>
+        <button class="checkout-btn" onclick="checkout()">
+          Proceed to Checkout
+        </button>
+      </div>
     </div>
-    <div id="cart-footer" style="display:none;">
-        <h3 style="text-align:right;">Total: $<span id="cart-total">0.00</span></h3>
-        <button class="checkout-btn" onclick="checkout()">Proceed to Checkout</button>
-    </div>
-</div>
 
-<script src="/script.js"></script>
-<!-- Full Screen Image Modal -->
-<div id="image-modal" onclick="closeImageModal()">
-    <img id="modal-img" src="" alt="Zoomed Cactus">
-    <!-- stops propagation only to allow the specific add function to run first, then bubble to close -->
-    <button id="modal-add-btn">Add to Cart +</button>
-</div>
-</body>
+    <script src="/script.js"></script>
+    <!-- Full Screen Image Modal -->
+    <div id="image-modal" onclick="closeImageModal()">
+      <img id="modal-img" src="" alt="Zoomed Cactus" />
+      <!-- stops propagation only to allow the specific add function to run first, then bubble to close -->
+      <button id="modal-add-btn">Add to Cart +</button>
+    </div>
+  </body>
 </html>
