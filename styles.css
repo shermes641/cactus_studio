@@ -1,0 +1,305 @@
+/* CSS Variables for consistent theming */
+:root {
+    --primary: #2d6a4f;
+    --secondary: #d8f3dc;
+    --accent: #d4a373;
+    --text: #333;
+    --white: #ffffff;
+}
+
+/* Base styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: var(--text);
+}
+
+/* Header & Navigation Bar */
+header {
+    background-color: var(--primary);
+    color: var(--white);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+}
+
+.nav-links button {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 20px;
+    font-weight: 500;
+}
+
+.nav-links button:hover {
+    color: var(--accent);
+}
+
+/* Admin button hidden by default */
+#admin-btn {
+    display: none; 
+    background-color: rgba(255,255,255,0.2);
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.cart-count {
+    background-color: var(--accent);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+
+/* Hero Section with background image */
+.hero {
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--white);
+    text-align: center;
+}
+
+.hero h1 { font-size: 3rem; margin-bottom: 10px; }
+.hero p { font-size: 1.2rem; }
+
+/* Main Content Container and Product Grid */
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.section-title {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 30px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.product-card {
+    background: var(--white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.product-info {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.product-price {
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.add-btn {
+    margin-top: auto;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.add-btn:hover {
+    background-color: #1b4332;
+}
+
+/* Modal Styles (Shared for Admin and Upload) */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Sliding Cart Sidebar */
+.cart-sidebar {
+    position: fixed;
+    top: 0;
+    right: -350px;
+    width: 300px;
+    height: 100%;
+    background: var(--white);
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    z-index: 1500;
+    transition: right 0.3s;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-sidebar.open {
+    right: 0;
+}
+
+.cart-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-top: 20px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.checkout-btn {
+    background-color: var(--accent);
+    color: var(--white);
+    border: none;
+    padding: 15px;
+    width: 100%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Image Zoom Modal Styles */
+#image-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.85); /* Dark background */
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    cursor: pointer; /* Indicates you can click to close */
+}
+
+#image-modal img {
+    height: 750px; /* Roughly 3x larger than the thumbnail */
+    max-height: 80vh; /* Keeps it inside screen on laptops */
+    max-width: 90vw; /* Keeps it inside screen on phones */
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    background-color: #fff;
+    margin-bottom: 20px;
+}
+
+#image-modal button {
+    padding: 15px 40px;
+    font-size: 1.5rem;
+    background-color: var(--primary);
+    color: var(--white);
+    border: 2px solid var(--white);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#image-modal button:hover {
+    transform: scale(1.1);
+    background-color: #1b4332;
+}
