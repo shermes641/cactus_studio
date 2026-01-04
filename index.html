@@ -32,7 +32,7 @@
         </button>
 
         <button onclick="toggleHelp()">Help</button>
-        <button onclick="toggleCart()">
+        <button id="cart-toggle-btn" onclick="toggleCart()">
           Cart
           <span id="cart-count" class="cart-count">0</span>
         </button>
@@ -51,6 +51,7 @@
       <div class="product-grid" id="product-grid">
         <!-- Products will be injected here by JavaScript -->
       </div>
+      <div id="pagination-controls" class="pagination-container"></div>
     </div>
 
     <!-- Admin Upload Modal -->
@@ -91,7 +92,7 @@
     <!-- Help Dialog -->
     <div id="help-dialog" style="display: none; position: fixed; top: 80px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 2000;">
       <span onclick="toggleHelp()" style="position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; font-size: 1.2rem;">&times;</span>
-      <h3 style="margin-top: 0;">Help</h3>
+      <h3 style="margin-top: 0; position: static; width: 25%" class="version-tag">Help</h3>
       <div id="help-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading...</div>
     </div>
 
@@ -148,12 +149,87 @@
         const dialog = document.getElementById('help-dialog');
         if (dialog.style.display === 'none') {
           dialog.style.display = 'block';
+          setVersionDisplay();
           fetch('readme.md')
             .then(res => res.text())
             .then(text => document.getElementById('help-content').innerText = text);
         } else {
           dialog.style.display = 'none';
         }
+      }
+
+      document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('cart-sidebar');
+        const toggleBtn = document.getElementById('cart-toggle-btn');
+        
+        if (sidebar.classList.contains('open') && 
+            !sidebar.contains(event.target) && 
+            !toggleBtn.contains(event.target)) {
+          toggleCart();
+        }
+      });
+
+      // Pagination Logic
+      let allProducts = [];
+      let currentPage = 1;
+      const itemsPerPage = 20;
+
+      // Fetch data and initialize pagination
+      fetch('data.json')
+        .then(response => response.json())
+        .then(data => {
+          allProducts = data;
+          renderPage(1);
+        })
+        .catch(err => console.error('Error loading products:', err));
+
+      function renderPage(page) {
+        currentPage = page;
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const productsToShow = allProducts.slice(start, end);
+        
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = '';
+        
+        productsToShow.forEach(product => {
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          card.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="product-image">
+            <div class="product-info">
+              <div class="product-name">${product.name}</div>
+              <div class="scientific-name">${product.scientific}</div>
+              <div class="product-price">$${product.price.toFixed(2)}</div>
+              <button class="add-btn" onclick="addToCart(${product.id})">Add to Cart</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+        updatePaginationControls();
+        // Scroll to top of grid
+        document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function updatePaginationControls() {
+        const container = document.getElementById('pagination-controls');
+        const totalPages = Math.ceil(allProducts.length / itemsPerPage);
+        
+        let html = `<button class="page-btn" onclick="renderPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>`;
+        
+        for (let i = 1; i <= totalPages; i++) {
+          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+        }
+        
+        html += `<button class="page-btn" onclick="renderPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+        
+        container.innerHTML = html;
+      }
+      
+      // Fallback if addToCart is not defined in script.js yet
+      if (typeof addToCart === 'undefined') {
+        window.addToCart = function(id) { console.log('Add to cart:', id); };
       }
     </script>
     <!-- Full Screen Image Modal -->
