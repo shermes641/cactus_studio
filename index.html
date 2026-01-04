@@ -101,10 +101,11 @@
     </div>
 
     <!-- Login Modal -->
-    <form id="login-modal" onsubmit="event.preventDefault(); loginUser()">
-        <h2>Cactus Shop Login</h2>
+    <form id="login-modal" onsubmit="event.preventDefault(); loginUser()" style="background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500'); background-size: cover; background-position: center;">
+        <h1>Cactus Studio Login</h1>
         <input type="text" id="login-phone" placeholder="Enter WhatsApp Number">
         <button type="submit" id="login-btn">Login</button>
+        <div class="version-tag">v1.0.0</div>
     </form>
 
     <!-- Cart Sidebar -->
@@ -141,5 +142,8 @@
       <!-- stops propagation only to allow the specific add function to run first, then bubble to close -->
       <button id="modal-add-btn">Add to Cart +</button>
     </div>
+
+    <!-- Version Tag -->
+    <div class="version-tag">v1.0.0</div>
   </body>
 </html>
