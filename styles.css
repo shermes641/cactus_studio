@@ -303,3 +303,120 @@ header {
     transform: scale(1.1);
     background-color: #1b4332;
 }
+
+/* Login Modal */
+#login-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 1);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#login-modal h2 {
+    margin-bottom: 20px;
+}
+
+#login-phone {
+    padding: 10px;
+    width: 250px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#login-btn {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Logout Button */
+#logout-btn {
+    position: fixed;
+    top: 10px;
+    left: 200px;
+    z-index: 1001;
+    padding: 8px 15px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: none;
+}
+
+/* Admin Modal Extras */
+#vis-container {
+    margin-top: 10px;
+}
+
+#admin-btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.cancel-btn {
+    background-color: #dc3545;
+}
+
+.helper-text {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+/* Hidden Manager Modal */
+#hidden-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden-modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#hidden-list {
+    margin-bottom: 15px;
+}
+
+.hidden-item {
+    margin-bottom: 5px;
+}
+
+.hidden-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+/* Product Card Extras */
+.scientific-name {
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}

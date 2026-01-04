@@ -41,19 +41,8 @@ function getStorageKey(key) {
 }
 
 function injectLoginUI() {
-  if (document.getElementById("login-modal")) {
-    document.getElementById("login-modal").style.display = "flex";
-    return;
-  }
-  const modal = document.createElement("div");
-  modal.id = "login-modal";
-  modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;";
-  modal.innerHTML = `
-    <h2 style="margin-bottom:20px;">Cactus Shop Login</h2>
-    <input type="text" id="login-phone" placeholder="Enter WhatsApp Number" style="padding:10px; width:250px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
-    <button onclick="loginUser()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;">Login</button>
-  `;
-  document.body.appendChild(modal);
+  const modal = document.getElementById("login-modal");
+  if (modal) modal.style.display = "flex";
 }
 
 function loginUser() {
@@ -75,7 +64,7 @@ function logoutUser() {
   updateCartUI();
   document.getElementById("product-grid").innerHTML = "";
   const btn = document.getElementById("logout-btn");
-  if (btn) btn.remove();
+  if (btn) btn.style.display = "none";
   
   isAdmin = false;
   const adminBtn = document.getElementById("admin-btn");
@@ -92,13 +81,8 @@ function logoutUser() {
 }
 
 function injectLogoutButton() {
-  if (document.getElementById("logout-btn")) return;
-  const btn = document.createElement("button");
-  btn.id = "logout-btn";
-  btn.innerText = "Logout";
-  btn.style.cssText = "position:fixed; top:10px; left:200px; z-index:1001; padding:8px 15px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;";
-  btn.onclick = logoutUser;
-  document.body.appendChild(btn);
+  const btn = document.getElementById("logout-btn");
+  if (btn) btn.style.display = "block";
 }
 
 function loadUserData() {
@@ -134,7 +118,6 @@ function loadUserData() {
   }
   renderProducts();
   localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
-  injectAdminUI();
   updateHiddenCount();
   checkAdminAccess();
 }
@@ -142,6 +125,7 @@ function loadUserData() {
 // Initialize application on page load
 window.onload = function () {
   defaultProducts = JSON.parse(JSON.stringify(products));
+
   if (window.location.hash === "#admin") {
     loadUserData();
   } else {
@@ -163,7 +147,7 @@ function renderProducts() {
     if (product.hidden) return;
     // Check if scientific name exists
     const sciName = product.scientific
-      ? `<div style="color:#666; font-style:italic; font-size:0.9rem; margin-bottom:5px;">${product.scientific}</div>`
+      ? `<div class="scientific-name">${product.scientific}</div>`
       : "";
 
     grid.innerHTML += `
@@ -313,89 +297,6 @@ function addProduct() {
   }
 }
 
-function injectAdminUI() {
-  if (!document.getElementById("admin-btn")) {
-    const btn = document.createElement("button");
-    btn.id = "admin-btn";
-    btn.innerText = "Add Item";
-    btn.className = "add-btn";
-    btn.style.cssText = "display:none; position:fixed; bottom:20px; right:20px; z-index:1000; padding:10px 20px; background:#555; color:white; border:none; border-radius:4px; cursor:pointer;";
-    btn.onclick = toggleAdminModal;
-    document.body.appendChild(btn);
-  }
-  if (!document.getElementById("admin-modal")) {
-    const modal = document.createElement("div");
-    modal.id = "admin-modal";
-    modal.style.cssText = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001; justify-content:center; align-items:center;";
-    modal.innerHTML = `
-      <div style="background:white; padding:20px; border-radius:8px; width:300px; display:flex; flex-direction:column; gap:10px;">
-        <h3>Manage Cactus</h3>
-        <input type="text" id="new-name" placeholder="Name" style="padding:5px;">
-        <input type="number" id="new-price" placeholder="Price" style="padding:5px;">
-        <input type="text" id="new-image" placeholder="Image URL" style="padding:5px;">
-        <button class="add-btn" onclick="addProduct()">Add to Inventory</button>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-  const imgInput = document.getElementById("new-image");
-  if (imgInput && !document.getElementById("vis-container")) {
-    const div = document.createElement("div");
-    div.id = "vis-container";
-    div.style.marginTop = "10px";
-    div.innerHTML = `
-      <label><input type="checkbox" id="hide-check"> Hide Product</label>
-    `;
-    imgInput.parentNode.insertBefore(div, imgInput.nextSibling);
-  }
-
-  const saveBtn = document.querySelector("#admin-modal .add-btn");
-  if (saveBtn && saveBtn.parentNode.id !== "admin-btn-row") {
-    const row = document.createElement("div");
-    row.id = "admin-btn-row";
-    row.style.cssText = "display:flex; gap:10px; margin-top:15px;";
-    
-    saveBtn.parentNode.insertBefore(row, saveBtn);
-    row.appendChild(saveBtn);
-    
-    const cancelBtn = document.createElement("button");
-    cancelBtn.innerText = "Cancel";
-    cancelBtn.className = "add-btn";
-    cancelBtn.style.backgroundColor = "#dc3545";
-    cancelBtn.onclick = toggleAdminModal;
-    row.appendChild(cancelBtn);
-  }
-
-  const adminBtn = document.getElementById("admin-btn");
-  if (adminBtn && !document.getElementById("hidden-mgr-btn")) {
-    const btn = document.createElement("button");
-    btn.id = "hidden-mgr-btn";
-    btn.innerHTML = 'Hidden<span id="hidden-count" class="cart-count">0</span>';
-    btn.className = "add-btn"; 
-    btn.style.display = "none";
-    btn.style.marginLeft = "10px";
-    btn.style.backgroundColor = "#555";
-    btn.onclick = openHiddenManager;
-    adminBtn.parentNode.insertBefore(btn, adminBtn.nextSibling);
-  }
-
-  if (!document.getElementById("hidden-modal")) {
-    const modal = document.createElement("div");
-    modal.id = "hidden-modal";
-    modal.style.cssText = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;";
-    modal.innerHTML = `
-      <div style="background:white; padding:20px; border-radius:8px; width:300px; max-height:80vh; overflow-y:auto;">
-        <h3>Hidden Products</h3>
-        <div id="hidden-list" style="margin-bottom:15px;"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:15px;">
-          <button onclick="closeHiddenManager()" class="add-btn" style="background-color:#dc3545;">Cancel</button>
-          <button onclick="saveHiddenChanges()" class="add-btn">Save</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  }
-}
-
 function openHiddenManager() {
   const list = document.getElementById("hidden-list");
   list.innerHTML = "";
@@ -404,7 +305,7 @@ function openHiddenManager() {
     list.innerHTML = "<em>No hidden products.</em>";
   } else {
     hiddenProducts.forEach(p => {
-      list.innerHTML += `<div style="margin-bottom:5px;"><label><input type="checkbox" class="hidden-toggle" data-id="${p.id}"> Show <strong>${p.name}</strong></label></div>`;
+      list.innerHTML += `<div class="hidden-item"><label><input type="checkbox" class="hidden-toggle" data-id="${p.id}"> Show <strong>${p.name}</strong></label></div>`;
     });
   }
   document.getElementById("hidden-modal").style.display = "flex";

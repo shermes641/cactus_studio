@@ -22,6 +22,7 @@
         <button
           id="hidden-mgr-btn"
           class="add-btn"
+          onclick="openHiddenManager()"
           style="background: grey; display: none; max-width: 85px;"
         >
           Hidden
@@ -34,6 +35,9 @@
         </button>
       </div>
     </header>
+
+    <!-- Logout Button (Hidden by default) -->
+    <button id="logout-btn" onclick="logoutUser()">Logout</button>
 
     <!-- Hero Section -->
     <div class="hero">
@@ -69,14 +73,39 @@
             id="new-image"
             placeholder="Paste image link here"
           />
-          <small style="color: #666; font-size: 0.8rem"
+          <div id="vis-container">
+            <label><input type="checkbox" id="hide-check"> Hide Product</label>
+          </div>
+          <small class="helper-text"
             >(For demo, right click any image on Google Images and 'Copy Image
             Address')</small
           >
         </div>
-        <button class="add-btn" onclick="addProduct()">Add to Inventory</button>
+        <div id="admin-btn-row">
+            <button class="add-btn" onclick="addProduct()">Add to Inventory</button>
+            <button class="add-btn cancel-btn" onclick="toggleAdminModal()">Cancel</button>
+        </div>
       </div>
     </div>
+
+    <!-- Hidden Manager Modal -->
+    <div id="hidden-modal">
+      <div class="hidden-modal-content">
+        <h3>Hidden Products</h3>
+        <div id="hidden-list"></div>
+        <div class="hidden-modal-actions">
+          <button onclick="closeHiddenManager()" class="add-btn cancel-btn">Cancel</button>
+          <button onclick="saveHiddenChanges()" class="add-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Modal -->
+    <form id="login-modal" onsubmit="event.preventDefault(); loginUser()">
+        <h2>Cactus Shop Login</h2>
+        <input type="text" id="login-phone" placeholder="Enter WhatsApp Number">
+        <button type="submit" id="login-btn">Login</button>
+    </form>
 
     <!-- Cart Sidebar -->
     <div class="cart-sidebar" id="cart-sidebar">
