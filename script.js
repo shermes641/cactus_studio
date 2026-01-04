@@ -6,6 +6,24 @@ let currentUser = null;
 let defaultProducts = [];
 let products = [];
 
+// At the top of your /script.js file
+const APP_VERSION = '1.0.0';
+
+/**
+ * Finds all elements with the 'version-tag' class and
+ * sets their content to the current app version.
+ */
+const setVersionDisplay = () => {
+  const versionElements = document.querySelectorAll('.version-tag');
+  versionElements.forEach(element => {
+    element.textContent = `v${APP_VERSION}`;
+  });
+};
+
+// Since your script tag is at the end of the <body>,
+// the DOM will be ready, and you can call the function directly.
+setVersionDisplay();
+
 // --- SECURITY / ADMIN CHECK LOGIC ---
 // Simple hash-based admin check. If URL ends in #admin, prompts for password.
 function checkAdminAccess() {
@@ -125,7 +143,8 @@ function loadUserData() {
 
 // Initialize application on page load
 window.onload = function () {
-  fetch('data.json')
+  setVersionDisplay();
+  fetch('/data.json')
     .then(response => response.json())
     .then(data => {
       products = data;

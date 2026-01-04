@@ -9,7 +9,9 @@
   <body>
     <!-- Navigation -->
     <header>
-      <div class="logo">🌵 Cactus Studio</div>
+      <div class="logo">🌵 Cactus Studio
+      <button id="logout-btn" onclick="logoutUser()">Logout</button>
+      </div>
       <div class="nav-links">
         <!-- This button is now HIDDEN by default -->
         <button
@@ -29,15 +31,13 @@
           <span id="hidden-count" class="cart-count"></span>
         </button>
 
+        <button onclick="toggleHelp()">Help</button>
         <button onclick="toggleCart()">
           Cart
           <span id="cart-count" class="cart-count">0</span>
         </button>
       </div>
     </header>
-
-    <!-- Logout Button (Hidden by default) -->
-    <button id="logout-btn" onclick="logoutUser()">Logout</button>
 
     <!-- Hero Section -->
     <div class="hero">
@@ -88,6 +88,13 @@
       </div>
     </div>
 
+    <!-- Help Dialog -->
+    <div id="help-dialog" style="display: none; position: fixed; top: 80px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 2000;">
+      <span onclick="toggleHelp()" style="position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; font-size: 1.2rem;">&times;</span>
+      <h3 style="margin-top: 0;">Help</h3>
+      <div id="help-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading...</div>
+    </div>
+
     <!-- Hidden Manager Modal -->
     <div id="hidden-modal">
       <div class="hidden-modal-content">
@@ -105,7 +112,7 @@
         <h1>Cactus Studio Login</h1>
         <input type="text" id="login-phone" placeholder="Enter WhatsApp Number">
         <button type="submit" id="login-btn">Login</button>
-        <div class="version-tag">v1.0.0</div>
+        <div class="version-tag"></div>
     </form>
 
     <!-- Cart Sidebar -->
@@ -136,6 +143,19 @@
     </div>
 
     <script src="/script.js"></script>
+    <script>
+      function toggleHelp() {
+        const dialog = document.getElementById('help-dialog');
+        if (dialog.style.display === 'none') {
+          dialog.style.display = 'block';
+          fetch('readme.md')
+            .then(res => res.text())
+            .then(text => document.getElementById('help-content').innerText = text);
+        } else {
+          dialog.style.display = 'none';
+        }
+      }
+    </script>
     <!-- Full Screen Image Modal -->
     <div id="image-modal" onclick="closeImageModal()">
       <img id="modal-img" src="" alt="Zoomed Cactus" />
@@ -144,6 +164,6 @@
     </div>
 
     <!-- Version Tag -->
-    <div class="version-tag">v1.0.0</div>
+    <div class="version-tag"></div>
   </body>
 </html>
