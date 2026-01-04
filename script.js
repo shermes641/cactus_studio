@@ -709,10 +709,34 @@ function checkout() {
     }).render('#paypal-button-container');
   };
 
+  /*
+  o use the PayPal SDK for live payments, you need a PayPal Business account. Here is the information on where to go and the associated costs.
+
+1. Where to Sign Up
+You need to go to the PayPal Developer Dashboard.
+
+URL: https://developer.paypal.com/
+Process:
+Click "Log into Dashboard" at the top right.
+You can log in with your existing personal PayPal account and upgrade it, or create a new Business Account specifically for your store.
+Once logged in, go to "Apps & Credentials" to generate the Client ID needed for your code.
+2. How Much Does It Cost?
+Setting up the account and using the SDK is free. PayPal makes money only when you successfully sell something.
+
+Monthly Fee: $0.00. There is no monthly subscription cost for the standard "Smart Payment Buttons" integration used in your code.
+Setup Fee: $0.00. Generating Client IDs and accessing the API is free.
+Transaction Fee: You are charged a percentage of every sale.
+Standard Rate (USA): Approximately 2.99% + $0.49 per transaction.
+Note: These rates vary by country and currency. International transactions usually have a slightly higher percentage (e.g., +1.50%).
+Summary
+You do not pay anything upfront. You only pay a small fee deducted automatically from the payment when a customer actually buys a cactus
+  */
   if (!script) {
     script = document.createElement('script');
     script.id = scriptId;
-    script.src = `https://www.paypal.com/sdk/js?client-id=test&currency=USD&locale=${locale}`;
+    // Replace 'test' with your actual PayPal Client ID from the Developer Dashboard
+    const clientId = 'test';
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&locale=${locale}`;
     script.onload = render;
     script.onerror = () => {
         paypalContainer.innerHTML = "Error loading payment system.";
