@@ -231,10 +231,10 @@ header {
 /* Sliding Cart Sidebar */
 .cart-sidebar {
     position: fixed;
-    top: 60px;
+    top: -5px;
     right: -1000px;
     min-width: 250px;
-    height: 60%;
+    height: 97%;
     background: var(--white);
     box-shadow: -2px 0 5px rgba(0,0,0,0.1);
     z-index: 1500;
@@ -243,6 +243,31 @@ header {
     padding: 20px;
     display: flex;
     flex-direction: column;
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.cart-header-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.cart-header-buttons button {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    margin: 0;
+    flex: initial;
+    width: auto;
+}
+
+/* Hide header buttons when cart is empty */
+.cart-sidebar:has(.cart-items p[data-i18n="cartEmpty"]) .cart-header-buttons {
+    display: none;
 }
 
 .cart-sidebar.open {
@@ -256,8 +281,9 @@ header {
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
-    margin-bottom: 10px;
-    width: 100%;
+    margin-bottom: 0;
+    width: auto;
+    flex: 1;
     font-size: 1rem;
     transition: background 0.2s;
 }
@@ -284,10 +310,18 @@ header {
     background-color: var(--accent);
     color: var(--white);
     border: none;
-    padding: 15px;
-    width: 100%;
+    padding: 10px;
+    width: auto;
+    flex: 1;
+    border-radius: 5px;
     font-size: 1.1rem;
     cursor: pointer;
+    margin-top: 0;
+}
+
+.cart-buttons {
+    display: flex;
+    gap: 10px;
     margin-top: 20px;
 }
 
@@ -554,4 +588,33 @@ header {
     background-color: #eee;
     border-color: #ccc;
     color: #888;
+}
+
+/* Low height adjustments */
+@media (max-height: 800px) {
+    .cart-sidebar {
+        padding: 5px;
+    }
+    .cart-sidebar h2 {
+        font-size: 1rem;
+        margin: 5px 0;
+    }
+    .cart-items {
+        margin-top: 5px;
+    }
+    .cart-item {
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+    }
+    .cart-buttons {
+        margin-top: 5px;
+    }
+    .remove-all-btn, .checkout-btn {
+        padding: 5px;
+        font-size: 0.8rem;
+    }
+    #cart-footer h3 {
+        font-size: 0.9rem;
+        margin: 5px 0;
+    }
 }
