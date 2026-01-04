@@ -58,6 +58,12 @@ header {
     color: var(--accent);
 }
 
+#lang-btn {
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
 /* Admin button hidden by default */
 #admin-btn {
     display: none; 
@@ -98,6 +104,7 @@ header {
     max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
+    background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)) center center / cover, url(https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500);
 }
 
 .section-title {
@@ -208,6 +215,9 @@ header {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    width: 150px;
+    left: 2px;
+    position: relative;
 }
 
 .form-group input, .form-group textarea {
@@ -221,14 +231,15 @@ header {
 /* Sliding Cart Sidebar */
 .cart-sidebar {
     position: fixed;
-    top: 0;
-    right: -350px;
-    width: 300px;
-    height: 90%;
+    top: 60px;
+    right: -1000px;
+    width: 25%;
+    height: 60%;
     background: var(--white);
     box-shadow: -2px 0 5px rgba(0,0,0,0.1);
     z-index: 1500;
-    transition: right 0.3s;
+    transition: right 0.5s;
+
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -236,6 +247,23 @@ header {
 
 .cart-sidebar.open {
     right: 0;
+}
+
+.remove-all-btn {
+    background-color: #dc3545;
+    color: var(--white);
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    width: 100%;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.remove-all-btn:hover {
+    background-color: #c82333;
 }
 
 .cart-items {
@@ -402,6 +430,11 @@ header {
 
 .hidden-item {
     margin-bottom: 5px;
+}
+
+.hidden-toggle {
+    accent-color: var(--primary);
+    cursor: pointer;
 }
 
 .hidden-modal-actions {

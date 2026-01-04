@@ -10,14 +10,15 @@
     <!-- Navigation -->
     <header>
       <div class="logo">🌵 Cactus Studio
-      <button id="logout-btn" onclick="logoutUser()">Logout</button>
+      <button id="logout-btn" onclick="logoutUser()" data-i18n="logout">Logout</button>
       </div>
       <div class="nav-links">
+        <button id="lang-btn" onclick="toggleLanguage()">ES</button>
         <!-- This button is now HIDDEN by default -->
         <button
           id="admin-btn"
           onclick="toggleAdminModal()"
-          style="display: none; min-width: 100px;"
+          style="display: none; min-width: 100px;" data-i18n="addItem"
         >
           Add Item
         </button>
@@ -27,13 +28,13 @@
           onclick="openHiddenManager()"
           style="background: grey; display: none; max-width: 85px;"
         >
-          Hidden
+          <span data-i18n="hidden">Hidden</span>
           <span id="hidden-count" class="cart-count"></span>
         </button>
 
-        <button onclick="toggleHelp()">Help</button>
+        <button id="help-btn" onclick="toggleHelp()" data-i18n="help">Help</button>
         <button id="cart-toggle-btn" onclick="toggleCart()">
-          Cart
+          <span data-i18n="cart">Cart</span>
           <span id="cart-count" class="cart-count">0</span>
         </button>
       </div>
@@ -41,13 +42,12 @@
 
     <!-- Hero Section -->
     <div class="hero">
-      <h1>Rare & Exotic Cacti</h1>
-      <p>Delivered safely from our nursery to your doorstep.</p>
+      <h1 data-i18n="heroTitle">Rare & Exotic Cacti</h1>
+      <p data-i18n="heroSubtitle">Delivered safely from our nursery to your doorstep.</p>
     </div>
 
     <!-- Main Inventory -->
     <div class="container">
-      <h2 class="section-title">Current Inventory</h2>
       <div class="product-grid" id="product-grid">
         <!-- Products will be injected here by JavaScript -->
       </div>
@@ -58,33 +58,33 @@
     <div class="modal" id="admin-modal">
       <div class="modal-content">
         <span class="close-btn" onclick="toggleAdminModal()">&times;</span>
-        <h2>Upload New Cactus</h2>
+        <h2 data-i18n="uploadTitle">Upload New Cactus</h2>
         <div class="form-group">
-          <label>Cactus Name</label>
+          <label data-i18n="labelName">Cactus Name</label>
           <input type="text" id="new-name" placeholder="e.g. Golden Barrel" />
         </div>
         <div class="form-group">
-          <label>Price ($)</label>
+          <label data-i18n="labelPrice">Price ($)</label>
           <input type="number" id="new-price" placeholder="25.00" />
         </div>
         <div class="form-group">
-          <label>Image URL</label>
+          <label data-i18n="labelImage">Image URL</label>
           <input
             type="text"
             id="new-image"
             placeholder="Paste image link here"
           />
           <div id="vis-container">
-            <label><input type="checkbox" id="hide-check"> Hide Product</label>
+            <label style="display: flex; align-items: center; gap: 2px;"><input type="checkbox" id="hide-check"> <span data-i18n="labelHide">Hide Product</span></label>
           </div>
-          <small class="helper-text"
+          <small class="helper-text" data-i18n="helperText"
             >(For demo, right click any image on Google Images and 'Copy Image
             Address')</small
           >
         </div>
         <div id="admin-btn-row">
-            <button class="add-btn" onclick="addProduct()">Add to Inventory</button>
-            <button class="add-btn cancel-btn" onclick="toggleAdminModal()">Cancel</button>
+            <button class="add-btn" onclick="addProduct()" data-i18n="btnAddInventory">Add to Inventory</button>
+            <button class="add-btn cancel-btn" onclick="toggleAdminModal()" data-i18n="btnCancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -92,27 +92,27 @@
     <!-- Help Dialog -->
     <div id="help-dialog" style="display: none; position: fixed; top: 80px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 2000;">
       <span onclick="toggleHelp()" style="position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; font-size: 1.2rem;">&times;</span>
-      <h3 style="margin-top: 0; position: static; width: 25%" class="version-tag">Help</h3>
+      <h3 style="margin-top: 0; position: static; width: 25%" class="version-tag" data-i18n="help">Help</h3>
       <div id="help-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading...</div>
     </div>
 
     <!-- Hidden Manager Modal -->
     <div id="hidden-modal">
       <div class="hidden-modal-content">
-        <h3>Hidden Products</h3>
+        <h3 data-i18n="hiddenTitle">Hidden Products</h3>
         <div id="hidden-list"></div>
         <div class="hidden-modal-actions">
-          <button onclick="closeHiddenManager()" class="add-btn cancel-btn">Cancel</button>
-          <button onclick="saveHiddenChanges()" class="add-btn">Save</button>
+          <button onclick="closeHiddenManager()" class="add-btn cancel-btn" data-i18n="btnCancel">Cancel</button>
+          <button onclick="saveHiddenChanges()" class="add-btn" data-i18n="btnSave">Save</button>
         </div>
       </div>
     </div>
 
     <!-- Login Modal -->
     <form id="login-modal" onsubmit="event.preventDefault(); loginUser()" style="background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500'); background-size: cover; background-position: center;">
-        <h1>Cactus Studio Login</h1>
-        <input type="text" id="login-phone" placeholder="Enter WhatsApp Number">
-        <button type="submit" id="login-btn">Login</button>
+        <h1 data-i18n="loginTitle">Cactus Studio Login</h1>
+        <input type="text" id="login-phone" placeholder="Enter WhatsApp Number" data-i18n-placeholder="loginPlaceholder">
+        <button type="submit" id="login-btn" data-i18n="btnLogin">Login</button>
         <div class="version-tag"></div>
     </form>
 
@@ -125,118 +125,31 @@
           align-items: center;
         "
       >
-        <h2>Your Cart</h2>
+        <h2 data-i18n="cartTitle">Your Cart</h2>
         <span style="cursor: pointer; font-size: 1.5rem" onclick="toggleCart()"
           >&times;</span
         >
       </div>
+      <button class="remove-all-btn" onclick="removeAllFromCart()" data-i18n="btnRemoveAll">Remove All</button>
       <div class="cart-items" id="cart-items">
-        <p>Your cart is empty.</p>
+        <p data-i18n="cartEmpty">Your cart is empty.</p>
       </div>
       <div id="cart-footer" style="display: none">
         <h3 style="text-align: right">
-          Total: $<span id="cart-total">0.00</span>
+          <span data-i18n="cartTotal">Total:</span> $<span id="cart-total">0.00</span>
         </h3>
-        <button class="checkout-btn" onclick="checkout()">
+        <button class="checkout-btn" onclick="checkout()" data-i18n="btnCheckout">
           Proceed to Checkout
         </button>
       </div>
     </div>
 
     <script src="/script.js"></script>
-    <script>
-      function toggleHelp() {
-        const dialog = document.getElementById('help-dialog');
-        if (dialog.style.display === 'none') {
-          dialog.style.display = 'block';
-          setVersionDisplay();
-          fetch('readme.md')
-            .then(res => res.text())
-            .then(text => document.getElementById('help-content').innerText = text);
-        } else {
-          dialog.style.display = 'none';
-        }
-      }
-
-      document.addEventListener('click', function(event) {
-        const sidebar = document.getElementById('cart-sidebar');
-        const toggleBtn = document.getElementById('cart-toggle-btn');
-        
-        if (sidebar.classList.contains('open') && 
-            !sidebar.contains(event.target) && 
-            !toggleBtn.contains(event.target)) {
-          toggleCart();
-        }
-      });
-
-      // Pagination Logic
-      let allProducts = [];
-      let currentPage = 1;
-      const itemsPerPage = 20;
-
-      // Fetch data and initialize pagination
-      fetch('data.json')
-        .then(response => response.json())
-        .then(data => {
-          allProducts = data;
-          renderPage(1);
-        })
-        .catch(err => console.error('Error loading products:', err));
-
-      function renderPage(page) {
-        currentPage = page;
-        const start = (page - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const productsToShow = allProducts.slice(start, end);
-        
-        const grid = document.getElementById('product-grid');
-        grid.innerHTML = '';
-        
-        productsToShow.forEach(product => {
-          const card = document.createElement('div');
-          card.className = 'product-card';
-          card.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image">
-            <div class="product-info">
-              <div class="product-name">${product.name}</div>
-              <div class="scientific-name">${product.scientific}</div>
-              <div class="product-price">$${product.price.toFixed(2)}</div>
-              <button class="add-btn" onclick="addToCart(${product.id})">Add to Cart</button>
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-
-        updatePaginationControls();
-        // Scroll to top of grid
-        document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
-      }
-
-      function updatePaginationControls() {
-        const container = document.getElementById('pagination-controls');
-        const totalPages = Math.ceil(allProducts.length / itemsPerPage);
-        
-        let html = `<button class="page-btn" onclick="renderPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>`;
-        
-        for (let i = 1; i <= totalPages; i++) {
-          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
-        }
-        
-        html += `<button class="page-btn" onclick="renderPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-        
-        container.innerHTML = html;
-      }
-      
-      // Fallback if addToCart is not defined in script.js yet
-      if (typeof addToCart === 'undefined') {
-        window.addToCart = function(id) { console.log('Add to cart:', id); };
-      }
-    </script>
     <!-- Full Screen Image Modal -->
     <div id="image-modal" onclick="closeImageModal()">
       <img id="modal-img" src="" alt="Zoomed Cactus" />
       <!-- stops propagation only to allow the specific add function to run first, then bubble to close -->
-      <button id="modal-add-btn">Add to Cart +</button>
+      <button id="modal-add-btn" data-i18n="modalAddCart">Add to Cart +</button>
     </div>
 
     <!-- Version Tag -->

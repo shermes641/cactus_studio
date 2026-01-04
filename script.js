@@ -5,6 +5,98 @@ let editingProductId = null;
 let currentUser = null;
 let defaultProducts = [];
 let products = [];
+let currentPage = 1;
+const itemsPerPage = 20;
+const hiddenProductIds = new Set();
+
+const translations = {
+    en: {
+        logout: "Logout",
+        addItem: "Add Item",
+        hidden: "Hidden",
+        help: "Help",
+        cart: "Cart",
+        heroTitle: "Rare & Exotic Cacti",
+        heroSubtitle: "Delivered safely from our nursery to your doorstep.",
+        inventoryTitle: "Current Inventory",
+        uploadTitle: "Upload New Cactus",
+        labelName: "Cactus Name",
+        labelPrice: "Price ($)",
+        labelImage: "Image URL",
+        labelHide: "Hide Product",
+        helperText: "(For demo, right click any image on Google Images and 'Copy Image Address')",
+        btnAddInventory: "Add to Inventory",
+        btnUpdateProduct: "Update Product",
+        btnCancel: "Cancel",
+        hiddenTitle: "Hidden Products",
+        btnSave: "Save",
+        loginTitle: "Cactus Studio Login",
+        loginPlaceholder: "Enter WhatsApp Number",
+        btnLogin: "Login",
+        cartTitle: "Your Cart",
+        btnRemoveAll: "Remove All",
+        cartEmpty: "Your cart is empty.",
+        cartTotal: "Total:",
+        btnCheckout: "Proceed to Checkout",
+        btnAddCart: "Add to Cart",
+        btnRemove: "Remove",
+        alertAdminPass: "Enter Admin Password:",
+        alertAccessGranted: "Admin access granted.",
+        alertIncorrectPass: "Incorrect Password.",
+        alertValidNumber: "Please enter a valid number.",
+        alertUpdated: "Cactus updated!",
+        alertAdded: "Cactus added to inventory!",
+        alertFillFields: "Please fill in all fields.",
+        alertPayment: "This would go to payment!",
+        prev: "Prev",
+        next: "Next",
+        modalAddCart: "Add to Cart +"
+    },
+    es: {
+        logout: "Cerrar Sesión",
+        addItem: "Agregar Item",
+        hidden: "Ocultos",
+        help: "Ayuda",
+        cart: "Carrito",
+        heroTitle: "Cactus Raros y Exóticos",
+        heroSubtitle: "Entregados con seguridad desde nuestro vivero a tu puerta.",
+        inventoryTitle: "Inventario Actual",
+        uploadTitle: "Subir Nuevo Cactus",
+        labelName: "Nombre del Cactus",
+        labelPrice: "Precio ($)",
+        labelImage: "URL de Imagen",
+        labelHide: "Ocultar Producto",
+        helperText: "(Para demo, clic derecho en cualquier imagen de Google y 'Copiar dirección de imagen')",
+        btnAddInventory: "Agregar al Inventario",
+        btnUpdateProduct: "Actualizar Producto",
+        btnCancel: "Cancelar",
+        hiddenTitle: "Productos Ocultos",
+        btnSave: "Guardar",
+        loginTitle: "Login Cactus Studio",
+        loginPlaceholder: "Ingresa número de WhatsApp",
+        btnLogin: "Entrar",
+        cartTitle: "Tu Carrito",
+        btnRemoveAll: "Vaciar Carrito",
+        cartEmpty: "Tu carrito está vacío.",
+        cartTotal: "Total:",
+        btnCheckout: "Proceder al Pago",
+        btnAddCart: "Agregar al Carrito",
+        btnRemove: "Eliminar",
+        alertAdminPass: "Ingresa Contraseña de Admin:",
+        alertAccessGranted: "Acceso de admin concedido.",
+        alertIncorrectPass: "Contraseña incorrecta.",
+        alertValidNumber: "Por favor ingresa un número válido.",
+        alertUpdated: "¡Cactus actualizado!",
+        alertAdded: "¡Cactus agregado al inventario!",
+        alertFillFields: "Por favor llena todos los campos.",
+        alertPayment: "¡Esto iría al pago!",
+        prev: "Ant",
+        next: "Sig",
+        modalAddCart: "Agregar al Carrito +"
+    }
+};
+
+let currentLang = localStorage.getItem('cactusLang') || 'en';
 
 // At the top of your /script.js file
 const APP_VERSION = '1.0.0';
@@ -23,6 +115,68 @@ const setVersionDisplay = () => {
 // Since your script tag is at the end of the <body>,
 // the DOM will be ready, and you can call the function directly.
 setVersionDisplay();
+applyTranslations();
+
+function toggleLanguage() {
+    currentLang = currentLang === 'en' ? 'es' : 'en';
+    localStorage.setItem('cactusLang', currentLang);
+
+    // Close help dialog if open
+    const helpDialog = document.getElementById('help-dialog');
+    if (helpDialog && helpDialog.style.display !== 'none') {
+        helpDialog.style.display = 'none';
+    }
+
+    // Close cart sidebar if open
+    const sidebar = document.getElementById("cart-sidebar");
+    if (sidebar && sidebar.classList.contains("open")) {
+        sidebar.classList.remove("open");
+    }
+
+    applyTranslations();
+}
+
+function applyTranslations() {
+    const t = translations[currentLang];
+    document.getElementById('lang-btn').innerText = currentLang === 'en' ? 'ES' : 'EN';
+    
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerText = t[key];
+    });
+    
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) el.placeholder = t[key];
+    });
+
+    renderPage(currentPage);
+    updateCartUI();
+}
+
+function toggleHelp() {
+  const dialog = document.getElementById('help-dialog');
+  if (dialog.style.display === 'none') {
+    dialog.style.display = 'block';
+    setVersionDisplay();
+    const helpFile = currentLang === 'es' ? '/user_es.html' : '/user.html';
+    fetch(helpFile)
+      .then(res => res.text())
+      .then(text => document.getElementById('help-content').innerHTML = text)
+      .catch(err => document.getElementById('help-content').innerText = "Help file not found.");
+  } else {
+    dialog.style.display = 'none';
+  }
+}
+
+function removeAllFromCart() {
+    if (!cart || !cart.length) return;
+    // Iterate backwards to avoid index shifting issues
+    for (let i = cart.length - 1; i >= 0; i--) {
+        // Call the local removeFromCart function
+        removeFromCart(i);
+    }
+}
 
 // --- SECURITY / ADMIN CHECK LOGIC ---
 // Simple hash-based admin check. If URL ends in #admin, prompts for password.
@@ -30,20 +184,26 @@ function checkAdminAccess() {
   if (isAdmin) return;
   // Check if URL ends with #admin
   if (window.location.hash === "#admin") {
-    const password = prompt("Enter Admin Password:");
+    const password = prompt(translations[currentLang].alertAdminPass);
     if (password === "LILY") {
       isAdmin = true;
       currentUser = "admin";
       if (document.getElementById("login-modal")) document.getElementById("login-modal").style.display = "none";
-      loadUserData();
-      injectLogoutButton();
-      alert("Admin access granted.");
+      
+      if (products.length === 0) {
+        fetchDataAndLoad();
+      } else {
+        loadUserData();
+        injectLogoutButton();
+      }
+      
+      alert(translations[currentLang].alertAccessGranted);
       // Show the admin button
       document.getElementById("admin-btn").style.display = "inline-block";
       const hiddenBtn = document.getElementById("hidden-mgr-btn");
       if (hiddenBtn) hiddenBtn.style.display = "inline-block";
     } else {
-      alert("Incorrect Password.");
+      alert(translations[currentLang].alertIncorrectPass);
       // Remove the hash to prevent loop
       history.pushState(
         "",
@@ -62,18 +222,31 @@ function getStorageKey(key) {
 function injectLoginUI() {
   const modal = document.getElementById("login-modal");
   if (modal) modal.style.display = "flex";
+  const input = document.getElementById("login-phone");
+  if (input) setTimeout(() => input.focus(), 100);
 }
 
 function loginUser() {
   const phone = document.getElementById("login-phone").value.trim();
   if (!phone) {
-    alert("Please enter a valid number.");
+    alert(translations[currentLang].alertValidNumber);
     return;
   }
   currentUser = phone;
   document.getElementById("login-modal").style.display = "none";
-  loadUserData();
-  injectLogoutButton();
+  fetchDataAndLoad();
+}
+
+function fetchDataAndLoad() {
+  fetch('/data.json')
+    .then(response => response.json())
+    .then(data => {
+      products = data;
+      defaultProducts = JSON.parse(JSON.stringify(products));
+      loadUserData();
+      injectLogoutButton();
+    })
+    .catch(err => console.error("Error loading products:", err));
 }
 
 function logoutUser() {
@@ -105,12 +278,17 @@ function injectLogoutButton() {
 }
 
 function loadUserData() {
-  const storedProducts = localStorage.getItem(getStorageKey('cactusProducts'));
-  if (storedProducts) {
-    try {
-      products = JSON.parse(storedProducts);
-    } catch (e) {
-      console.error("Error loading products from localStorage:", e);
+  // Only admin loads modified products. Regular users use default (fresh) data.
+  if (currentUser === 'admin') {
+    const storedProducts = localStorage.getItem(getStorageKey('cactusProducts'));
+    if (storedProducts) {
+      try {
+        products = JSON.parse(storedProducts);
+      } catch (e) {
+        console.error("Error loading products from localStorage:", e);
+        products = JSON.parse(JSON.stringify(defaultProducts));
+      }
+    } else {
       products = JSON.parse(JSON.stringify(defaultProducts));
     }
   } else {
@@ -118,23 +296,29 @@ function loadUserData() {
   }
   const storedCart = localStorage.getItem(getStorageKey('cactusCart'));
   if (storedCart) {
-    try {
+    // try {
       cart = JSON.parse(storedCart);
-      // Remove hidden items from cart on load
-      const initialCount = cart.length;
-      cart = cart.filter(item => {
-        const product = products.find(p => p.id === item.id);
-        return !product || !product.hidden;
-      });
-      if (cart.length !== initialCount) localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
       updateCartUI();
-    } catch (e) {
-      console.error("Error loading cart from localStorage:", e);
-    }
+    //   // Remove hidden items from cart on load
+    //   const initialCount = cart.length;
+    //   cart = cart.filter(item => {
+    //     const product = products.find(p => p.id === item.id);
+    //     return !product || !product.hidden;
+    //   });
+    //   if (cart.length !== initialCount) localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
+    //   updateCartUI();
+    // } catch (e) {
+    //   console.error("Error loading cart from localStorage:", e);
+    // }
   } else {
     cart = [];
     updateCartUI();
   }
+  
+  // Sync hidden IDs from cart
+  hiddenProductIds.clear();
+  cart.forEach(item => hiddenProductIds.add(item.id));
+
   renderProducts();
   localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
   updateHiddenCount();
@@ -144,16 +328,30 @@ function loadUserData() {
 // Initialize application on page load
 window.onload = function () {
   setVersionDisplay();
-  fetch('/data.json')
-    .then(response => response.json())
-    .then(data => {
-      products = data;
-      defaultProducts = JSON.parse(JSON.stringify(products));
-      
-      if (window.location.hash === "#admin") loadUserData();
-      else injectLoginUI();
-    })
-    .catch(err => console.error("Error loading products:", err));
+  
+  if (window.location.hash === "#admin") checkAdminAccess();
+  else injectLoginUI();
+
+  // Sidebar close listener
+  document.addEventListener('click', function(event) {
+    // Close help dialog if clicking outside
+    const helpDialog = document.getElementById('help-dialog');
+    const helpBtn = document.getElementById('help-btn');
+    if (helpDialog && helpDialog.style.display !== 'none') {
+      if (!helpDialog.contains(event.target) && (!helpBtn || !helpBtn.contains(event.target))) {
+        helpDialog.style.display = 'none';
+      }
+    }
+
+    const sidebar = document.getElementById('cart-sidebar');
+    const toggleBtn = document.getElementById('cart-toggle-btn');
+    
+    if (!event.target.isConnected) return;
+
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+      toggleCart();
+    }
+  });
 };
 
 // Listen for hash changes to trigger admin check dynamically
@@ -164,10 +362,26 @@ window.addEventListener("hashchange", checkAdminAccess);
 // --- UPDATED: Render Products with Clickable Images ---
 // Dynamically generates HTML for the product grid based on the 'products' array
 function renderProducts() {
+  renderPage(currentPage);
+}
+
+function renderPage(page) {
+  // Filter: Not hidden by admin AND not in cart (hiddenProductIds)
+  const visibleProducts = products.filter(p => !p.hidden && !hiddenProductIds.has(p.id));
+  
+  const totalPages = Math.ceil(visibleProducts.length / itemsPerPage) || 1;
+  if (page > totalPages) page = totalPages;
+  if (page < 1) page = 1;
+  
+  currentPage = page;
+  const start = (page - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const productsToShow = visibleProducts.slice(start, end);
+
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
-  products.forEach((product) => {
-    if (product.hidden) return;
+  
+  productsToShow.forEach((product) => {
     // Check if scientific name exists
     const sciName = product.scientific
       ? `<div class="scientific-name">${product.scientific}</div>`
@@ -175,25 +389,36 @@ function renderProducts() {
 
     grid.innerHTML += `
         <div class="product-card">
-            <!-- Added onclick event here for zooming -->
-            <img src="${product.image}" class="product-image" alt="${
-      product.name
-    }" 
-                 onclick="openImageModal(${
-                   product.id
-                 })" style="cursor:zoom-in;">
-            
+            <img src="${product.image}" class="product-image" alt="${product.name}" 
+                 onclick="openImageModal(${product.id})" style="cursor:zoom-in;">
             <div class="product-info">
                 <div class="product-name">${product.name}</div>
                 ${sciName}
                 <div class="product-price">$${product.price.toFixed(2)}</div>
-                <button class="add-btn" onclick="addToCart(${
-                  product.id
-                })">Add to Cart</button>
+                <button class="add-btn" onclick="addToCart(${product.id})">${translations[currentLang].btnAddCart}</button>
             </div>
         </div>
     `;
   });
+
+  updatePaginationControls(visibleProducts.length);
+}
+
+function updatePaginationControls(totalCount) {
+  const container = document.getElementById('pagination-controls');
+  if (!container) return;
+  
+  const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
+  
+  let html = `<button class="page-btn" onclick="renderPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>${translations[currentLang].prev}</button>`;
+  
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="page-btn" onclick="renderPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>${translations[currentLang].next}</button>`;
+  
+  container.innerHTML = html;
 }
 
 // --- NEW: Image Zoom Functions ---
@@ -215,7 +440,7 @@ function openImageModal(id) {
     }
 
     const btn = document.querySelector("#admin-modal .add-btn");
-    if (btn) btn.innerText = "Update Product";
+    if (btn) btn.innerText = translations[currentLang].btnUpdateProduct;
 
     const adminModal = document.getElementById("admin-modal");
     if (adminModal.style.display !== "flex") {
@@ -231,6 +456,7 @@ function openImageModal(id) {
   // Set Image
   img.src = product.image;
 
+  btn.innerText = translations[currentLang].modalAddCart;
   // Configure the button to add THIS specific product
   // We use event.stopPropagation() inside the inline call to ensure logic flows correctly if needed,
   // but here we rely on the container's onclick to close it.
@@ -263,7 +489,7 @@ function toggleAdminModal() {
     const hideCheck = document.getElementById("hide-check");
     if (hideCheck) hideCheck.checked = false;
     const btn = document.querySelector("#admin-modal .add-btn");
-    if (btn) btn.innerText = "Add to Inventory";
+    if (btn) btn.innerText = translations[currentLang].btnAddInventory;
   }
 }
 
@@ -287,7 +513,7 @@ function addProduct() {
           localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
           updateCartUI();
         }
-        alert("Cactus updated!");
+        alert(translations[currentLang].alertUpdated);
       }
     } else {
       const newProduct = {
@@ -298,7 +524,7 @@ function addProduct() {
         hidden: isHidden,
       };
       products.push(newProduct);
-      alert("Cactus added to inventory!");
+      alert(translations[currentLang].alertAdded);
     }
     localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
     renderProducts();
@@ -314,9 +540,9 @@ function addProduct() {
 
     editingProductId = null;
     const btn = document.querySelector("#admin-modal .add-btn");
-    if (btn) btn.innerText = "Add to Inventory";
+    if (btn) btn.innerText = translations[currentLang].btnAddInventory;
   } else {
-    alert("Please fill in all fields.");
+    alert(translations[currentLang].alertFillFields);
   }
 }
 
@@ -362,6 +588,11 @@ function updateHiddenCount() {
 function toggleCart() {
   const sidebar = document.getElementById("cart-sidebar");
   sidebar.classList.toggle("open");
+
+  if (sidebar.classList.contains("open")) {
+    const helpDialog = document.getElementById('help-dialog');
+    if (helpDialog) helpDialog.style.display = 'none';
+  }
 }
 
 // Adds a product to the cart array and updates the UI
@@ -370,7 +601,9 @@ function addToCart(id) {
   cart.push(product);
   localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
   updateCartUI();
-  toggleCart();
+  
+  hiddenProductIds.add(id);
+  renderPage(currentPage);
 }
 
 // Re-renders the cart sidebar contents based on the 'cart' array
@@ -379,13 +612,16 @@ function updateCartUI() {
   const cartCount = document.getElementById("cart-count");
   const cartTotal = document.getElementById("cart-total");
   const cartFooter = document.getElementById("cart-footer");
+  const removeAllBtn = document.querySelector(".remove-all-btn");
 
   cartCount.innerText = cart.length;
 
   if (cart.length === 0) {
-    cartItemsDiv.innerHTML = "<p>Your cart is empty.</p>";
+    cartItemsDiv.innerHTML = `<p data-i18n="cartEmpty">${translations[currentLang].cartEmpty}</p>`;
     cartFooter.style.display = "none";
+    if (removeAllBtn) removeAllBtn.style.display = "none";
   } else {
+    if (removeAllBtn) removeAllBtn.style.display = "block";
     cartItemsDiv.innerHTML = "";
     let total = 0;
     cart.forEach((item, index) => {
@@ -396,7 +632,7 @@ function updateCartUI() {
                         <strong>${item.name}</strong><br>
                         $${item.price.toFixed(2)}
                     </div>
-                    <button onclick="removeFromCart(${index})" style="background:none; border:none; color:red; cursor:pointer;">Remove</button>
+                    <button onclick="removeFromCart(${index})" style="background:none; border:none; color:red; cursor:pointer;">${translations[currentLang].btnRemove}</button>
                 </div>
             `;
     });
@@ -407,12 +643,18 @@ function updateCartUI() {
 
 // Removes an item from the cart by index
 function removeFromCart(index) {
+  const item = cart[index];
+  if (item) {
+    hiddenProductIds.delete(item.id);
+  }
+  
   cart.splice(index, 1);
   localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
   updateCartUI();
+  renderPage(currentPage);
 }
 
 // Placeholder for checkout functionality
 function checkout() {
-  alert("This would go to payment!");
+  alert(translations[currentLang].alertPayment);
 }
