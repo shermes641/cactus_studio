@@ -233,7 +233,7 @@ header {
     position: fixed;
     top: 60px;
     right: -1000px;
-    width: 25%;
+    min-width: 250px;
     height: 60%;
     background: var(--white);
     box-shadow: -2px 0 5px rgba(0,0,0,0.1);
@@ -490,6 +490,30 @@ header {
 
     .product-image {
         height: 100px;
+    }
+}
+
+/* Mobile Landscape Optimizations */
+@media (max-width: 900px) and (orientation: landscape) {
+    header {
+        flex-direction: row;
+        padding: 0.5rem 1rem;
+    }
+
+    .logo {
+        width: auto;
+        justify-content: flex-start;
+        margin-bottom: 0;
+        font-size: 1.2rem;
+    }
+
+    .nav-links {
+        width: auto;
+        justify-content: flex-end;
+    }
+
+    .hero {
+        height: 220px;
     }
 }
 
