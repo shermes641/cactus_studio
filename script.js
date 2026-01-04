@@ -118,22 +118,17 @@ setVersionDisplay();
 applyTranslations();
 
 function toggleLanguage() {
-    currentLang = currentLang === 'en' ? 'es' : 'en';
-    localStorage.setItem('cactusLang', currentLang);
+    const nextLang = currentLang === 'en' ? 'es' : 'en';
+    const msg = currentLang === 'en' 
+        ? "Changing language will log you out and reload the page. Continue?" 
+        : "Cambiar el idioma cerrará la sesión y recargará la página. ¿Continuar?";
 
-    // Close help dialog if open
-    const helpDialog = document.getElementById('help-dialog');
-    if (helpDialog && helpDialog.style.display !== 'none') {
-        helpDialog.style.display = 'none';
+    if (confirm(msg)) {
+        currentLang = nextLang;
+        localStorage.setItem('cactusLang', currentLang);
+        logoutUser();
+        window.location.reload();
     }
-
-    // Close cart sidebar if open
-    const sidebar = document.getElementById("cart-sidebar");
-    if (sidebar && sidebar.classList.contains("open")) {
-        sidebar.classList.remove("open");
-    }
-
-    applyTranslations();
 }
 
 function applyTranslations() {
@@ -592,6 +587,11 @@ function toggleCart() {
   if (sidebar.classList.contains("open")) {
     const helpDialog = document.getElementById('help-dialog');
     if (helpDialog) helpDialog.style.display = 'none';
+  } else {
+    const paypalContainer = document.getElementById("paypal-button-container");
+    if (paypalContainer) paypalContainer.innerHTML = "";
+    const checkoutBtn = document.querySelector(".checkout-btn");
+    if (checkoutBtn) checkoutBtn.style.display = "";
   }
 }
 
@@ -613,6 +613,12 @@ function updateCartUI() {
   const cartTotal = document.getElementById("cart-total");
   const cartFooter = document.getElementById("cart-footer");
   const removeAllBtn = document.querySelector(".remove-all-btn");
+
+  // Reset PayPal container and checkout button visibility on cart update
+  const paypalContainer = document.getElementById("paypal-button-container");
+  if (paypalContainer) paypalContainer.innerHTML = "";
+  const checkoutBtn = document.querySelector(".checkout-btn");
+  if (checkoutBtn) checkoutBtn.style.display = "";
 
   cartCount.innerText = cart.length;
 
@@ -654,7 +660,66 @@ function removeFromCart(index) {
   renderPage(currentPage);
 }
 
-// Placeholder for checkout functionality
 function checkout() {
-  alert(translations[currentLang].alertPayment);
+  const checkoutBtn = document.querySelector(".checkout-btn");
+  if (checkoutBtn) checkoutBtn.style.display = "none";
+
+  const paypalContainer = document.getElementById("paypal-button-container");
+  paypalContainer.innerHTML = "<div style='text-align:center; margin-top:10px;'>Loading...</div>";
+
+  const locale = currentLang === 'es' ? 'es_ES' : 'en_US';
+  const scriptId = 'paypal-sdk';
+  let script = document.getElementById(scriptId);
+
+  const render = () => {
+    paypalContainer.innerHTML = "";
+    if (typeof paypal === "undefined" || !paypal || !paypal.Buttons) {
+        console.error("PayPal SDK not ready.");
+        alert("Payment system loading error. Please try again.");
+        if (checkoutBtn) checkoutBtn.style.display = "";
+        return;
+    }
+    
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              value: total.toFixed(2)
+            }
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          alert('Transaction completed by ' + details.payer.name.given_name + '!');
+          cart = [];
+          localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
+          updateCartUI();
+          toggleCart();
+        });
+      },
+      onError: function(err) {
+        console.error('PayPal Error:', err);
+        alert('An error occurred during payment.');
+        if (checkoutBtn) checkoutBtn.style.display = "";
+        paypalContainer.innerHTML = "";
+      }
+    }).render('#paypal-button-container');
+  };
+
+  if (!script) {
+    script = document.createElement('script');
+    script.id = scriptId;
+    script.src = `https://www.paypal.com/sdk/js?client-id=test&currency=USD&locale=${locale}`;
+    script.onload = render;
+    script.onerror = () => {
+        paypalContainer.innerHTML = "Error loading payment system.";
+        if (checkoutBtn) checkoutBtn.style.display = "";
+    };
+    document.body.appendChild(script);
+  } else {
+    render();
+  }
 }
