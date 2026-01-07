@@ -1,3 +1,7 @@
+// At the top of your /script.js file
+const APP_VERSION = '1.0.0';
+const CACHE_IMG = true;
+
 // State for the shopping cart
 let cart = [];
 let isAdmin = false;
@@ -7,6 +11,8 @@ let defaultProducts = [];
 let products = [];
 let allProducts = []; // Used for fallback mode
 let useDB = false;
+let pageCache = {}; // Cache for DB pages: { pageNum: { products, total } }
+let imageCache = {}; // Cache for images: { originalUrl: blobUrl }
 let totalItems = 0;
 let currentPage = 1;
 let itemsPerPage = 20;
@@ -104,9 +110,6 @@ const translations = {
 };
 
 let currentLang = localStorage.getItem('cactusLang') || 'en';
-
-// At the top of your /script.js file
-const APP_VERSION = '1.0.0';
 
 /**
  * Finds all elements with the 'version-tag' class and
@@ -246,6 +249,7 @@ async function fetchDataAndLoad() {
   const savedLimit = parseInt(localStorage.getItem('cactusLimit')) || 20;
   itemsPerPage = savedLimit;
   currentPage = savedPage;
+  pageCache = {}; // Reset cache on new load
 
   try {
     // 1. Try to load from Database first
@@ -255,6 +259,8 @@ async function fetchDataAndLoad() {
       useDB = true;
       products = data.products;
       totalItems = data.total;
+      // Cache the initial page
+      pageCache[savedPage] = { products: data.products, total: data.total };
       // In DB mode, we don't load 'defaultProducts' from JSON
       loadUserData(false);
       injectLogoutButton();
@@ -279,6 +285,11 @@ function logoutUser() {
   const wasAdmin = isAdmin;
   currentUser = null;
   cart = [];
+  pageCache = {}; // Clear page cache on logout
+  Object.values(imageCache).forEach(url => {
+    if (url && url !== 'pending') URL.revokeObjectURL(url);
+  });
+  imageCache = {}; // Clear image cache
   updateCartUI();
   document.getElementById("product-grid").innerHTML = "";
   const btn = document.getElementById("logout-btn");
@@ -414,12 +425,19 @@ async function renderPage(page, skipFetch = false) {
   currentPage = page;
 
   if (useDB && !skipFetch) {
-    // Fetch specific page from DB
-    const res = await fetch(`/.netlify/functions/get-products?page=${page}&limit=${itemsPerPage}`);
-    if (res.ok) {
-      const data = await res.json();
-      products = data.products;
-      totalItems = data.total;
+    // Check cache first
+    if (pageCache[page]) {
+      products = pageCache[page].products;
+      totalItems = pageCache[page].total;
+    } else {
+      // Fetch specific page from DB
+      const res = await fetch(`/.netlify/functions/get-products?page=${page}&limit=${itemsPerPage}`);
+      if (res.ok) {
+        const data = await res.json();
+        products = data.products;
+        totalItems = data.total;
+        pageCache[page] = { products: data.products, total: data.total };
+      }
     }
   } else if (!useDB) {
     // Client-side pagination
@@ -445,9 +463,18 @@ async function renderPage(page, skipFetch = false) {
       ? `<div class="scientific-name">${product.scientific}</div>`
       : "";
 
+    let displayImage = product.image;
+    if (CACHE_IMG) {
+      // Use cached image if available, otherwise trigger cache
+      displayImage = (imageCache[product.image] && imageCache[product.image] !== 'pending') 
+                           ? imageCache[product.image] 
+                           : product.image;
+      if (!imageCache[product.image]) cacheImage(product.image);
+    }
+
     grid.innerHTML += `
         <div class="product-card">
-            <img src="${product.image}" class="product-image" alt="${product.name}" 
+            <img src="${displayImage}" class="product-image" alt="${product.name}" 
                  onclick="openImageModal(${product.id})" style="cursor:zoom-in;">
             <div class="product-info">
                 <div class="product-name">${product.name}</div>
@@ -465,6 +492,7 @@ async function renderPage(page, skipFetch = false) {
 function changeItemsPerPage(val) {
   itemsPerPage = parseInt(val);
   localStorage.setItem('cactusLimit', itemsPerPage);
+  pageCache = {}; // Invalidate cache since page boundaries changed
   renderPage(1);
 }
 
@@ -492,6 +520,19 @@ function updatePaginationControls(totalCount) {
   `;
   
   container.innerHTML = html;
+}
+
+function cacheImage(url) {
+  if (imageCache[url]) return;
+  imageCache[url] = 'pending';
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      imageCache[url] = URL.createObjectURL(blob);
+    })
+    .catch(err => {
+      delete imageCache[url];
+    });
 }
 
 // --- NEW: Image Zoom Functions ---
@@ -527,7 +568,11 @@ function openImageModal(id) {
   const btn = document.getElementById("modal-add-btn");
 
   // Set Image
-  img.src = product.image;
+  if (CACHE_IMG && imageCache[product.image] && imageCache[product.image] !== 'pending') {
+    img.src = imageCache[product.image];
+  } else {
+    img.src = product.image;
+  }
 
   btn.innerText = translations[currentLang].modalAddCart;
   // Configure the button to add THIS specific product
