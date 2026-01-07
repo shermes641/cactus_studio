@@ -929,10 +929,13 @@ async function syncDatabase() {
   btn.disabled = true;
 
   try {
+    const response = await fetch('/data.json');
+    allProducts = await response.json();
+    defaultProducts = JSON.parse(JSON.stringify(allProducts));
     let res = await fetch('/.netlify/functions/seed-data', { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ products: products, force: false })
+      body: JSON.stringify({ products: defaultProducts, force: false })
     });
 
     let text = await res.text();
