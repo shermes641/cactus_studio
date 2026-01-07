@@ -1,0 +1,11 @@
+{
+  "name": "cactus-studio",
+  "version": "1.0.0",
+  "description": "Cactus Studio E-commerce",
+  "dependencies": {
+    "@netlify/neon": "^0.1.0"
+  },
+  "scripts": {
+    "dev": "netlify dev"
+  }
+}

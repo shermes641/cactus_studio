@@ -31,6 +31,14 @@
           <span data-i18n="hidden">Hidden</span>
           <span id="hidden-count" class="cart-count"></span>
         </button>
+        <button
+          id="sync-btn"
+          class="add-btn"
+          onclick="syncDatabase()"
+          style="background: #4a90e2; display: none; margin-left: 5px;"
+        >
+          Sync DB
+        </button>
 
         <button id="help-btn" onclick="toggleHelp()" data-i18n="help">Help</button>
         <button id="cart-toggle-btn" onclick="toggleCart()">
@@ -139,6 +147,7 @@
       </div>
     </div>
 
+    <script src="/env.js"></script>
     <script src="/script.js"></script>
     <!-- Full Screen Image Modal -->
     <div id="image-modal" onclick="closeImageModal()">

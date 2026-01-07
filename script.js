@@ -5,9 +5,16 @@ let editingProductId = null;
 let currentUser = null;
 let defaultProducts = [];
 let products = [];
+let allProducts = []; // Used for fallback mode
+let useDB = false;
+let totalItems = 0;
 let currentPage = 1;
-const itemsPerPage = 20;
+let itemsPerPage = 20;
 const hiddenProductIds = new Set();
+
+    // Replace 'test' with your actual PayPal Client ID from the Developer Dashboard
+    const CLIENT_ID = window.env.PAYPAL_SANDBOX_CLIENT_ID;
+
 
 const translations = {
     en: {
@@ -197,6 +204,8 @@ function checkAdminAccess() {
       document.getElementById("admin-btn").style.display = "inline-block";
       const hiddenBtn = document.getElementById("hidden-mgr-btn");
       if (hiddenBtn) hiddenBtn.style.display = "inline-block";
+      const syncBtn = document.getElementById("sync-btn");
+      if (syncBtn) syncBtn.style.display = "inline-block";
     } else {
       alert(translations[currentLang].alertIncorrectPass);
       // Remove the hash to prevent loop
@@ -232,16 +241,38 @@ function loginUser() {
   fetchDataAndLoad();
 }
 
-function fetchDataAndLoad() {
-  fetch('/data.json')
-    .then(response => response.json())
-    .then(data => {
-      products = data;
-      defaultProducts = JSON.parse(JSON.stringify(products));
-      loadUserData();
+async function fetchDataAndLoad() {
+  const savedPage = parseInt(localStorage.getItem('cactusPage')) || 1;
+  const savedLimit = parseInt(localStorage.getItem('cactusLimit')) || 20;
+  itemsPerPage = savedLimit;
+  currentPage = savedPage;
+
+  try {
+    // 1. Try to load from Database first
+    const res = await fetch(`/.netlify/functions/get-products?page=${savedPage}&limit=${savedLimit}`);
+    if (res.ok) {
+      const data = await res.json();
+      useDB = true;
+      products = data.products;
+      totalItems = data.total;
+      // In DB mode, we don't load 'defaultProducts' from JSON
+      loadUserData(false);
       injectLogoutButton();
-    })
-    .catch(err => console.error("Error loading products:", err));
+      renderPage(savedPage, true); // Render immediately, skip fetch
+      return;
+    }
+  } catch (e) {
+    console.log("DB load failed, falling back to data.json", e);
+  }
+
+  // 2. Fallback to data.json
+  useDB = false;
+  const response = await fetch('/data.json');
+  allProducts = await response.json();
+  defaultProducts = JSON.parse(JSON.stringify(allProducts));
+  loadUserData(false);
+  injectLogoutButton();
+  renderPage(savedPage);
 }
 
 function logoutUser() {
@@ -258,6 +289,8 @@ function logoutUser() {
   if(adminBtn) adminBtn.style.display = "none";
   const hiddenMgrBtn = document.getElementById("hidden-mgr-btn");
   if(hiddenMgrBtn) hiddenMgrBtn.style.display = "none";
+  const syncBtn = document.getElementById("sync-btn");
+  if(syncBtn) syncBtn.style.display = "none";
   
   injectLoginUI();
   document.getElementById("login-phone").value = "";
@@ -272,22 +305,38 @@ function injectLogoutButton() {
   if (btn) btn.style.display = "block";
 }
 
-function loadUserData() {
+function loadUserData(render = true) {
   // Only admin loads modified products. Regular users use default (fresh) data.
-  if (currentUser === 'admin') {
+  if (currentUser === 'admin' && !useDB) {
     const storedProducts = localStorage.getItem(getStorageKey('cactusProducts'));
     if (storedProducts) {
       try {
-        products = JSON.parse(storedProducts);
+        let stored = JSON.parse(storedProducts);
+
+        // Merge schema from defaultProducts (data.json) into stored products
+        // This ensures new columns added to data.json appear in the admin's view and are synced.
+        if (defaultProducts.length > 0 && stored.length > 0) {
+            const freshKeys = Object.keys(defaultProducts[0]);
+            stored = stored.map(storedItem => {
+                const freshItem = defaultProducts.find(dp => dp.id === storedItem.id);
+                freshKeys.forEach(key => {
+                    if (storedItem[key] === undefined) {
+                        storedItem[key] = freshItem ? freshItem[key] : null;
+                    }
+                });
+                return storedItem;
+            });
+        }
+        allProducts = stored;
       } catch (e) {
         console.error("Error loading products from localStorage:", e);
-        products = JSON.parse(JSON.stringify(defaultProducts));
+        allProducts = JSON.parse(JSON.stringify(defaultProducts));
       }
     } else {
-      products = JSON.parse(JSON.stringify(defaultProducts));
+      allProducts = JSON.parse(JSON.stringify(defaultProducts));
     }
-  } else {
-    products = JSON.parse(JSON.stringify(defaultProducts));
+  } else if (!useDB) {
+    allProducts = JSON.parse(JSON.stringify(defaultProducts));
   }
   const storedCart = localStorage.getItem(getStorageKey('cactusCart'));
   if (storedCart) {
@@ -314,7 +363,7 @@ function loadUserData() {
   hiddenProductIds.clear();
   cart.forEach(item => hiddenProductIds.add(item.id));
 
-  renderProducts();
+  if (render) renderPage(1);
   localStorage.setItem(getStorageKey('cactusProducts'), JSON.stringify(products));
   updateHiddenCount();
   checkAdminAccess();
@@ -360,23 +409,37 @@ function renderProducts() {
   renderPage(currentPage);
 }
 
-function renderPage(page) {
-  // Filter: Not hidden by admin AND not in cart (hiddenProductIds)
-  const visibleProducts = products.filter(p => !p.hidden && !hiddenProductIds.has(p.id));
-  
-  const totalPages = Math.ceil(visibleProducts.length / itemsPerPage) || 1;
+async function renderPage(page, skipFetch = false) {
+  localStorage.setItem('cactusPage', page);
+  currentPage = page;
+
+  if (useDB && !skipFetch) {
+    // Fetch specific page from DB
+    const res = await fetch(`/.netlify/functions/get-products?page=${page}&limit=${itemsPerPage}`);
+    if (res.ok) {
+      const data = await res.json();
+      products = data.products;
+      totalItems = data.total;
+    }
+  } else if (!useDB) {
+    // Client-side pagination
+    const visibleProducts = allProducts.filter(p => !p.hidden && !hiddenProductIds.has(p.id));
+    totalItems = visibleProducts.length;
+    const start = (page - 1) * itemsPerPage;
+    products = visibleProducts.slice(start, start + itemsPerPage);
+  }
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   if (page > totalPages) page = totalPages;
   if (page < 1) page = 1;
-  
-  currentPage = page;
-  const start = (page - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  const productsToShow = visibleProducts.slice(start, end);
 
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
   
-  productsToShow.forEach((product) => {
+  products.forEach((product) => {
+    // Hide if in cart
+    if (hiddenProductIds.has(product.id)) return;
+
     // Check if scientific name exists
     const sciName = product.scientific
       ? `<div class="scientific-name">${product.scientific}</div>`
@@ -389,14 +452,20 @@ function renderPage(page) {
             <div class="product-info">
                 <div class="product-name">${product.name}</div>
                 ${sciName}
-                <div class="product-price">$${product.price.toFixed(2)}</div>
+                <div class="product-price">$${Number(product.price).toFixed(2)}</div>
                 <button class="add-btn" onclick="addToCart(${product.id})">${translations[currentLang].btnAddCart}</button>
             </div>
         </div>
     `;
   });
 
-  updatePaginationControls(visibleProducts.length);
+  updatePaginationControls(totalItems);
+}
+
+function changeItemsPerPage(val) {
+  itemsPerPage = parseInt(val);
+  localStorage.setItem('cactusLimit', itemsPerPage);
+  renderPage(1);
 }
 
 function updatePaginationControls(totalCount) {
@@ -412,6 +481,15 @@ function updatePaginationControls(totalCount) {
   }
   
   html += `<button class="page-btn" onclick="renderPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>${translations[currentLang].next}</button>`;
+  
+  // Add Items Per Page Dropdown
+  html += `
+    <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">
+      <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5 / page</option>
+      <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10 / page</option>
+      <option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20 / page</option>
+    </select>
+  `;
   
   container.innerHTML = html;
 }
@@ -631,12 +709,13 @@ function updateCartUI() {
     cartItemsDiv.innerHTML = "";
     let total = 0;
     cart.forEach((item, index) => {
-      total += item.price;
+      const itemPrice = Number(item.price);
+      total += itemPrice;
       cartItemsDiv.innerHTML += `
                 <div class="cart-item">
                     <div>
                         <strong>${item.name}</strong><br>
-                        $${item.price.toFixed(2)}
+                        $${itemPrice.toFixed(2)}
                     </div>
                     <button onclick="removeFromCart(${index})" style="background:none; border:none; color:red; cursor:pointer;">${translations[currentLang].btnRemove}</button>
                 </div>
@@ -682,7 +761,7 @@ function checkout() {
     
     paypal.Buttons({
       createOrder: function(data, actions) {
-        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
         return actions.order.create({
           purchase_units: [{
             amount: {
@@ -693,11 +772,13 @@ function checkout() {
       },
       onApprove: function(data, actions) {
         return actions.order.capture().then(function(details) {
-          alert('Transaction completed by ' + details.payer.name.given_name + '!');
           cart = [];
           localStorage.setItem(getStorageKey('cactusCart'), JSON.stringify(cart));
           updateCartUI();
           toggleCart();
+          setTimeout(function() {
+            alert('Transaction completed by ' + details.payer.name.given_name + '!');
+          }, 1000);
         });
       },
       onError: function(err) {
@@ -734,9 +815,7 @@ You do not pay anything upfront. You only pay a small fee deducted automatically
   if (!script) {
     script = document.createElement('script');
     script.id = scriptId;
-    // Replace 'test' with your actual PayPal Client ID from the Developer Dashboard
-    const clientId = 'test';
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&locale=${locale}`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&locale=${locale}`;
     script.onload = render;
     script.onerror = () => {
         paypalContainer.innerHTML = "Error loading payment system.";
@@ -745,5 +824,59 @@ You do not pay anything upfront. You only pay a small fee deducted automatically
     document.body.appendChild(script);
   } else {
     render();
+  }
+}
+
+async function syncDatabase() {
+  if (!confirm("Are you sure you want to sync data.json to the database?")) return;
+  
+  const btn = document.getElementById("sync-btn");
+  const originalText = btn.innerText;
+  btn.innerText = "Syncing...";
+  btn.disabled = true;
+
+  try {
+    let res = await fetch('/.netlify/functions/seed-data', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ products: products, force: false })
+    });
+
+    let text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { error: text || res.statusText };
+    }
+
+    if (res.status === 409) {
+      const isSchemaMismatch = data.error && data.error.includes("Schema mismatch");
+      const promptMsg = isSchemaMismatch 
+        ? "Table exists but schema does not match. Delete table and sync?" 
+        : "Sync failed (" + (data.error || "Unknown") + "). Delete table and recreate?";
+
+      if (confirm(promptMsg)) {
+        res = await fetch('/.netlify/functions/seed-data', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: products, force: true })
+        });
+        text = await res.text();
+        try { data = JSON.parse(text); } catch (e) { data = { error: text }; }
+      } else {
+        alert("Sync cancelled.");
+        return;
+      }
+    }
+
+    if (!res.ok) throw new Error(data.error || "Unknown error");
+    alert("Sync Result: " + (data.message || "Success"));
+
+  } catch (err) {
+    alert("Error syncing: " + err.message);
+  } finally {
+    btn.innerText = originalText;
+    btn.disabled = false;
   }
 }
