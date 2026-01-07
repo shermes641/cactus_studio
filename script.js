@@ -1,6 +1,57 @@
-// At the top of your /script.js file
+/**
+ * Cactus Studio - Main Application Script
+ *
+ * This file contains the core logic for the single-page e-commerce application.
+ * It handles:
+ * 1. State Management: Manages products, cart, user session, and admin status.
+ * 2. Data Fetching: Loads products from a Neon Database via Netlify Functions,
+ *    with a fallback to a local 'data.json' file.
+ * 3. Caching: Implements memory caching for paginated product data and images
+ *    to reduce network requests and improve performance.
+ * 4. UI Rendering: Dynamically generates the product grid, pagination controls,
+ *    shopping cart sidebar, and modals (login, image zoom, admin forms).
+ * 5. Localization: Supports English (en) and Spanish (es) via a dictionary-based system.
+ * 6. Admin Features: Provides a protected interface for adding/editing products,
+ *    managing hidden items, and syncing local data to the database.
+ * 7. Payment Integration: Integrates PayPal SDK for checkout processing.
+ */
+
 const APP_VERSION = '1.0.0';
 const CACHE_IMG = true;
+const DEFAULT_IMG_CACHE = 100; // Default number of cached images if calculation fails
+const MAX_IMGS = 1000;
+const MAX_IMG_CACHE_PERCENT = 0.25; // Use 25% of available memory for image cache
+
+/**
+ * Calculates the maximum number of cached images based on the available memory.
+ * @returns {number} The maximum number of cached images.
+ */
+const calculateMaxImgCache = () => {
+  try {
+    const availableMemory = window.performance.memory.totalJSHeapSize - window.performance.memory.usedJSHeapSize;
+    res =  Math.floor(availableMemory * MAX_IMG_CACHE_PERCENT);
+    return res > MAX_IMGS ? MAX_IMGS : res;
+  } catch (error) {
+    console.error('Error calculating max image cache:', error);
+    return DEFAULT_IMG_CACHE;
+  }
+};
+
+// Calculate the maximum number of cached images based on available memory
+const MAX_IMG_CACHE = calculateMaxImgCache();
+
+console.log(`Max Image Cache Size: ${MAX_IMG_CACHE} images`);
+
+/**
+ * Finds all elements with the 'version-tag' class and
+ * sets their content to the current app version.
+ */
+const setVersionDisplay = () => {
+  const versionElements = document.querySelectorAll('.version-tag');
+  versionElements.forEach(element => {
+    element.textContent = `v${APP_VERSION}`;
+  });
+};
 
 // State for the shopping cart
 let cart = [];
@@ -15,7 +66,7 @@ let pageCache = {}; // Cache for DB pages: { pageNum: { products, total } }
 let imageCache = {}; // Cache for images: { originalUrl: blobUrl }
 let totalItems = 0;
 let currentPage = 1;
-let itemsPerPage = 20;
+let itemsPerPage = 10;
 const hiddenProductIds = new Set();
 
     // Replace 'test' with your actual PayPal Client ID from the Developer Dashboard
@@ -110,17 +161,6 @@ const translations = {
 };
 
 let currentLang = localStorage.getItem('cactusLang') || 'en';
-
-/**
- * Finds all elements with the 'version-tag' class and
- * sets their content to the current app version.
- */
-const setVersionDisplay = () => {
-  const versionElements = document.querySelectorAll('.version-tag');
-  versionElements.forEach(element => {
-    element.textContent = `v${APP_VERSION}`;
-  });
-};
 
 // Since your script tag is at the end of the <body>,
 // the DOM will be ready, and you can call the function directly.
@@ -392,10 +432,8 @@ window.onload = function () {
     // Close help dialog if clicking outside
     const helpDialog = document.getElementById('help-dialog');
     const helpBtn = document.getElementById('help-btn');
-    if (helpDialog && helpDialog.style.display !== 'none') {
-      if (!helpDialog.contains(event.target) && (!helpBtn || !helpBtn.contains(event.target))) {
-        helpDialog.style.display = 'none';
-      }
+    if (helpDialog && helpDialog.style.display !== 'none' && !helpDialog.contains(event.target) && (!helpBtn || !helpBtn.contains(event.target))) {
+      helpDialog.style.display = 'none';
     }
 
     const sidebar = document.getElementById('cart-sidebar');
@@ -448,8 +486,8 @@ async function renderPage(page, skipFetch = false) {
   }
 
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-  if (page > totalPages) page = totalPages;
-  if (page < 1) page = 1;
+  if (page > totalPages) currentPage = totalPages;
+  if (page < 1) currentPage = 1;
 
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
@@ -524,6 +562,16 @@ function updatePaginationControls(totalCount) {
 
 function cacheImage(url) {
   if (imageCache[url]) return;
+
+  // Manage cache size to prevent memory leaks on mobile
+  const keys = Object.keys(imageCache);
+  if (keys.length >= MAX_IMG_CACHE) {
+    const oldestUrl = keys[0];
+    const blobUrl = imageCache[oldestUrl];
+    if (blobUrl && blobUrl !== 'pending') URL.revokeObjectURL(blobUrl);
+    delete imageCache[oldestUrl];
+  }
+
   imageCache[url] = 'pending';
   fetch(url)
     .then(res => res.blob())
