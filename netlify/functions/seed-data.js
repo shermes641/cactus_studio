@@ -46,10 +46,10 @@ exports.handler = async (event, context) => {
     const jsonColumns = Object.keys(sampleItem);
     const tableName = 'products';
 
-    // 2. Connect to Current DB (Main Branch)
-    const connectionString = process.env.DATABASE_URL;
+    // 2. Connect to Current DB (Main Branch) using NETLIFY_DATABASE_URL
+    const connectionString = process.env.NETLIFY_DATABASE_URL;
     if (!connectionString) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing DATABASE_URL environment variable." }) };
+      return { statusCode: 500, body: JSON.stringify({ error: "Missing NETLIFY_DATABASE_URL environment variable." }) };
     }
 
     sql = neon(connectionString);
@@ -151,7 +151,7 @@ async function createTableAndInsert(sql, tableName, jsonColumns, sampleItem, dat
 }
 
 // Allow running this script directly via Node for testing
-// Usage: set DATABASE_URL=... && node netlify/functions/seed-data.js
+// Usage: set NETLIFY_DATABASE_URL=... && node netlify/functions/seed-data.js
 if (require.main === module) {
   exports.handler({ httpMethod: 'POST' }, {})
     .then(res => console.log("Direct run result:", res))

@@ -15,11 +15,12 @@ exports.handler = async (event, context) => {
   const limit = parseInt(event.queryStringParameters.limit) || 20;
   const offset = (page - 1) * limit;
 
-  if (!process.env.DATABASE_URL) {
+  // Check if DB URL is set
+  if (!process.env.NETLIFY_DATABASE_URL) {
      return { statusCode: 500, body: JSON.stringify({ error: "No DB URL" }) };
   }
   // Initialize Neon SQL connection
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon();
 
   try {
     // Check if table exists

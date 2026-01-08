@@ -1423,7 +1423,7 @@ EXECUTE FUNCTION notify_inventory_event();
 
 import pg from "pg";
 
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+const client = new pg.Client({ connectionString: process.env.NETLIFY_DATABASE_URL });
 await client.connect();
 
 client.query("LISTEN inventory_events");
