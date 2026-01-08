@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Cactus Studio E-commerce",
   "dependencies": {
-    "@netlify/neon": "^0.1.0"
+    "@netlify/neon": "^0.1.0",
+    "netlify-cli": "^23.13.3"
   },
   "scripts": {
-    "dev": "netlify dev"
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'"
   }
 }

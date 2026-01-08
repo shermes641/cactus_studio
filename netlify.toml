@@ -1,0 +1,7 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  # Using esbuild is the modern standard for bundling dependencies
+  node_bundler = "esbuild"
