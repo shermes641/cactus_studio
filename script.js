@@ -167,6 +167,10 @@ let currentLang = localStorage.getItem('cactusLang') || 'en';
 setVersionDisplay();
 applyTranslations();
 
+/**
+ * Toggles the application language between English and Spanish.
+ * Reloads the page to apply changes and resets the user session.
+ */
 function toggleLanguage() {
     const nextLang = currentLang === 'en' ? 'es' : 'en';
     const msg = currentLang === 'en' 
@@ -181,6 +185,9 @@ function toggleLanguage() {
     }
 }
 
+/**
+ * Updates the DOM elements with text content based on the current language.
+ */
 function applyTranslations() {
     const t = translations[currentLang];
     document.getElementById('lang-btn').innerText = currentLang === 'en' ? 'ES' : 'EN';
@@ -199,6 +206,9 @@ function applyTranslations() {
     updateCartUI();
 }
 
+/**
+ * Toggles the visibility of the help dialog and loads the appropriate content.
+ */
 function toggleHelp() {
   const dialog = document.getElementById('help-dialog');
   if (dialog.style.display === 'none') {
@@ -458,6 +468,12 @@ function renderProducts() {
   renderPage(currentPage);
 }
 
+/**
+ * Renders a specific page of products.
+ * Handles both database-backed pagination and client-side pagination (fallback).
+ * @param {number} page - The page number to render.
+ * @param {boolean} skipFetch - If true, skips fetching from DB (used when data is preloaded).
+ */
 async function renderPage(page, skipFetch = false) {
   localStorage.setItem('cactusPage', page);
   currentPage = page;
@@ -832,6 +848,10 @@ function removeFromCart(index) {
   renderPage(currentPage);
 }
 
+/**
+ * Initiates the PayPal checkout process.
+ * Dynamically loads the PayPal SDK if not already present and renders the buttons.
+ */
 function checkout() {
   const checkoutBtn = document.querySelector(".checkout-btn");
   if (checkoutBtn) checkoutBtn.style.display = "none";
@@ -920,6 +940,10 @@ You do not pay anything upfront. You only pay a small fee deducted automatically
   }
 }
 
+/**
+ * Admin function to sync local JSON data to the remote database.
+ * Handles schema mismatch detection and prompts for table recreation if needed.
+ */
 async function syncDatabase() {
   if (!confirm("Are you sure you want to sync data.json to the database?")) return;
   

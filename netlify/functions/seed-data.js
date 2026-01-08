@@ -1,7 +1,11 @@
+/**
+ * Netlify Function: seed-data
+ *
+ * This function synchronizes the local `data.json` file (or provided payload)
+ * with the Neon PostgreSQL database. It handles table creation, schema validation,
+ * and data insertion.
+ */
 const { neon } = require('@netlify/neon');
-
-// This function handles syncing data.json to Neon DB
-// It creates a branch if schema changes, otherwise syncs data.
 
 exports.handler = async (event, context) => {
   // Only allow POST requests to trigger this (or GET for testing in browser)

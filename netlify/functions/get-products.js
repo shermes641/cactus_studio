@@ -1,3 +1,13 @@
+/**
+ * Netlify Function: get-products
+ *
+ * This serverless function handles fetching product data from the Neon PostgreSQL database.
+ * It supports server-side pagination to efficiently load large datasets.
+ *
+ * Query Parameters:
+ * - page: The page number to fetch (default: 1)
+ * - limit: The number of items per page (default: 20)
+ */
 const { neon } = require('@netlify/neon');
 
 exports.handler = async (event, context) => {
@@ -8,6 +18,7 @@ exports.handler = async (event, context) => {
   if (!process.env.DATABASE_URL) {
      return { statusCode: 500, body: JSON.stringify({ error: "No DB URL" }) };
   }
+  // Initialize Neon SQL connection
   const sql = neon(process.env.DATABASE_URL);
 
   try {
