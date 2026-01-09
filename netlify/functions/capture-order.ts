@@ -1,7 +1,7 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 
-export const handler: Handler = async (event) => {
+export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
@@ -49,7 +49,7 @@ export const handler: Handler = async (event) => {
     `;
 
     // 2. Extract Data
-    const payer = details.payer;
+    const { payer } = details;
     const purchaseUnit = details.purchase_units[0];
     const capture = purchaseUnit.payments.captures[0];
     

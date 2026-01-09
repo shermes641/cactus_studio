@@ -11,7 +11,11 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:pg@^8.11.3"
+        "npm:@netlify/functions@^5.1.2",
+        "npm:@netlify/neon@0.1",
+        "npm:bcryptjs@^2.4.3",
+        "npm:netlify-cli@^23.13.3",
+        "npm:typescript@5"
       ]
     }
   }

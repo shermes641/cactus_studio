@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "Cactus Studio E-commerce",
   "dependencies": {
+    "@netlify/functions": "^5.1.2",
     "@netlify/neon": "^0.1.0",
-    "netlify-cli": "^23.13.3"
+    "bcryptjs": "^2.4.3",
+    "netlify-cli": "^23.13.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

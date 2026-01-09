@@ -12,6 +12,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
+    padding-top: 70px;
     background-color: #f9f9f9;
     color: var(--text);
 }
@@ -24,9 +25,11 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: sticky;
+    position: fixed;
     flex-wrap: wrap;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
@@ -58,6 +61,29 @@ header {
     color: var(--accent);
 }
 
+/* New Header Title Styles */
+.header-title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    color: var(--white);
+    margin: 0 1rem;
+}
+
+.header-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.header-subtitle {
+    font-size: 0.8rem;
+    font-weight: 300;
+    opacity: 0.9;
+}
+
 #lang-btn {
     border: 1px solid rgba(255,255,255,0.5);
     border-radius: 4px;
@@ -82,8 +108,33 @@ header {
     position: relative
 }
 
+/* Sidebar Logo Container */
+.sidebar-logo-container {
+    position: fixed;
+    left: 20px;
+    bottom: 80px;
+    z-index: 500;
+}
+
+.sidebar-logo {
+    width: clamp(80px, 10vw, 150px);
+    height: clamp(80px, 10vw, 150px);
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border: 4px solid var(--primary);
+}
+
+@media (max-width: 768px) {
+    .sidebar-logo-container {
+        top: 75px;
+        left: 10px;
+    }
+}
+
 /* Hero Section with background image */
 .hero {
+    display: none !important;
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
     background-size: cover;
     background-position: center;
@@ -99,12 +150,55 @@ header {
 .hero h1 { font-size: clamp(1.8rem, 4vw, 3rem); margin-bottom: 10px; }
 .hero p { font-size: 1.2rem; }
 
+/* Filter Controls Section */
+.filter-controls {
+background-color: var(--secondary);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    width: 125px;
+    z-index: 600;
+    position: fixed;
+    left: 10px;
+    bottom: 300px;
+}
+
+.filter-controls label {
+    margin: 0;
+    font-weight: bold;
+    font-size: xxx-large;
+}
+
+.filter-controls select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--primary);
+    background: green;
+    font-size: xxx-large;
+    width: 100%;
+}
+
 /* Main Content Container and Product Grid */
 .container {
-    max-width: 1200px;
-    margin: 40px auto;
+    max-width: 1350px;
+    width: 66%;
+    margin: 0 auto 40px;
     padding: 0 20px;
+    padding-left: clamp(120px, 15vw, 200px);
     background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)) center center / cover, url(https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500);
+    right: 10px;
+    position: absolute;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 20px;
+    }
 }
 
 .section-title {
@@ -116,7 +210,10 @@ header {
 .product-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 20px;
+    gap: 10px;
+    width: 99%;
+    position: relative;
+    left: -75px;
 }
 
 .product-card {
@@ -369,22 +466,113 @@ header {
 }
 
 /* Login Modal */
-#login-modal {
+#auth-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 1);
-    z-index: 9999;
+    z-index: 11000;
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-#login-modal h2 {
-    margin-bottom: 20px;
+/* Ensure login/register forms are visible and centered inside auth overlay */
+#auth-container {
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Center content, responsive width: max 500px or 95% of viewport */
+#auth-container form {
+    width: min(500px, 95%);
+    max-width: 95%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+    height: 50%;
+}
+
+/* Inputs full width inside form but capped to 500px visually via form width */
+#auth-container input {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Forms positioned relative inside auth overlay for toggling */
+#auth-container > form#login-modal { position: relative; z-index: 11001; }
+#auth-container > form#register-modal { position: relative; z-index: 11001; }
+
+/* Corner logos (fixed to screen corners) */
+.corner-logo {
+    position: fixed;
+    width: 20vw;
+    max-width: 20vw;
+    z-index: 12000;
+    pointer-events: none;
+    border-radius: 15px;
+    object-fit: cover;
+}
+.corner-logo.top-left { top: 0; left: 0; border-radius: 0 0 15px 0; }
+.corner-logo.top-right { top: 0; right: 0; border-radius: 0 0 0 15px; }
+.corner-logo.bottom-left { bottom: 0; left: 0; border-radius: 0 15px 0 0; }
+.corner-logo.bottom-right { bottom: 0; right: 0; border-radius: 15px 0 0 0; }
+
+
+#auth-container h1 {
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #28a745;
+}
+
+#auth-container input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+#auth-container input:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+}
+
+#auth-container button {
+    width: 100%;
+    padding: 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+#auth-container button:hover {
+    background: #218838;
 }
 
 #login-phone {
@@ -490,7 +678,7 @@ header {
 .version-tag {
     position: fixed;
     bottom: 10px;
-    left: 10px;
+    left: 50px;
     font-size: 1.8rem;
     color: #666;
     background-color: rgba(28, 128, 3, 0.2);
@@ -504,6 +692,10 @@ header {
     header {
         flex-direction: column;
         padding: 1rem;
+    }
+
+    .header-title-container {
+        margin: 10px 0;
     }
 
     .logo {

@@ -1,7 +1,7 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 
-export const handler: Handler = async (event, context) => {
+export const handler: Handler = async (event: any, context: any) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -70,6 +70,9 @@ export const handler: Handler = async (event, context) => {
         password_hash TEXT NOT NULL,
         name TEXT,
         phone TEXT,
+        shipping_addr TEXT,
+        cart JSONB,
+        is_admin BOOLEAN DEFAULT false,
         created_at TIMESTAMPTZ DEFAULT now()
       )
     `;
@@ -84,6 +87,14 @@ export const handler: Handler = async (event, context) => {
       )
     `;
 
+    // Statuses lookup
+    await sql`
+      CREATE TABLE statuses (
+        code TEXT PRIMARY KEY,
+        description TEXT
+      )
+    `;
+
     // Orders
     await sql`
       CREATE TABLE orders (
@@ -95,7 +106,7 @@ export const handler: Handler = async (event, context) => {
         discount_code TEXT REFERENCES discounts(code),
         total_amount_cents INTEGER,
         currency TEXT,
-        status TEXT,
+        status TEXT REFERENCES statuses(code),
         created_at TIMESTAMPTZ DEFAULT now()
       )
     `;

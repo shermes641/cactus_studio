@@ -1,6 +1,6 @@
 import { Handler } from "@netlify/functions";
 
-export const handler: Handler = async (event, context) => {
+export const handler: Handler = async (event: any, context: any) => {
   // Allow fetching from either variable name for flexibility
   const clientId = process.env.PAYPAL_CLIENT_ID || process.env.PAYPAL_SANDBOX_CLIENT_ID;
   

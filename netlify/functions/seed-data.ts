@@ -10,7 +10,7 @@ import { neon } from '@netlify/neon';
 // @ts-ignore
 import localData from '../../data.json';
 
-export const handler: Handler = async (event, context) => {
+export const handler: Handler = async (event: any, context: any) => {
   // Only allow POST requests to trigger this (or GET for testing in browser)
   if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };

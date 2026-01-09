@@ -30,6 +30,22 @@
         >
           Sync DB
         </button>
+        <button
+          id="run-migrate-btn"
+          class="add-btn"
+          onclick="runMigration()"
+          style="background: #6f42c1; display: none; margin-left: 5px;"
+        >
+          Run Migration
+        </button>
+        <button
+          id="upload-images-btn"
+          class="add-btn"
+          onclick="uploadImagesToCloudinary()"
+          style="background: #ff6d00; display: none; margin-left: 5px;"
+        >
+          Upload Images
+        </button>
 
         <button id="help-btn" onclick="toggleHelp()" data-i18n="help">Help</button>
         <button id="cart-toggle-btn" onclick="toggleCart()">
@@ -39,11 +55,19 @@
       </div>
     </header>
 
+    <!-- Sidebar Logo -->
+    <div class="sidebar-logo-container">
+      <img src="/logo.png" class="sidebar-logo" style="left: 10px; position: fixed; bottom: 100px" alt="Cactus Studio Logo">
+    </div>
+
     <!-- Hero Section -->
     <div class="hero">
       <h1 data-i18n="heroTitle">Rare & Exotic Cacti</h1>
       <p data-i18n="heroSubtitle">Delivered safely from our nursery to your doorstep.</p>
     </div>
+
+    <!-- Filter & Select Controls -->
+    <div id="filter-container" class="filter-controls"></div>
 
     <!-- Main Inventory -->
     <div class="container">
@@ -68,19 +92,23 @@
         </div>
         <div class="form-group">
           <label data-i18n="labelImage">Image URL</label>
-          <input
-            type="text"
-            id="new-image"
-            placeholder="Paste image link here"
-          />
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input
+              type="text"
+              id="new-image"
+              placeholder="Paste image link here"
+              style="flex: 1;"
+            />
+            <button type="button" id="cloudinary-upload-btn" class="add-btn" style="width: auto; padding: 10px 15px; background: #ff6d00;" onclick="openCloudinaryUpload()">📤 Upload</button>
+          </div>
+          <input type="file" id="cloudinary-file-input" accept="image/*" style="display: none;" onchange="uploadToCloudinary(event)">
           <small class="helper-text" data-i18n="helperText"
-            >(For demo, right click any image on Google Images and 'Copy Image
-            Address')</small
+            >(Click Upload to select from local files, or paste a URL)</small
           >
         </div>
         <div id="admin-btn-row">
-            <button class="add-btn" onclick="addProduct()" data-i18n="btnAddInventory">Add to Inventory</button>
-            <button class="add-btn cancel-btn" onclick="toggleAdminModal()" data-i18n="btnCancel">Cancel</button>
+          <button class="add-btn" onclick="addProduct()" data-i18n="btnAddInventory">Add to Inventory</button>
+          <button class="add-btn cancel-btn" onclick="toggleAdminModal()" data-i18n="btnCancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -94,12 +122,48 @@
 
 
     <!-- Login Modal -->
-    <form id="login-modal" onsubmit="event.preventDefault(); loginUser()" style="background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500'); background-size: cover; background-position: center;">
+    <div id="auth-container" style="display: none; background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500'); background-size: cover; background-position: center;">
+      <!-- Login Form -->
+      <form id="login-modal" onsubmit="event.preventDefault(); loginUserEmail()" style="display: block;">
         <h1 data-i18n="loginTitle">Cactus Studio Login</h1>
-        <input type="text" id="login-phone" placeholder="Enter WhatsApp Number" data-i18n-placeholder="loginPlaceholder">
+        <input type="email" id="login-email" placeholder="Email" required>
+        <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
         <button type="submit" id="login-btn" data-i18n="btnLogin">Login</button>
+        <p style="text-align: center; margin-top: 15px;">
+          Don't have an account? <a href="#" onclick="event.preventDefault(); toggleRegisterForm()" style="color: #28a745; text-decoration: underline;">Register here</a>
+        </p>
         <div class="version-tag"></div>
-    </form>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-modal" onsubmit="event.preventDefault(); registerUser()" style="display: none;">
+        <h1 data-i18n="registerTitle">Create Account</h1>
+        <input type="text" id="register-name" placeholder="Full Name">
+        <input type="email" id="register-email" placeholder="Email" required>
+        <input type="password" id="register-password" placeholder="Password (min 6 chars)" required autocomplete="new-password">
+        <input type="password" id="register-password-confirm" placeholder="Confirm Password" required autocomplete="new-password">
+        <input type="text" id="register-address" placeholder="Shipping Address">
+        <button type="submit" id="register-btn" data-i18n="btnRegister">Register</button>
+        <p style="text-align: center; margin-top: 15px;">
+          Already have an account? <a href="#" onclick="event.preventDefault(); toggleRegisterForm()" style="color: #28a745; text-decoration: underline;">Login here</a>
+        </p>
+        <div class="version-tag"></div>
+      </form>
+
+      <!-- Corner Logos -->
+      <div class="sidebar-logo-container">
+        <img src="/logo.png" class="corner-logo top-left" alt="Cactus Studio Logo" style="border-radius: 50%;">
+      </div>
+      <div class="sidebar-logo-container">
+        <img src="/logo.png" class="corner-logo top-right" alt="Cactus Studio Logo" style="border-radius: 50%;">
+      </div>
+      <div class="sidebar-logo-container">
+        <img src="/logo.png" class="corner-logo bottom-left" alt="Cactus Studio Logo" style="border-radius: 50%;">
+      </div>
+      <div class="sidebar-logo-container">
+        <img src="/logo.png" class="corner-logo bottom-right" alt="Cactus Studio Logo" style="border-radius: 50%;">
+      </div>
+    </div>
 
     <!-- Cart Sidebar -->
     <div class="cart-sidebar" id="cart-sidebar">
@@ -125,7 +189,8 @@
     </div>
 
     <script src="/env.js"></script>
-    <script src="/script.js"></script>
+    <script type="module" src="/script.js"></script>
+
     <!-- Full Screen Image Modal -->
     <div id="image-modal" onclick="closeImageModal()">
       <img id="modal-img" src="" alt="Zoomed Cactus" />
@@ -135,5 +200,18 @@
 
     <!-- Version Tag -->
     <div class="version-tag"></div>
+    <script>
+      (function() {
+        const header = document.querySelector('header');
+        function updateLayout() {
+          if (!header) return;
+          const headerHeight = header.offsetHeight;
+          document.body.style.paddingTop = headerHeight + 'px';
+        }
+        if (header) {
+          new ResizeObserver(updateLayout).observe(header);
+        }
+      })();
+    </script>
   </body>
 </html>

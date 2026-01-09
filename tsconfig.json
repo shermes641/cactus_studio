@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "none",
+    "module": "es2020",
     "strict": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["dom", "es2015"],
     "noEmitOnError": false,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "include": [
     "script.ts",

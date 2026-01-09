@@ -1,5 +1,6 @@
-PHASE 1 — Introduce Neon (without breaking anything)
-1.1 Create Neon DB
+# PHASE 1 — Introduce Neon (without breaking anything)
+
+## 1.1 Create Neon DB
 
 Go to Neon
 
@@ -14,14 +15,12 @@ NETLIFY_DATABASE_URL=postgresql://...
 1.2 Install Neon client
 npm install @netlify/neon
 
-
 Create a shared DB helper:
 
 src/lib/db.ts
 import { neon } from "@netlify/neon";
 
 export const sql = neon(); // auto-reads NETLIFY_DATABASE_URL
-
 
 ✅ No code uses it yet
 
@@ -129,9 +128,11 @@ Currently, the frontend loads static data. Create a function:
 `GET /.netlify/functions/get-products`
 
 Returns:
+
 ```json
 [ { "id": 1, "name": "...", "price": 1000, "available": 5 } ]
 ```
+
 Update `script.ts` to fetch this instead of `data.json`.
 
 **Step B: Checkout**
@@ -166,37 +167,32 @@ export async function handler(event) {
 
 4.3 PayPal capture webhook
 paypal-webhook.ts
+
+```typescript
 // 1. Idempotency
 const exists =
   await sql`SELECT 1 FROM webhook_events WHERE provider='paypal' AND event_id=${event.id}`;
 
 if (exists.length) return;
 
-// 2. Store webhook
-await sql`
-  INSERT INTO webhook_events VALUES ('paypal', ${event.id}, ${event})
-`;
+// 2. Store webhook - INSERT record
+// (SQL: INSERT INTO webhook_events VALUES ('paypal', event.id, event))
 
 // 3. Capture → Decrement Stock
 await sql.begin(async (tx) => {
   // Decrement only if stock exists (prevents negative inventory)
-  const [updated] = await tx`
-    UPDATE inventory
-    SET quantity = quantity - ${qty}
-    WHERE sku = ${sku} AND quantity >= ${qty}
-    RETURNING quantity
-  `;
+  // (SQL: UPDATE inventory SET quantity = quantity - qty WHERE sku = sku AND quantity >= qty RETURNING quantity)
+  const [updated] = await tx`...`;
 
   if (!updated) {
     console.error("OVERSOLD: Manual refund needed for", sku);
-    return; 
+    return;
   }
 
-  await tx`
-    INSERT INTO inventory_events (sku, delta, reason)
-    VALUES (${sku}, -${qty}, 'sale')
-  `;
+  // (SQL: INSERT INTO inventory_events (sku, delta, reason) VALUES (sku, -qty, 'sale'))
+  await tx`...`;
 });
+```
 
 PHASE 6 — Admin React dashboard
 6.1 Queries (read-only)
@@ -269,7 +265,6 @@ CREATE POLICY admin_only
 ON inventory
 FOR ALL
 USING (current_setting('app.role') = 'admin');
-
 
 Set role in admin functions only.
 

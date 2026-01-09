@@ -11,9 +11,9 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 
-export const handler: Handler = async (event, context) => {
+export const handler: Handler = async (event: any, context: any) => {
   const params = event.queryStringParameters || {};
-  const id = params.id;
+  const { id } = params;
   const page = parseInt(params.page || '1');
   const limit = parseInt(params.limit || '20');
   const offset = (page - 1) * limit;

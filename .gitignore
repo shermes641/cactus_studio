@@ -1,8 +1,9 @@
 node_modules
 .env
 .netlify
-script.js
-env.js
+*.js
 dist
 *.log
 .DS_Store
+src/*.js
+.vscode/

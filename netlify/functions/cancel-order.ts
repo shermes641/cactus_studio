@@ -1,7 +1,7 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 
-export const handler: Handler = async (event) => {
+export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
   
   const { cart } = JSON.parse(event.body || '{}');

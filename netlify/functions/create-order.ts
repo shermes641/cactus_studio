@@ -39,7 +39,7 @@ async function getAccessToken() {
   return data.access_token;
 }
 
-export const handler: Handler = async (event) => {
+export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
   
   let cart: any[];
