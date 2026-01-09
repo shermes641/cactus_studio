@@ -7,7 +7,7 @@ This guide covers setting up Cloudinary for image uploads and optimization.
 1. Sign up (free): https://cloudinary.com/users/register/free
 2. Go to **Dashboard** → copy your **Cloud Name**
 3. Go to **Settings** → **Upload** → Create unsigned upload preset:
-   - Name: `unsigned_preset` (or your choice)
+   - Name: `your_preset` (or your choice)
    - Unsigned = no backend API key needed (safe for client-side uploads)
 
 ## 2. Configure Environment
@@ -17,8 +17,8 @@ This guide covers setting up Cloudinary for image uploads and optimization.
 Edit `env.js`:
 ```javascript
 window.env = {
-    CLOUDINARY_CLOUD: "your_cloud_name",
-    CLOUDINARY_PRESET: "unsigned_preset",
+    CLOUDINARY_CLOUD: <"your_cloud_name">,
+    CLOUDINARY_PRESET: <"your_preset">,
 };
 ```
 
@@ -26,8 +26,8 @@ window.env = {
 
 Create `.env` file in project root:
 ```
-CLOUDINARY_CLOUD=your_cloud_name
-CLOUDINARY_PRESET=unsigned_preset
+CLOUDINARY_CLOUD=<your_cloud_name>
+CLOUDINARY_PRESET=<your_preset>
 ```
 
 ## 3. Upload Images
@@ -49,21 +49,21 @@ npm install form-data node-fetch
 
 Then run the batch uploader:
 ```bash
-node cloudinary-upload.js ./images your_cloud_name unsigned_preset
+node cloudinary-upload.js ./images your_cloud_name your_preset
 ```
 
 Or with env vars:
 ```bash
-$env:CLOUDINARY_CLOUD="your_cloud_name"
-$env:CLOUDINARY_PRESET="unsigned_preset"
+$env:CLOUDINARY_CLOUD=<"your_cloud_name">
+$env:CLOUDINARY_PRESET=<"your_preset">
 node cloudinary-upload.js ./images
 ```
 
 ### C. Batch Upload Using PowerShell (Windows)
 
 ```powershell
-$env:CLOUDINARY_CLOUD="your_cloud_name"
-$env:CLOUDINARY_PRESET="unsigned_preset"
+$env:CLOUDINARY_CLOUD=<"your_cloud_name">
+$env:CLOUDINARY_PRESET=<"your_preset">
 .\cloudinary-upload.ps1 -ImageFolder "./images"
 ```
 
