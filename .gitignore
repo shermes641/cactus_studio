@@ -7,3 +7,5 @@ dist
 .DS_Store
 src/*.js
 .vscode/
+CLOUDINARY_SETUP.md
+cloudinary-upload.ps1
