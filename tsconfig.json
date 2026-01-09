@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "none",
+    "strict": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["dom", "es2015"],
+    "noEmitOnError": false,
+    "skipLibCheck": true,
+  },
+  "include": [
+    "script.ts",
+    "env.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "netlify"
+  ]
+}

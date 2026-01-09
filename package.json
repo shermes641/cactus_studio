@@ -6,8 +6,13 @@
     "@netlify/neon": "^0.1.0",
     "netlify-cli": "^23.13.3"
   },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
   "scripts": {
+    "predev": "npm run build",
     "dev": "netlify dev",
-    "build": "echo 'No build step required'"
+    "build": "tsc",
+    "watch": "tsc -w"
   }
 }

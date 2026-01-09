@@ -23,15 +23,6 @@
           Add Item
         </button>
         <button
-          id="hidden-mgr-btn"
-          class="add-btn"
-          onclick="openHiddenManager()"
-          style="background: grey; display: none; max-width: 85px;"
-        >
-          <span data-i18n="hidden">Hidden</span>
-          <span id="hidden-count" class="cart-count"></span>
-        </button>
-        <button
           id="sync-btn"
           class="add-btn"
           onclick="syncDatabase()"
@@ -82,9 +73,6 @@
             id="new-image"
             placeholder="Paste image link here"
           />
-          <div id="vis-container">
-            <label style="display: flex; align-items: center; gap: 2px;"><input type="checkbox" id="hide-check"> <span data-i18n="labelHide">Hide Product</span></label>
-          </div>
           <small class="helper-text" data-i18n="helperText"
             >(For demo, right click any image on Google Images and 'Copy Image
             Address')</small
@@ -104,17 +92,6 @@
       <div id="help-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading...</div>
     </div>
 
-    <!-- Hidden Manager Modal -->
-    <div id="hidden-modal">
-      <div class="hidden-modal-content">
-        <h3 data-i18n="hiddenTitle">Hidden Products</h3>
-        <div id="hidden-list"></div>
-        <div class="hidden-modal-actions">
-          <button onclick="closeHiddenManager()" class="add-btn cancel-btn" data-i18n="btnCancel">Cancel</button>
-          <button onclick="saveHiddenChanges()" class="add-btn" data-i18n="btnSave">Save</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Login Modal -->
     <form id="login-modal" onsubmit="event.preventDefault(); loginUser()" style="background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500'); background-size: cover; background-position: center;">
