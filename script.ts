@@ -1,4 +1,5 @@
 
+import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask } from './src/utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, closeImageModal, updateCartUI, injectLoginUI } from './src/ui.js';
 import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, openCloudinaryUpload, uploadToCloudinary, fetchDataAndLoad, uploadImagesToCloudinary } from './src/actions.js';
@@ -36,63 +37,65 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
    showLoadingMask("Loading...");
    setVersionDisplay();
    
+   // Load language preference
+   const savedLang = localStorage.getItem('cactusLang');
+   if (savedLang) {
+       state.currentLang = savedLang;
+   }
+   applyTranslations();
+   
    // Render Filter Controls
    renderFilterControls();
  
    // Check for persisted login and restore session if user is logged in
    const persistedEmail = localStorage.getItem("currentUserEmail");
    if (persistedEmail) {
-     // Import state to restore user data
-     import('./src/state.js').then(module => {
-       const {state} = module;
-       
-       // Restore user email and data
-       state.currentUser = persistedEmail;
-       const userData = localStorage.getItem("currentUserData");
-       if (userData) {
-         try {
-           state.currentUserData = JSON.parse(userData);
-           state.isAdmin = !!(state.currentUserData && state.currentUserData.is_admin);
-         } catch (e) {
-           console.warn("Failed to parse currentUserData:", e);
+     // Restore user email and data
+     state.currentUser = persistedEmail;
+     const userData = localStorage.getItem("currentUserData");
+     if (userData) {
+       try {
+         state.currentUserData = JSON.parse(userData);
+         state.isAdmin = !!(state.currentUserData && state.currentUserData.is_admin);
+       } catch (e) {
+         console.warn("Failed to parse currentUserData:", e);
+       }
+     }
+     
+     // Hide the login UI
+     const authContainer = document.getElementById("auth-container");
+     if (authContainer) {
+       authContainer.style.display = "none";
+     }
+     
+     // Show admin buttons if user is admin
+     if (state.isAdmin) {
+       const adminBtn = document.getElementById("admin-btn");
+       if (adminBtn) adminBtn.style.display = "inline-block";
+       const syncBtn = document.getElementById("sync-btn");
+       if (syncBtn) {
+         syncBtn.style.display = "inline-block";
+         let uploadImagesBtn = document.getElementById("upload-images-btn");
+         if (!uploadImagesBtn) {
+           uploadImagesBtn = document.createElement("button");
+           uploadImagesBtn.id = "upload-images-btn";
+           uploadImagesBtn.innerText = "Upload Imgs";
+           uploadImagesBtn.className = syncBtn.className;
+           uploadImagesBtn.style.marginLeft = "10px";
+           uploadImagesBtn.style.backgroundColor = "#17a2b8";
+           uploadImagesBtn.style.color = "white";
+           uploadImagesBtn.onclick = () => uploadImagesToCloudinary();
+           if (syncBtn.parentNode) syncBtn.parentNode.insertBefore(uploadImagesBtn, syncBtn.nextSibling);
          }
+         uploadImagesBtn.style.display = "inline-block";
        }
-       
-       // Hide the login UI
-       const authContainer = document.getElementById("auth-container");
-       if (authContainer) {
-         authContainer.style.display = "none";
-       }
-       
-       // Show admin buttons if user is admin
-       if (state.isAdmin) {
-         const adminBtn = document.getElementById("admin-btn");
-         if (adminBtn) adminBtn.style.display = "inline-block";
-         const syncBtn = document.getElementById("sync-btn");
-         if (syncBtn) {
-           syncBtn.style.display = "inline-block";
-           let uploadImagesBtn = document.getElementById("upload-images-btn");
-           if (!uploadImagesBtn) {
-             uploadImagesBtn = document.createElement("button");
-             uploadImagesBtn.id = "upload-images-btn";
-             uploadImagesBtn.innerText = "Upload Imgs";
-             uploadImagesBtn.className = syncBtn.className;
-             uploadImagesBtn.style.marginLeft = "10px";
-             uploadImagesBtn.style.backgroundColor = "#17a2b8";
-             uploadImagesBtn.style.color = "white";
-             uploadImagesBtn.onclick = () => uploadImagesToCloudinary();
-             if (syncBtn.parentNode) syncBtn.parentNode.insertBefore(uploadImagesBtn, syncBtn.nextSibling);
-           }
-           uploadImagesBtn.style.display = "inline-block";
-         }
-         const migrateBtn = document.getElementById("run-migrate-btn");
-         if (migrateBtn) migrateBtn.style.display = "inline-block";
-         localStorage.setItem("adminSession", "true");
-       }
-       
-       // Load and display products and user data
-       fetchDataAndLoad().then(() => hideLoadingMask());
-     });
+       const migrateBtn = document.getElementById("run-migrate-btn");
+       if (migrateBtn) migrateBtn.style.display = "inline-block";
+       localStorage.setItem("adminSession", "true");
+     }
+     
+     // Load and display products and user data
+     fetchDataAndLoad().then(() => hideLoadingMask());
    } else {
      // No user logged in, show the login page
      hideLoadingMask();
