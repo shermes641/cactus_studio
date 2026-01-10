@@ -185,13 +185,12 @@ background-color: var(--secondary);
 
 /* Main Content Container and Product Grid */
 .container {
-    max-width: 1350px;
-    width: 66%;
-    margin: 0 auto 40px;
+    width: auto;
+    margin: 0 0 40px;
     padding: 0 20px;
-    padding-left: clamp(120px, 15vw, 200px);
     background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)) center center / cover, url(https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500);
     right: 10px;
+    left: 185px;
     position: absolute;
 }
 
@@ -211,9 +210,18 @@ background-color: var(--secondary);
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 10px;
-    width: 99%;
+    width: 98%;
     position: relative;
-    left: -75px;
+    left: 10px;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    opacity: 1;
+    transform: scale(1);
+    margin-top: 15px;
+}
+
+.product-grid.fade-out {
+    opacity: 0;
+    transform: scale(0.98);
 }
 
 .product-card {
@@ -767,6 +775,7 @@ background-color: var(--secondary);
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.2s;
+    font-weight: bolder;
 }
 
 .page-btn:hover, .page-btn.active {

@@ -696,6 +696,9 @@ export async function renderPage(page: number, skipFetch = false) {
 
   const grid = document.getElementById("product-grid");
   if (grid) {
+    grid.classList.add('fade-out');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     grid.innerHTML = "";
     
     state.products.forEach((product) => {
@@ -744,6 +747,7 @@ export async function renderPage(page: number, skipFetch = false) {
           </div>
       `;
     });
+    setTimeout(() => grid.classList.remove('fade-out'), 50);
   }
 
   updatePaginationControls(state.totalItems);
@@ -1022,7 +1026,7 @@ export async function checkout() {
             toggleCart();
             setTimeout(function() {
               alert('Transaction completed by ' + details.payer.name.given_name + '!');
-            }, 1000);
+            }, 500);
           }).catch(err => {
             console.error("Error recording order:", err);
             alert('Payment successful, but there was an error saving the receipt.');
