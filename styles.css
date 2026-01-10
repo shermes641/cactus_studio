@@ -85,9 +85,32 @@ header {
 }
 
 #lang-btn {
-    border: 1px solid rgba(255,255,255,0.5);
+    background-color: #20c997;
+    border: none;
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 5px 10px;
+}
+
+#help-btn {
+    background-color: #523ee8;
+    border-radius: 4px;
+    padding: 5px 10px;
+}
+
+#cart-toggle-btn {
+    background-color: #fd7e14;
+    border-radius: 4px;
+    padding: 5px 10px;
+}
+
+#cart-toggle-btn .cart-count {
+    background-color: var(--white);
+    color: var(--text);
+}
+
+#lang-btn:hover, #help-btn:hover, #cart-toggle-btn:hover {
+    filter: brightness(90%);
+    color: var(--white);
 }
 
 /* Admin button hidden by default */

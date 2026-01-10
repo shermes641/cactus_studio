@@ -12,11 +12,13 @@ export const handler: Handler = async (event: any, context: any) => {
     const { email, password } = body;
 
     if (!email || !password) {
+      console.error('Login error: Email and password are required');
       return { statusCode: 400, body: JSON.stringify({ error: 'Email and password are required' }) };
     }
 
     const connectionString = process.env.NETLIFY_DATABASE_URL;
     if (!connectionString) {
+      console
       return { statusCode: 500, body: JSON.stringify({ error: 'Database connection failed' }) };
     }
 
@@ -26,6 +28,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const users = await sql('SELECT id, email, password_hash, name, phone, shipping_addr, cart, is_admin FROM users WHERE email = $1', [email]);
 
     if (users.length === 0) {
+      console.error('Login error: Invalid email or password');
       return { statusCode: 401, body: JSON.stringify({ error: 'Invalid email or password' }) };
     }
 
@@ -51,7 +54,7 @@ export const handler: Handler = async (event: any, context: any) => {
     };
 
   } catch (error: any) {
-    console.error('Login error:', error);
+    console.error('Login error very bad:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Login failed' })

@@ -1,3 +1,4 @@
+//force build
 import { state } from './state.js';
 import { translations } from './constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask } from './utils.js';

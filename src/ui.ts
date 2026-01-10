@@ -193,23 +193,14 @@ export function groupSidebarElements() {
   const filter = document.getElementById('filter-container');
   const logo = document.querySelector('.sidebar-logo-container');
   const version = document.querySelector('.version-tag');
-  const nav = document.querySelector('.nav-links');
 
-  if (!filter && !logo && !version && !nav) return;
+  if (!filter && !logo && !version) return;
 
   const wrapper = document.createElement('div');
   wrapper.id = containerId;
   document.body.appendChild(wrapper);
 
   if (logo) wrapper.appendChild(logo);
-
-  if (nav) {
-    (nav as HTMLElement).style.display = 'flex';
-    (nav as HTMLElement).style.flexDirection = 'column';
-    (nav as HTMLElement).style.gap = '10px';
-    (nav as HTMLElement).style.marginBottom = '20px';
-    wrapper.appendChild(nav);
-  }
 
   if (filter) wrapper.appendChild(filter);
   //if (version) wrapper.appendChild(version);
