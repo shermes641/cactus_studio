@@ -14,7 +14,7 @@ export const calculateMaxImgCache = () => {
 export const setVersionDisplay = () => {
   const versionElements = document.querySelectorAll('.version-tag');
   versionElements.forEach(element => {
-    element.textContent = `v${APP_VERSION}`;
+    element.textContent = `🌵 Cactus Studio\nv${APP_VERSION}`;
   });
 };
 
@@ -76,5 +76,3 @@ export function hideLoadingMask() {
 export function getStorageKey(key: string, currentUser: string | null) {
   return currentUser ? `${key}_${currentUser}` : key;
 }
-
-

@@ -45,7 +45,25 @@ export const translations: Translations = {
         prev: "Prev",
         next: "Next",
         modalAddCart: "Add to Cart +",
-        outOfStock: "Out of Stock"
+        outOfStock: "Out of Stock",
+        btnSync: "Sync DB",
+        btnMigrate: "Run Migration",
+        btnUploadImages: "Upload Images",
+        btnUpload: "📤 Upload",
+        btnPrev: "Prev",
+        btnNext: "Next",
+        opt5Page: "5 / page",
+        opt10Page: "10 / page",
+        opt20Page: "20 / page",
+        noAccount: "Don't have an account?",
+        registerLink: "Register here",
+        hasAccount: "Already have an account?",
+        loginLink: "Login here",
+        registerTitle: "Create Account",
+        btnRegister: "Register",
+        filterLabel: "Filter:",
+        allOption: "All",
+        alertLangChange: "Changing language will log you out and reload the page. Continue?"
     },
     es: {
         logout: "Cerrar Sesión",
@@ -84,8 +102,24 @@ export const translations: Translations = {
         prev: "Ant",
         next: "Sig",
         modalAddCart: "Agregar al Carrito +",
-        outOfStock: "Agotado"
+        outOfStock: "Agotado",
+        btnSync: "Sincronizar BD",
+        btnMigrate: "Ejecutar Migración",
+        btnUploadImages: "Subir Imágenes",
+        btnUpload: "📤 Subir",
+        btnPrev: "Ant",
+        btnNext: "Sig",
+        opt5Page: "5 / pág",
+        opt10Page: "10 / pág",
+        opt20Page: "20 / pág",
+        noAccount: "¿No tienes cuenta?",
+        registerLink: "Regístrate aquí",
+        hasAccount: "¿Ya tienes cuenta?",
+        loginLink: "Inicia sesión aquí",
+        registerTitle: "Crear Cuenta",
+        btnRegister: "Registrar",
+        filterLabel: "Filtrar:",
+        allOption: "Todos",
+        alertLangChange: "Cambiar el idioma cerrará la sesión y recargará la página. ¿Continuar?"
     }
 };
-
-

@@ -23,11 +23,11 @@ export function renderFilterControls() {
   const container = document.getElementById("filter-container");
   if (!container) return;
 
-  const label = state.currentLang === 'es' ? 'Filtrar:' : 'Filter:';
-  const allLabel = state.currentLang === 'es' ? 'Todos' : 'All';
+  const label = translations[state.currentLang].filterLabel;
+  const allLabel = translations[state.currentLang].allOption;
 
-  let html = `<label style="margin-right:10px; font-weight:bold; font-size: xxx-large;">${label}</label>`;
-  html += `<select onchange="applyFilter(this.value)" style="padding: 8px; border-radius: 4px; border: 1px solid var(--primary); background: green; font-size: xxx-large;">`;
+  let html = `<label>${label}</label>`;
+  html += `<select onchange="applyFilter(this.value)">`;
   
   PLANT_CLASSES.forEach(type => {
       const display = type === 'All' ? allLabel : type;
@@ -53,9 +53,9 @@ export function updatePaginationControls(totalCount: number) {
   
   html += `
     <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">
-      <option value="5" ${state.itemsPerPage === 5 ? 'selected' : ''}>5 / page</option>
-      <option value="10" ${state.itemsPerPage === 10 ? 'selected' : ''}>10 / page</option>
-      <option value="20" ${state.itemsPerPage === 20 ? 'selected' : ''}>20 / page</option>
+      <option value="5" ${state.itemsPerPage === 5 ? 'selected' : ''}>${translations[state.currentLang].opt5Page}</option>
+      <option value="10" ${state.itemsPerPage === 10 ? 'selected' : ''}>${translations[state.currentLang].opt10Page}</option>
+      <option value="20" ${state.itemsPerPage === 20 ? 'selected' : ''}>${translations[state.currentLang].opt20Page}</option>
     </select>
   `;
   
@@ -192,16 +192,45 @@ export function groupSidebarElements() {
 
   const filter = document.getElementById('filter-container');
   const logo = document.querySelector('.sidebar-logo-container');
-  const version = document.querySelector('.version-tag');
+  const version = document.getElementById('main-version');
 
   if (!filter && !logo && !version) return;
 
   const wrapper = document.createElement('div');
   wrapper.id = containerId;
+  
+  wrapper.style.position = 'fixed';
+  wrapper.style.bottom = '0';
+  wrapper.style.left = '0';
+  wrapper.style.width = '100%';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.justifyContent = 'flex-end';
+  wrapper.style.gap = '15px';
+  wrapper.style.zIndex = '1000';
+  wrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+  wrapper.style.padding = '10px 20px';
+  wrapper.style.boxShadow = '0 -2px 10px rgba(0,0,0,0.1)';
+  wrapper.style.boxSizing = 'border-box';
+
   document.body.appendChild(wrapper);
 
-  if (logo) wrapper.appendChild(logo);
-
-  if (filter) wrapper.appendChild(filter);
-  //if (version) wrapper.appendChild(version);
+  if (logo) {
+    wrapper.appendChild(logo);
+    (logo as HTMLElement).style.position = 'static';
+    const img = logo.querySelector('img');
+    if (img) {
+      img.style.height = '40px';
+      img.style.width = 'auto';
+      img.style.position = 'static';
+    }
+  }
+  if (version) {
+    wrapper.appendChild(version);
+    (version as HTMLElement).style.position = 'static';
+  }
+  if (filter) {
+    wrapper.appendChild(filter);
+    (filter as HTMLElement).style.position = 'static';
+  }
 }

@@ -138,9 +138,7 @@ export async function uploadToCloudinary(event: Event) {
 
 export function toggleLanguage() {
     const nextLang = state.currentLang === 'en' ? 'es' : 'en';
-    const msg = state.currentLang === 'en' 
-        ? "Changing language will log you out and reload the page. Continue?" 
-        : "Cambiar el idioma cerrará la sesión y recargará la página. ¿Continuar?";
+    const msg = translations[state.currentLang].alertLangChange;
 
     if (confirm(msg)) {
       state.currentLang = nextLang;
@@ -447,36 +445,7 @@ export function loginUser() {
   fetchDataAndLoad();
 }
 
-function injectHeaderContent() {
-  const header = document.querySelector('header');
-  if (!header) return;
-  
-  if (document.getElementById('header-hero-content')) return;
-  
-  const container = document.createElement('div');
-  container.id = 'header-hero-content';
-  container.className = 'header-title-container';
-  
-  const title = document.createElement('div');
-  title.className = 'header-title';
-  title.innerText = translations[state.currentLang].heroTitle;
-  title.setAttribute('data-i18n', 'heroTitle');
-  
-  const subtitle = document.createElement('div');
-  subtitle.className = 'header-subtitle';
-  subtitle.innerText = translations[state.currentLang].heroSubtitle;
-  subtitle.setAttribute('data-i18n', 'heroSubtitle');
-  
-  container.appendChild(title);
-  container.appendChild(subtitle);
-  
-  const nav = header.querySelector('.nav-links');
-  if (nav) header.insertBefore(container, nav);
-  else header.appendChild(container);
-}
-
 export async function fetchDataAndLoad() {
-  injectHeaderContent();
   groupSidebarElements();
   const savedPage = parseInt(localStorage.getItem('cactusPage') || '1') || 1;
   const savedLimit = parseInt(localStorage.getItem('cactusLimit') || '20') || 20;
@@ -694,6 +663,17 @@ export async function renderPage(page: number, skipFetch = false) {
   const totalPages = Math.ceil(state.totalItems / state.itemsPerPage) || 1;
   if (page > totalPages) state.currentPage = totalPages;
   if (page < 1) state.currentPage = 1;
+
+  if (state.products) {
+    state.products.sort((a, b) => {
+      const aQty = (state.useDB && a.quantity !== undefined && a.quantity !== null) ? Number(a.quantity) : 1;
+      const bQty = (state.useDB && b.quantity !== undefined && b.quantity !== null) ? Number(b.quantity) : 1;
+      const aOOS = aQty <= 0;
+      const bOOS = bQty <= 0;
+      if (aOOS === bOOS) return 0;
+      return aOOS ? 1 : -1;
+    });
+  }
 
   const grid = document.getElementById("product-grid");
   if (grid) {
