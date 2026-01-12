@@ -1,5 +1,6 @@
 import { Product, PageCacheEntry } from './types.js';
 import { calculateMaxImgCache } from './utils.js';
+import { PLANT_CLASSES } from './constants.js';
 
 export const state = {
     cart: [] as Product[],
@@ -19,9 +20,9 @@ export const state = {
     hiddenProductIds: new Set<number>(),
     currentFilter: 'All',
     currentLang: localStorage.getItem('cactusLang') || 'en',
-    MAX_IMG_CACHE: calculateMaxImgCache()
+    MAX_IMG_CACHE: calculateMaxImgCache(),
+    pendingUploadFile: null as File | null,
+    plantClasses: [...PLANT_CLASSES]
 };
 
 console.log(`Max Image Cache Size: ${state.MAX_IMG_CACHE} images`);
-
-

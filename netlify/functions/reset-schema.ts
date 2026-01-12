@@ -95,6 +95,14 @@ export const handler: Handler = async (event: any, context: any) => {
       )
     `;
 
+    // Plant Classes
+    await sql`
+      CREATE TABLE plant_classes (
+        id BIGSERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL
+      )
+    `;
+
     // Orders
     await sql`
       CREATE TABLE orders (
@@ -156,6 +164,13 @@ export const handler: Handler = async (event: any, context: any) => {
       ('SAVE15', 'percent', 15), 
       ('SAVE20', 'percent', 20), 
       ('FREESHIP', 'shipping', 0)
+    `;
+
+    await sql`
+      INSERT INTO plant_classes (name) VALUES 
+      ('Opuntia'), ('Euphorbia'), ('Mammillaria'), ('Aizoaceae'), 
+      ('Aloe'), ('Crassula'), ('Echeveria'), ('Haworthia'), 
+      ('Sansevieria'), ('Sedum'), ('Sempervivum')
     `;
 
     return {

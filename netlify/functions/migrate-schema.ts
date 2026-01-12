@@ -65,6 +65,22 @@ export const handler: Handler = async (event: any, context: any) => {
       out.push('foreign key on orders.status already exists');
     }
 
+    // 6) Ensure plant_classes table
+    await sql`CREATE TABLE IF NOT EXISTS plant_classes (id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)`;
+    out.push('ensured plant_classes table');
+
+    // 7) Seed plant_classes if empty
+    const pcCount = await sql`SELECT COUNT(*) FROM plant_classes`;
+    if (parseInt(pcCount[0].count) === 0) {
+      await sql`
+        INSERT INTO plant_classes (name) VALUES 
+        ('Opuntia'), ('Euphorbia'), ('Mammillaria'), ('Aizoaceae'), 
+        ('Aloe'), ('Crassula'), ('Echeveria'), ('Haworthia'), 
+        ('Sansevieria'), ('Sedum'), ('Sempervivum')
+      `;
+      out.push('seeded plant_classes');
+    }
+
     return { statusCode: 200, body: JSON.stringify({ ok: true, actions: out }) };
   } catch (error: any) {
     console.error('Migration failed:', error);

@@ -1,8 +1,8 @@
 //force build
 import { state } from './state.js';
-import { translations } from './constants.js';
+import { translations, PLANT_CLASSES } from './constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask } from './utils.js';
-import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, updatePaginationControls, groupSidebarElements } from './ui.js';
+import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, showPromptModal } from './ui.js';
 import { Product } from './types.js';
 
 declare const paypal: any;
@@ -74,65 +74,6 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
     hideLoadingMask();
     console.error('Image upload error', e);
     alert('Image upload error: ' + (e && e.message ? e.message : String(e)));
-  }
-}
-
-export async function uploadToCloudinary(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) return;
-
-  const file = input.files[0];
-  
-  showLoadingMask("Uploading to Cloudinary...");
-
-  try {
-    // Fetch Cloudinary config from backend
-    const configRes = await fetch('/.netlify/functions/get-cloudinary-config');
-    if (!configRes.ok) {
-      hideLoadingMask();
-      const errorData = await configRes.json().catch(() => ({ error: 'Unknown error' }));
-      alert("Failed to get Cloudinary configuration: " + (errorData.error || "Please check your environment variables."));
-      return;
-    }
-    
-    const config = await configRes.json();
-    const { cloudName, uploadPreset } = config;
-    
-    if (!cloudName || !uploadPreset) {
-      hideLoadingMask();
-      alert("Cloudinary configuration is incomplete. Please set CLOUDINARY_CLOUD and CLOUDINARY_PRESET in Netlify environment variables.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", uploadPreset);
-
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!res.ok) {
-      hideLoadingMask();
-      const err = await res.json().catch(() => ({ error: { message: 'Upload failed' } }));
-      alert("Upload failed: " + (err.error?.message || "Unknown error. Check your upload preset configuration in Cloudinary."));
-      return;
-    }
-
-    const data = await res.json();
-    const optimizedUrl = data.secure_url.replace("/upload/", "/upload/w_500,q_auto,f_webp/");
-    const imageInput = document.getElementById("new-image") as HTMLInputElement;
-    if (imageInput) imageInput.value = optimizedUrl;
-
-    hideLoadingMask();
-    alert("Image uploaded successfully!");
-    // Reset file input
-    input.value = "";
-  } catch (e) {
-    hideLoadingMask();
-    console.error("Cloudinary upload error:", e);
-    alert("Upload error: " + (e instanceof Error ? e.message : String(e)));
   }
 }
 
@@ -269,10 +210,6 @@ export async function loginUserEmail() {
       }
       const migrateBtn = document.getElementById("run-migrate-btn");
       if (migrateBtn) migrateBtn.style.display = "inline-block";
-      
-      // Auto-open admin modal or show admin UI
-      const adminModal = document.getElementById("admin-modal");
-      if (adminModal) adminModal.style.display = "flex";
     }
     
     hideLoadingMask();
@@ -363,52 +300,6 @@ export function removeAllFromCart() {
     }
 }
 
-// export function checkAdminAccess() {
-//   if (state.isAdmin) return;
-//   if (window.location.hash === "#admin") {
-//     const password = prompt(translations[state.currentLang].alertAdminPass);
-//     if (password === "LILY") {
-//       state.isAdmin = true;
-//       state.currentUser = "admin";
-//       const loginModal = document.getElementById("login-modal");
-//       if (loginModal) loginModal.style.display = "none";
-      
-//       if (state.products.length === 0) {
-//         fetchDataAndLoad();
-//       } else {
-//         loadUserData();
-//         injectLogoutButton();
-//       }
-      
-//       alert(translations[state.currentLang].alertAccessGranted);
-//       const adminBtn = document.getElementById("admin-btn");
-//       if (adminBtn) adminBtn.style.display = "inline-block";
-//       const syncBtn = document.getElementById("sync-btn");
-//       if (syncBtn) {
-//         syncBtn.style.display = "inline-block";
-//         if (!document.getElementById("reset-schema-btn")) {
-//           const resetBtn = document.createElement("button");
-//           resetBtn.id = "reset-schema-btn";
-//           resetBtn.innerText = "Reset DB";
-//           resetBtn.className = syncBtn.className;
-//           resetBtn.style.marginLeft = "10px";
-//           resetBtn.style.backgroundColor = "#dc3545";
-//           resetBtn.style.color = "white";
-//           resetBtn.onclick = resetDatabaseSchema;
-//           if (syncBtn.parentNode) syncBtn.parentNode.insertBefore(resetBtn, syncBtn.nextSibling);
-//         } else {
-//           const resetBtn = document.getElementById("reset-schema-btn");
-//           if (resetBtn) resetBtn.style.display = "inline-block";
-//         }
-//       }
-//     } else {
-//       alert(translations[state.currentLang].alertIncorrectPass);
-//       history.pushState("", document.title, window.location.pathname + window.location.search);
-//       state.currentUser = null;
-//     }
-//   }
-// }
-
 export async function runMigration() {
   if (!confirm('Run non-destructive DB migration now?')) return;
   showLoadingMask('Running migration...');
@@ -468,21 +359,6 @@ export async function fetchDataAndLoad() {
     }
   } catch (e) {
     console.log("DB load failed, falling back to data.json", e);
-  }
-
-  state.useDB = false;
-  try {
-    const response = await fetch('/data.json');
-    if (!response.ok) throw new Error("Failed to load local data");
-    state.allProducts = await response.json();
-    state.defaultProducts = JSON.parse(JSON.stringify(state.allProducts));
-    loadUserData(false);
-    injectLogoutButton();
-    renderPage(savedPage);
-  } catch (e) {
-    console.error("Critical: Failed to load data.json", e);
-    const grid = document.getElementById("product-grid");
-    if (grid) grid.innerHTML = '<div style="padding:20px; text-align:center; color: #d9534f;"><h3>Connection Error</h3><p>Could not load products. Please ensure the server is running.</p></div>';
   }
 }
 
@@ -741,11 +617,42 @@ export function changeItemsPerPage(val: string) {
   renderPage(1);
 }
 
-export function addProduct() {
+export async function addProduct() {
   const name = (document.getElementById("new-name") as HTMLInputElement).value;
   const priceInput = parseFloat((document.getElementById("new-price") as HTMLInputElement).value);
   const price = Math.round(priceInput * 100);
-  const image = (document.getElementById("new-image") as HTMLInputElement).value;
+  let image = (document.getElementById("new-image") as HTMLInputElement).value;
+  const scientific = (document.getElementById("new-scientific") as HTMLInputElement)?.value || "";
+  const productClass = (document.getElementById("new-class") as HTMLSelectElement)?.value || "None";
+  const notes = (document.getElementById("new-notes") as HTMLTextAreaElement)?.value || "";
+
+  if (state.pendingUploadFile) {
+      showLoadingMask("Uploading image...");
+      try {
+        const configRes = await fetch('/.netlify/functions/get-cloudinary-config');
+        if (!configRes.ok) throw new Error("Failed to get Cloudinary config");
+        const config = await configRes.json();
+        
+        const formData = new FormData();
+        formData.append("file", state.pendingUploadFile);
+        formData.append("upload_preset", config.uploadPreset);
+        
+        if (image && image.includes('cloudinary.com')) {
+            const matches = image.match(/\/upload\/(?:v\d\/)?(.)\.[^.]$/);
+            if (matches && matches[1]) formData.append("public_id", matches[1]);
+        }
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`, { method: "POST", body: formData });
+        if (!res.ok) throw new Error("Upload failed");
+        const data = await res.json();
+        image = data.secure_url;
+      } catch (e: any) {
+          hideLoadingMask();
+          alert("Image upload failed: "  + e.message);
+          return;
+      }
+      hideLoadingMask();
+  }
 
   if (name && price && image) {
     if (state.editingProductId) {
@@ -754,6 +661,18 @@ export function addProduct() {
         product.name = name;
         product.price_cents = price;
         product.image_url = image;
+        product.scientific = scientific;
+        product.class = productClass;
+        product.notes = notes;
+
+        if (state.useDB) {
+          await fetch('/.netlify/functions/update-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: product.id, name, price_cents: price, image_url: image, scientific, class: productClass, notes })
+          }).catch(e => console.error("Failed to update DB", e));
+        }
+
         alert(translations[state.currentLang].alertUpdated);
       }
     } else {
@@ -762,7 +681,34 @@ export function addProduct() {
         name: name,
         price_cents: price,
         image_url: image,
+        quantity: 1,
+        scientific: scientific,
+        class: productClass,
+        notes: notes,
       };
+
+      if (state.useDB) {
+        try {
+          const res = await fetch('/.netlify/functions/update-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, price_cents: price, image_url: image, scientific, class: productClass, notes })
+          });
+          
+          if (!res.ok) {
+            const err = await res.text();
+            throw new Error(err || res.statusText);
+          }
+
+          const data = await res.json();
+          if (data.id) newProduct.id = Number(data.id);
+        } catch (e: any) { 
+          console.error("Failed to add to DB", e);
+          alert("Failed to save to database: " + e.message);
+          return;
+        }
+      }
+
       state.products.push(newProduct);
       alert(translations[state.currentLang].alertAdded);
     }
@@ -772,7 +718,10 @@ export function addProduct() {
     (document.getElementById("new-name") as HTMLInputElement).value = "";
     (document.getElementById("new-price") as HTMLInputElement).value = "";
     (document.getElementById("new-image") as HTMLInputElement).value = "";
-
+    (document.getElementById("new-scientific") as HTMLInputElement).value = "";
+    (document.getElementById("new-class") as HTMLSelectElement).selectedIndex = 0;
+    (document.getElementById("new-notes") as HTMLTextAreaElement).value = "";
+    setupDropZone("");
     state.editingProductId = null;
     const btn = document.querySelector("#admin-modal .add-btn") as HTMLElement;
     if (btn) btn.innerText = translations[state.currentLang].btnAddInventory;
@@ -1168,13 +1117,21 @@ export function openImageModal(id: number) {
   if (!product) return;
 
   if (state.isAdmin) {
+    ensureAdminFieldsExist();
     (document.getElementById("new-name") as HTMLInputElement).value = product.name;
     (document.getElementById("new-price") as HTMLInputElement).value = (product.price_cents / 100).toFixed(2);
     (document.getElementById("new-image") as HTMLInputElement).value = product.image_url;
+    (document.getElementById("new-scientific") as HTMLInputElement).value = product.scientific || "";
+    (document.getElementById("new-class") as HTMLSelectElement).value = product.class || "None";
+    (document.getElementById("new-notes") as HTMLTextAreaElement).value = product.notes || "";
+    setupDropZone(product.image_url);
     state.editingProductId = product.id;
 
     const btn = document.querySelector("#admin-modal .add-btn") as HTMLElement;
     if (btn) btn.innerText = translations[state.currentLang].btnUpdateProduct;
+
+    const title = document.querySelector("#admin-modal h2") as HTMLElement;
+    if (title) title.innerText = "Edit Cactus";
 
     const adminModal = document.getElementById("admin-modal");
     if (adminModal && adminModal.style.display !== "flex") {
@@ -1225,8 +1182,300 @@ export function openImageModal(id: number) {
   modal.style.display = "flex";
 }
 
-/* Cloudinary upload functions */
+// Legacy functions to satisfy script.ts imports
 export function openCloudinaryUpload() {
-  const fileInput = document.getElementById("cloudinary-file-input") as HTMLInputElement;
-  if (fileInput) fileInput.click();
+  console.warn("openCloudinaryUpload is deprecated");
+}
+export async function uploadToCloudinary(event: any) {
+  console.warn("uploadToCloudinary is deprecated");
+}
+
+export async function identifyPlant(imageUrl: string) {
+  showLoadingMask("Identifying plant...");
+  
+  let data: any = null;
+  let usedApi = 'Kindwise';
+  const failedApis: string[] = [];
+
+  try {
+    try {
+      //throw new Error('test'); // force error to skip Kindwise for now
+      const res = await fetch('/.netlify/functions/identify-plant-kindwise', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl })
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || res.statusText);
+      data = json;
+    } catch (e) {
+      console.error("Kindwise identification failed, trying OpenAI:", e);
+      failedApis.push('Kindwise');
+      usedApi = 'ChatGPT';
+      try {
+        const res = await fetch('/.netlify/functions/identify-plant-openai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl })
+        });
+        const json = await res.json();
+        if (!res.ok || json.error) throw new Error(json.error || res.statusText);
+        data = json;
+      } catch (e2) {
+        console.error("ChatGPT identification failed, trying Ollama:", e2);
+        failedApis.push('ChatGPT');
+        usedApi = 'Ollama';
+        try {
+            const res = await fetch('/.netlify/functions/identify-plant-ollama', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl })
+            });
+            const json = await res.json();
+            if (!res.ok || json.error) throw new Error(json.error || res.statusText);
+            data = json;
+        } catch (e3) {
+            console.error("Ollama identification failed, trying Gemini:", e3);
+            failedApis.push('Ollama');
+            usedApi = 'Gemini';
+            try {
+                const res = await fetch('/.netlify/functions/identify-plant-gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageUrl })
+                });
+                const json = await res.json();
+                if (!res.ok || json.error) throw new Error(json.error || res.statusText);
+                data = json;
+            } catch (e4) {
+                console.error("Gemini identification failed, trying Grok:", e4);
+                failedApis.push('Gemini');
+                usedApi = 'Grok';
+                try {
+                    const res = await fetch('/.netlify/functions/identify-plant-grok', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageUrl })
+                    });
+                    data = await res.json();
+                    if (data.error) console.error("Grok identification failed:", data.error);
+                } catch (e5) {
+                    console.error("Grok identification failed:", e5);
+                    data = { error: e5 instanceof Error ? e5.message : String(e5) };
+                }
+            }
+        }
+      }
+    }
+
+    hideLoadingMask();
+    
+    if (data && data.error) {
+        failedApis.push(usedApi);
+        const uniqueFailed = [...new Set(failedApis)];
+
+        const promptText = "Can you identify this plant? Please provide the only Scientific Name: and Class: only as text";
+        
+        const copyToClipboard = async () => {
+            showLoadingMask("Copying to clipboard...");
+            try {
+let blob: Blob;
+
+// Load image
+if (imageUrl.startsWith('data:')) {
+    blob = await (await fetch(imageUrl)).blob();
+} else {
+    const resp = await fetch(imageUrl);
+    blob = await resp.blob();
+}
+
+// Ensure PNG (Gemini is safest with PNG)
+if (blob.type !== 'image/png') {
+    const img = new Image();
+    img.src = URL.createObjectURL(blob);
+    await new Promise<void>(r => (img.onload = () => r()));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+
+    blob = await new Promise<Blob>(r =>
+        canvas.toBlob(b => r(b!), 'image/png')
+    );
+}
+
+// Minimal HTML — TEXT ONLY
+const htmlBlob = new Blob(
+    [promptText + '<br>'],
+    { type: 'text/html' }
+);
+
+// Plain text fallback
+const textBlob = new Blob(
+    [promptText],
+    { type: 'text/plain' }
+);
+
+// Clipboard payload tuned for Gemini
+const item = new ClipboardItem({
+    'image/png': blob,
+    'text/html': htmlBlob,
+    'text/plain': textBlob
+});
+
+await navigator.clipboard.write([item]);
+
+            } catch (e) {
+                console.error("Clipboard write failed", e);
+                navigator.clipboard.writeText(promptText).catch(() => {});
+            } finally {
+                hideLoadingMask();
+            }
+        };
+
+        const webAis: {[key: string]: string} = {
+            'ChatGPT': 'https://chatgpt.com',
+            'Gemini': 'https://gemini.google.com/app',
+            'Grok': 'https://grok.com'
+        };
+
+        const options = uniqueFailed.filter(api => webAis[api]);
+
+        if (options.length > 0) {
+            let msg = `Identification failed with: ${uniqueFailed.join(', ')}.\n\nSelect a service to open manually (Prompt & Image will be copied):\n`;
+            options.forEach((api, i) => {
+                msg += `${i + 1}. ${api}\n`;
+            });
+
+            const selection = prompt(msg);
+            if (selection) {
+                const index = parseInt(selection) - 1;
+                if (index >= 0 && index < options.length) {
+                    const selectedApi = options[index];
+                    await copyToClipboard();
+                    window.open(webAis[selectedApi], '_blank');
+
+                    const pasted = await showPromptModal("Paste the AI response here to parse Class and Scientific Name:", "", promptText, imageUrl);
+                    if (pasted) {
+                        const cleanStr = (s: string) => s.replace(/[*`]/g, '').trim();
+                        
+                        const classMatch = pasted.match(/(?:Class|Genus)[\s*:]+((?:(?!(?:Scientific|Scientific Name)[\s*:]).)+)/i);
+                        const sciMatch = pasted.match(/(?:Scientific Name|Scientific)[\s*:]+((?:(?!(?:Class|Genus)[\s*:]).)+)/i);
+                        
+                        const extractedClass = classMatch ? cleanStr(classMatch[1]) : null;
+                        const extractedSci = sciMatch ? cleanStr(sciMatch[1]) : null;
+
+                        if (extractedClass || extractedSci) {
+                             const cls = document.getElementById('new-class') as HTMLSelectElement;
+                             const sci = document.getElementById('new-scientific') as HTMLInputElement;
+
+                             if (extractedClass && cls) {
+                                let exists = false;
+                                for (let i = 0; i < cls.options.length; i++) {
+                                    if (cls.options[i].value === extractedClass) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!exists) {
+                                    if (confirm(`Class '${extractedClass}' is not in the list. Add it to the database?`)) {
+                                        try {
+                                            await fetch('/.netlify/functions/add-plant-class', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ name: extractedClass })
+                                            });
+                                            state.plantClasses.push(extractedClass);
+                                            const opt = document.createElement('option');
+                                            opt.value = extractedClass;
+                                            opt.innerText = extractedClass;
+                                            cls.appendChild(opt);
+                                            renderFilterControls();
+                                        } catch (e) { console.error(e); alert("Failed to add class"); }
+                                    }
+                                }
+                                cls.value = extractedClass;
+                                cls.dispatchEvent(new Event('change'));
+                             }
+
+                             if (extractedSci && sci) {
+                                 sci.value = extractedSci;
+                             }
+                        }
+                    }
+                }
+            }
+        } else if (usedApi === 'Ollama') {
+            alert(`Identification failed (${usedApi}): ${data.error}\n\nEnsure Ollama is running locally (port 11434) with a vision model (e.g. 'llava').`);
+        } else {
+            alert(`Identification failed (${usedApi}): ` + data.error);
+        }
+        return;
+    }
+
+    if (data.class && data.scientific) {
+       if (data.class === 'Unknown' || data.scientific === 'Unknown') {
+           alert(`The AI (${usedApi}) analyzed the image but could not identify the plant.`);
+           return;
+       }
+
+       if (confirm(`Identified by ${usedApi}:\nClass: ${data.class}\nScientific: ${data.scientific}\n\nDo you want to use these values?`)) {
+          const cls = document.getElementById('new-class') as HTMLSelectElement;
+          const sci = document.getElementById('new-scientific') as HTMLInputElement;
+          
+          if (cls) { 
+            let exists = false;
+            for (let i = 0; i < cls.options.length; i++) {
+                if (cls.options[i].value === data.class) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                if (confirm(`Class '${data.class}' is not in the list. Add it to the database?`)) {
+                    try {
+                        await fetch('/.netlify/functions/add-plant-class', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: data.class })
+                        });
+                        state.plantClasses.push(data.class);
+                        const opt = document.createElement('option');
+                        opt.value = data.class;
+                        opt.innerText = data.class;
+                        cls.appendChild(opt);
+                        renderFilterControls();
+                    } catch (e) { console.error(e); alert("Failed to add class"); return; }
+                } else {
+                    return;
+                }
+            }
+
+            cls.value = data.class; 
+            cls.dispatchEvent(new Event('change')); 
+          }
+          if (sci) sci.value = data.scientific;
+       }
+    } else {
+        alert("Could not identify plant.");
+    }
+  } catch (e) { hideLoadingMask(); console.error(e); alert("Identification error"); }
+}
+
+export async function fetchPlantClasses() {
+  try {
+    const res = await fetch('/.netlify/functions/get-plant-classes');
+    if (res.ok) {
+      const classes = await res.json();
+      state.plantClasses = ['All', ...classes];
+      renderFilterControls();
+    }
+  } catch (e) {
+    console.error("Failed to fetch plant classes", e);
+  }
 }

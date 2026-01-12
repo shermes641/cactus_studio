@@ -2,7 +2,7 @@
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask } from './src/utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, closeImageModal, updateCartUI, injectLoginUI } from './src/ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, openCloudinaryUpload, uploadToCloudinary, fetchDataAndLoad, uploadImagesToCloudinary } from './src/actions.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, openCloudinaryUpload, uploadToCloudinary, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -43,6 +43,7 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
        state.currentLang = savedLang;
    }
    applyTranslations();
+   fetchPlantClasses();
    
    // Render Filter Controls
    renderFilterControls();

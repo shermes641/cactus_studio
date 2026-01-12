@@ -114,6 +114,12 @@ export const handler: Handler = async (event: any, context: any) => {
     }
     if (insertedCount > 0) messages.push(`Inserted ${insertedCount} new products.`);
 
+    // 3.5 Fix Sequence (Critical for BIGSERIAL to work after manual inserts)
+    try {
+      await sql(`SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), COALESCE(max(id), 1)) FROM ${tableName}`);
+      messages.push("Updated ID sequence.");
+    } catch (e) { console.error("Sequence fix error:", e); }
+
     // 4. Handle Inventory Reset
     if (resetInventory) {
       await sql`DELETE FROM inventory_events`;
