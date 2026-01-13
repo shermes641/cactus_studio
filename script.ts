@@ -1,7 +1,7 @@
 
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask } from './src/utils.js';
-import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm } from './src/ui.js';
+import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons } from './src/ui.js';
 import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
@@ -75,32 +75,17 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
      
      // Show admin buttons if user is admin
      if (state.isAdmin) {
-       const adminBtn = document.getElementById("admin-btn");
-       if (adminBtn) adminBtn.style.display = "inline-block";
-       const syncBtn = document.getElementById("sync-btn");
-       if (syncBtn) {
-         syncBtn.style.display = "inline-block";
-         let uploadImagesBtn = document.getElementById("upload-images-btn");
-         if (!uploadImagesBtn) {
-           uploadImagesBtn = document.createElement("button");
-           uploadImagesBtn.id = "upload-images-btn";
-           uploadImagesBtn.innerText = "Upload Imgs";
-           uploadImagesBtn.className = syncBtn.className;
-           uploadImagesBtn.style.marginLeft = "10px";
-           uploadImagesBtn.style.backgroundColor = "#17a2b8";
-           uploadImagesBtn.style.color = "white";
-           uploadImagesBtn.onclick = () => uploadImagesToCloudinary();
-           if (syncBtn.parentNode) syncBtn.parentNode.insertBefore(uploadImagesBtn, syncBtn.nextSibling);
-         }
-         uploadImagesBtn.style.display = "inline-block";
-       }
-       const migrateBtn = document.getElementById("run-migrate-btn");
-       if (migrateBtn) migrateBtn.style.display = "inline-block";
+       injectAdminButtons();
        localStorage.setItem("adminSession", "true");
      }
      
+     updateHamburgerUserInfo(state.currentUser, state.isAdmin);
+     
      const profileBtn = document.getElementById("profile-btn");
-     if (profileBtn) profileBtn.style.display = "inline-block";
+     if (profileBtn) {
+       profileBtn.style.display = "block";
+       profileBtn.classList.remove("hidden");
+     }
      
      // Load and display products and user data
      fetchDataAndLoad().then(() => hideLoadingMask());

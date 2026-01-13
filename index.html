@@ -35,6 +35,10 @@
         <div id="hamburger-menu-container" class="hamburger-wrapper">
             <button id="hamburger-menu-btn" onclick="toggleHamburgerMenu()" class="hamburger-btn">☰</button>
             <div id="hamburger-dropdown" class="hamburger-dropdown">
+                <div id="hamburger-user-info" class="hamburger-user-info" style="display: none;">
+                    <div id="hamburger-user-email" class="hamburger-email"></div>
+                    <div id="hamburger-admin-badge" class="hamburger-badge" style="display: none;">ADMIN</div>
+                </div>
                 <button id="profile-btn" onclick="openProfileModal()" class="hamburger-menu-item bg-green hidden" data-i18n="btnProfile">Profile</button>
                 <button id="help-btn" onclick="toggleHelp(); document.getElementById('help-content').scrollTop = 0;" class="hamburger-menu-item" data-i18n="help">Help</button>
                 
@@ -47,37 +51,6 @@
                   </select>
                 </div>
 
-                <button
-                  id="admin-btn"
-                  onclick="toggleAdminModal()"
-                  class="hamburger-menu-item bg-green hidden" data-i18n="addItem"
-                >
-                  Add Item
-                </button>
-                <button
-                  id="sync-btn"
-                  class="add-btn hamburger-menu-item bg-blue hidden"
-                  onclick="syncDatabase()"
-                  data-i18n="btnSync"
-                >
-                  Sync DB
-                </button>
-                <button
-                  id="run-migrate-btn"
-                  class="add-btn hamburger-menu-item bg-purple-dark hidden"
-                  onclick="runMigration()"
-                  data-i18n="btnMigrate"
-                >
-                  Run Migration
-                </button>
-                <button
-                  id="upload-images-btn"
-                  class="add-btn hamburger-menu-item bg-orange hidden"
-                  onclick="uploadImagesToCloudinary()"
-                  data-i18n="btnUploadImages"
-                >
-                  Upload Images
-                </button>
             </div>
         </div>
       </div>

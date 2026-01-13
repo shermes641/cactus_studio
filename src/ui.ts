@@ -638,3 +638,53 @@ export function toggleForgotPasswordForm() {
       forgotForm.style.display = "block";
   }
 }
+
+export function updateHamburgerUserInfo(email: string | null, isAdmin: boolean) {
+  const userInfo = document.getElementById("hamburger-user-info");
+  const userEmail = document.getElementById("hamburger-user-email");
+  const adminBadge = document.getElementById("hamburger-admin-badge");
+
+  if (userInfo && userEmail && adminBadge) {
+    if (email) {
+      userInfo.style.display = "flex";
+      userEmail.innerText = email;
+      adminBadge.style.display = isAdmin ? "inline-block" : "none";
+    } else {
+      userInfo.style.display = "none";
+    }
+  }
+}
+
+export function injectAdminButtons() {
+  const dropdown = document.getElementById('hamburger-dropdown');
+  if (!dropdown) return;
+  
+  // Avoid duplicates
+  if (document.getElementById('admin-btn')) return;
+
+  const t = translations[state.currentLang];
+
+  const createBtn = (id: string, textKey: string, onClick: string, classes: string) => {
+    const btn = document.createElement('button');
+    btn.id = id;
+    btn.className = classes;
+    btn.setAttribute('onclick', onClick);
+    btn.setAttribute('data-i18n', textKey);
+    btn.innerText = t[textKey] || textKey;
+    btn.style.borderRadius = '20px';
+    return btn;
+  };
+
+  dropdown.appendChild(createBtn('admin-btn', 'addItem', 'toggleAdminModal()', 'hamburger-menu-item bg-green'));
+  dropdown.appendChild(createBtn('sync-btn', 'btnSync', 'syncDatabase()', 'add-btn hamburger-menu-item bg-blue'));
+  dropdown.appendChild(createBtn('run-migrate-btn', 'btnMigrate', 'runMigration()', 'add-btn hamburger-menu-item bg-purple-dark'));
+  dropdown.appendChild(createBtn('upload-images-btn', 'btnUploadImages', 'uploadImagesToCloudinary()', 'add-btn hamburger-menu-item bg-orange'));
+}
+
+export function removeAdminButtons() {
+  const ids = ['admin-btn', 'sync-btn', 'run-migrate-btn', 'upload-images-btn'];
+  ids.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.remove();
+  });
+}

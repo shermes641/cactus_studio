@@ -2,7 +2,7 @@
 import { state } from './state.js';
 import { translations, PLANT_CLASSES } from './constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask } from './utils.js';
-import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, showPromptModal, toggleForgotPasswordForm } from './ui.js';
+import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, showPromptModal, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons } from './ui.js';
 import { Product } from './types.js';
 
 declare const paypal: any;
@@ -148,7 +148,10 @@ export async function loginUserEmail() {
     }
 
     const profileBtn = document.getElementById("profile-btn");
-    if (profileBtn) profileBtn.style.display = "inline-block";
+    if (profileBtn) {
+      profileBtn.style.display = "block";
+      profileBtn.classList.remove("hidden");
+    }
 
     // store user in state
     state.currentUser = email;
@@ -162,6 +165,8 @@ export async function loginUserEmail() {
     if (state.isAdmin) {
       localStorage.setItem("adminSession", "true");
     }
+
+    updateHamburgerUserInfo(state.currentUser, state.isAdmin);
 
     const authContainer = document.getElementById("auth-container");
     if (authContainer) authContainer.style.display = "none";
@@ -222,27 +227,7 @@ export async function loginUserEmail() {
     
     // If user is admin, show admin panel
     if (state.isAdmin) {
-      const adminBtn = document.getElementById("admin-btn");
-      if (adminBtn) adminBtn.style.display = "inline-block";
-      const syncBtn = document.getElementById("sync-btn");
-      if (syncBtn) {
-        syncBtn.style.display = "inline-block";
-        let uploadImagesBtn = document.getElementById("upload-images-btn");
-        if (!uploadImagesBtn) {
-          uploadImagesBtn = document.createElement("button");
-          uploadImagesBtn.id = "upload-images-btn";
-          uploadImagesBtn.innerText = "Upload Imgs";
-          uploadImagesBtn.className = syncBtn.className;
-          uploadImagesBtn.style.marginLeft = "10px";
-          uploadImagesBtn.style.backgroundColor = "#17a2b8";
-          uploadImagesBtn.style.color = "white";
-          uploadImagesBtn.onclick = () => uploadImagesToCloudinary();
-          if (syncBtn.parentNode) syncBtn.parentNode.insertBefore(uploadImagesBtn, syncBtn.nextSibling);
-        }
-        uploadImagesBtn.style.display = "inline-block";
-      }
-      const migrateBtn = document.getElementById("run-migrate-btn");
-      if (migrateBtn) migrateBtn.style.display = "inline-block";
+      injectAdminButtons();
     }
     
     hideLoadingMask();
@@ -414,16 +399,15 @@ export function logoutUser() {
   if (btn) btn.style.display = "none";
   
   state.isAdmin = false;
-  const adminBtn = document.getElementById("admin-btn");
-  if(adminBtn) adminBtn.style.display = "none";
-  const syncBtn = document.getElementById("sync-btn");
-  if(syncBtn) syncBtn.style.display = "none";
-  const migrateBtn = document.getElementById("run-migrate-btn");
-  if(migrateBtn) migrateBtn.style.display = "none";
-  const uploadImagesBtn = document.getElementById("upload-images-btn");
-  if(uploadImagesBtn) uploadImagesBtn.style.display = "none";
+  
+  updateHamburgerUserInfo(null, false);
+  
+  removeAdminButtons();
   const profileBtn = document.getElementById("profile-btn");
-  if(profileBtn) profileBtn.style.display = "none";
+  if(profileBtn) {
+    profileBtn.style.display = "none";
+    profileBtn.classList.add("hidden");
+  }
   const resetBtn = document.getElementById("reset-schema-btn");
   if(resetBtn) resetBtn.style.display = "none";
   
