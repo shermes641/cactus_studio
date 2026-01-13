@@ -25,7 +25,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const sql = neon(connectionString);
 
     // Get user by email
-    const users = await sql('SELECT id, email, password_hash, name, phone, shipping_addr, cart, is_admin FROM users WHERE email = $1', [email]);
+    const users = await sql('SELECT id, email, password_hash, name, phone, shipping_addr, cart, is_admin, is_verified, reset_token FROM users WHERE email = $1', [email]);
 
     if (users.length === 0) {
       console.error('Login error: Invalid email or password');
@@ -36,6 +36,17 @@ export const handler: Handler = async (event: any, context: any) => {
 
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return { statusCode: 401, body: JSON.stringify({ error: 'Invalid email or password' }) };
+
+    if (user.reset_token) {
+      return { statusCode: 403, body: JSON.stringify({ error: 'Password reset pending. Please complete the reset process or request a new link.' }) };
+    }
+
+    if (!user.is_verified) {
+      return { 
+        statusCode: 403, 
+        body: JSON.stringify({ error: 'Email not verified', notVerified: true }) 
+      };
+    }
 
     return {
       statusCode: 200,

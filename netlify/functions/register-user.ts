@@ -1,6 +1,7 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export const handler: Handler = async (event: any, context: any) => {
   if (event.httpMethod !== 'POST') {
@@ -35,18 +36,49 @@ export const handler: Handler = async (event: any, context: any) => {
 
     // Hash password
     const hashed = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 5); // 5 days
 
     // Insert new user
     const result = await sql(
-      'INSERT INTO users (email, password_hash, name, shipping_addr, cart) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, shipping_addr, cart',
-      [email, hashed, name || null, shipping_addr || null, JSON.stringify([])]
+      'INSERT INTO users (email, password_hash, name, shipping_addr, cart, verification_token, verification_token_expires, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, email, name, shipping_addr, cart',
+      [email, hashed, name || null, shipping_addr || null, JSON.stringify([]), verificationToken, expiry.toISOString(), false]
     );
+
+    // Trigger verification email
+    const siteUrl = process.env.URL || 'http://localhost:8888';
+    let verificationLink;
+    let emailBody;
+
+    try {
+      const mailRes = await fetch(`${siteUrl}/.netlify/functions/node-mailer`, {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          token: verificationToken,
+          type: 'verify',
+          name: name || 'Cactus Lover',
+          test: process.env.EMAIL_TEST_MODE === 'true'
+        })
+      });
+
+      if (process.env.EMAIL_TEST_MODE === 'true' && mailRes.ok) {
+        const mailData = await mailRes.json();
+        verificationLink = mailData.link;
+        emailBody = mailData.html;
+      }
+    } catch (e) {
+      console.error("Failed to send verification email:", e);
+    }
 
     return {
       statusCode: 201,
       body: JSON.stringify({
         message: 'User registered successfully',
-        user: result[0]
+        user: result[0],
+        verificationLink,
+        emailBody
       })
     };
 

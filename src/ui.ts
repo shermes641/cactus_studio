@@ -7,6 +7,8 @@ export function applyTranslations() {
     const t = translations[state.currentLang];
     const langBtn = document.getElementById('lang-btn');
     if (langBtn) langBtn.innerText = state.currentLang === 'en' ? 'ES' : 'EN';
+    const authLangBtn = document.getElementById('auth-lang-btn');
+    if (authLangBtn) authLangBtn.innerText = state.currentLang === 'en' ? 'ES' : 'EN';
     
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -38,28 +40,64 @@ export function renderFilterControls() {
 }
 
 export function updatePaginationControls(totalCount: number) {
-  const container = document.getElementById('pagination-controls');
-  if (!container) return;
-  
   const totalPages = Math.ceil(totalCount / state.itemsPerPage) || 1;
   
-  let html = `<button class="page-btn" onclick="renderPage(${state.currentPage - 1})" ${state.currentPage === 1 ? 'disabled' : ''}>${translations[state.currentLang].prev}</button>`;
-  
-  for (let i = 1; i <= totalPages; i++) {
-    html += `<button class="page-btn ${i === state.currentPage ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+  // Update Header Controls (IDs: prev-btn, next-btn, page-select)
+  const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
+  const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
+  const pageSelect = document.getElementById('page-select') as HTMLSelectElement;
+  const itemsPerPageSelect = document.getElementById('items-per-page-select') as HTMLSelectElement;
+
+  if (prevBtn) {
+    prevBtn.disabled = state.currentPage <= 1;
+    prevBtn.onclick = () => renderPage(state.currentPage - 1);
   }
   
-  html += `<button class="page-btn" onclick="renderPage(${state.currentPage + 1})" ${state.currentPage === totalPages ? 'disabled' : ''}>${translations[state.currentLang].next}</button>`;
+  if (nextBtn) {
+    nextBtn.disabled = state.currentPage >= totalPages;
+    nextBtn.onclick = () => renderPage(state.currentPage + 1);
+  }
+
+  if (pageSelect) {
+    if (pageSelect.options.length !== totalPages) {
+      pageSelect.innerHTML = '';
+      for (let i = 1; i <= totalPages; i++) {
+        const opt = document.createElement('option');
+        opt.value = i.toString();
+        opt.innerText = i.toString();
+        pageSelect.appendChild(opt);
+      }
+    }
+    pageSelect.value = state.currentPage.toString();
+  }
+
+  if (itemsPerPageSelect) {
+    itemsPerPageSelect.value = state.itemsPerPage.toString();
+  }
   
-  html += `
-    <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">
-      <option value="5" ${state.itemsPerPage === 5 ? 'selected' : ''}>${translations[state.currentLang].opt5Page}</option>
-      <option value="10" ${state.itemsPerPage === 10 ? 'selected' : ''}>${translations[state.currentLang].opt10Page}</option>
-      <option value="20" ${state.itemsPerPage === 20 ? 'selected' : ''}>${translations[state.currentLang].opt20Page}</option>
-    </select>
-  `;
-  
-  container.innerHTML = html;
+  // Update Footer Container (id="pagination-controls")
+  const container = document.getElementById('pagination-controls');
+  if (container) {
+      let html = `<button class="page-btn" onclick="renderPage(${state.currentPage - 1})" ${state.currentPage <= 1 ? 'disabled' : ''}>${translations[state.currentLang].prev}</button>`;
+      
+      html += `<select onchange="renderPage(parseInt(this.value))" style="margin: 0 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">`;
+      for (let i = 1; i <= totalPages; i++) {
+          html += `<option value="${i}" ${i === state.currentPage ? 'selected' : ''}>${i}</option>`;
+      }
+      html += `</select>`;
+
+      html += `<button class="page-btn" onclick="renderPage(${state.currentPage + 1})" ${state.currentPage >= totalPages ? 'disabled' : ''}>${translations[state.currentLang].next}</button>`;
+      
+      html += `
+        <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">
+          <option value="5" ${state.itemsPerPage === 5 ? 'selected' : ''}>${translations[state.currentLang].opt5Page}</option>
+          <option value="10" ${state.itemsPerPage === 10 ? 'selected' : ''}>${translations[state.currentLang].opt10Page}</option>
+          <option value="20" ${state.itemsPerPage === 20 ? 'selected' : ''}>${translations[state.currentLang].opt20Page}</option>
+        </select>
+      `;
+      
+      container.innerHTML = html;
+  }
 }
 
 export function updateCartUI() {
@@ -359,6 +397,12 @@ export function toggleAdminModal() {
   }
 }
 
+export function toggleProfileModal() {
+  const modal = document.getElementById("profile-modal");
+  if (!modal) return;
+  modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+}
+
 export function closeImageModal() {
   const modal = document.getElementById("image-modal");
   if (modal) modal.style.display = "none";
@@ -429,7 +473,7 @@ export function groupSidebarElements() {
   }
 }
 
-export function showPromptModal(message: string, defaultValue: string = "", copyText: string | null = null, copyImage: string | null = null): Promise<string | null> {
+export function showPromptModal(message: string, defaultValue: string = "", copyText: string | null = null, copyImage: string | null = null, emailBody: string | null = null): Promise<string | null> {
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:20000;display:flex;justify-content:center;align-items:center;";
@@ -511,6 +555,22 @@ export function showPromptModal(message: string, defaultValue: string = "", copy
         dialog.appendChild(copyContainer);
     }
     
+    if (emailBody) {
+        const previewContainer = document.createElement('div');
+        previewContainer.style.cssText = "margin-bottom:10px; border:1px solid #ddd; padding:10px; background:#f8f9fa; max-height:300px; overflow-y:auto; font-family:sans-serif;";
+        
+        const header = document.createElement('div');
+        header.innerText = "📧 Email Preview (Test Mode):";
+        header.style.cssText = "font-weight:bold; margin-bottom:5px; color:#555; font-size:0.9em;";
+        previewContainer.appendChild(header);
+
+        const content = document.createElement('div');
+        content.innerHTML = emailBody;
+        previewContainer.appendChild(content);
+        
+        dialog.appendChild(previewContainer);
+    }
+
     const input = document.createElement('input');
     input.type = "text";
     input.value = defaultValue;
@@ -558,4 +618,23 @@ export function showPromptModal(message: string, defaultValue: string = "", copy
     document.body.appendChild(overlay);
     input.focus();
   });
+}
+
+export function toggleForgotPasswordForm() {
+  const loginForm = document.getElementById("login-modal");
+  const forgotForm = document.getElementById("forgot-password-modal");
+  const registerForm = document.getElementById("register-modal");
+
+  if (!loginForm || !forgotForm) return;
+
+  const isForgotVisible = forgotForm.style.display === "block";
+
+  if (isForgotVisible) {
+      forgotForm.style.display = "none";
+      loginForm.style.display = "block";
+  } else {
+      loginForm.style.display = "none";
+      if (registerForm) registerForm.style.display = "none";
+      forgotForm.style.display = "block";
+  }
 }

@@ -27,6 +27,18 @@ export const handler: Handler = async (event: any, context: any) => {
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false`;
     out.push('ensured users.is_admin');
 
+    // 2b) Ensure users columns for auth verification
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false`;
+    out.push('ensured users.is_verified');
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT`;
+    out.push('ensured users.verification_token');
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token_expires TIMESTAMPTZ`;
+    out.push('ensured users.verification_token_expires');
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT`;
+    out.push('ensured users.reset_token');
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ`;
+    out.push('ensured users.reset_token_expires');
+
     // 3) Ensure orders.status column exists
     await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT`;
     out.push('ensured orders.status column');

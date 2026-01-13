@@ -1,8 +1,8 @@
 
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask } from './src/utils.js';
-import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, closeImageModal, updateCartUI, injectLoginUI } from './src/ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, openCloudinaryUpload, uploadToCloudinary, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses } from './src/actions.js';
+import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm } from './src/ui.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -17,6 +17,7 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
 (window as any).syncDatabase = syncDatabase;
 (window as any).resetDatabaseSchema = resetDatabaseSchema;
 (window as any).toggleAdminModal = toggleAdminModal;
+(window as any).toggleProfileModal = toggleProfileModal;
 (window as any).addProduct = addProduct;
 (window as any).openImageModal = openImageModal;
 (window as any).closeImageModal = closeImageModal;
@@ -27,9 +28,12 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
 (window as any).registerUser = registerUser;
 (window as any).toggleRegisterForm = toggleRegisterForm;
 (window as any).runMigration = runMigration;
-(window as any).openCloudinaryUpload = openCloudinaryUpload;
-(window as any).uploadToCloudinary = uploadToCloudinary;
 (window as any).uploadImagesToCloudinary = uploadImagesToCloudinary;
+(window as any).openProfileModal = openProfileModal;
+(window as any).saveProfile = saveProfile;
+(window as any).changePassword = changePassword;
+(window as any).toggleForgotPasswordForm = toggleForgotPasswordForm;
+(window as any).requestPasswordReset = requestPasswordReset;
 
  // Initialize application on page load
  window.onload = function () {
@@ -94,6 +98,9 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
        if (migrateBtn) migrateBtn.style.display = "inline-block";
        localStorage.setItem("adminSession", "true");
      }
+     
+     const profileBtn = document.getElementById("profile-btn");
+     if (profileBtn) profileBtn.style.display = "inline-block";
      
      // Load and display products and user data
      fetchDataAndLoad().then(() => hideLoadingMask());

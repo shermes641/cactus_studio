@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - Cactus Studio</title>
+    <link rel="stylesheet" href="/site.css">
+</head>
+<body class="auth-page-body">
+    <div class="lang-switch-container">
+        <button id="lang-btn" onclick="toggleLang()" class="lang-switch-btn">ES</button>
+    </div>
+    <div class="auth-card">
+        <div id="spinner" class="spinner"></div>
+        <h1 id="status-title" class="auth-title" data-i18n="verifying">Verifying...</h1>
+        <p id="status-message" class="auth-text" data-i18n="wait">Please wait while we verify your email address.</p>
+        <a href="/" id="home-btn" class="auth-btn auto-width hidden" data-i18n="goLogin">Go to Login</a>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                verifying: "Verifying...",
+                wait: "Please wait while we verify your email address.",
+                goLogin: "Go to Login",
+                invalid: "Invalid Link",
+                missing: "The verification link is missing required parameters.",
+                verified: "Verified!",
+                successMsg: "Your email has been verified successfully. You can now login.",
+                failed: "Verification Failed",
+                failedMsg: "We could not verify your email. The link may be invalid or expired.",
+                error: "Error",
+                networkError: "A network error occurred. Please try again later."
+            },
+            es: {
+                verifying: "Verificando...",
+                wait: "Por favor espere mientras verificamos su correo.",
+                goLogin: "Ir a Iniciar Sesión",
+                invalid: "Enlace Inválido",
+                missing: "El enlace de verificación no tiene los parámetros requeridos.",
+                verified: "¡Verificado!",
+                successMsg: "Tu correo ha sido verificado exitosamente. Ahora puedes iniciar sesión.",
+                failed: "Verificación Fallida",
+                failedMsg: "No pudimos verificar tu correo. El enlace puede ser inválido o haber expirado.",
+                error: "Error",
+                networkError: "Ocurrió un error de red. Inténtalo más tarde."
+            }
+        };
+        let lang = localStorage.getItem('cactusLang') || 'en';
+        
+        function toggleLang() {
+            lang = lang === 'en' ? 'es' : 'en';
+            localStorage.setItem('cactusLang', lang);
+            location.reload();
+        }
+
+        async function verify() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const email = params.get('email');
+            const title = document.getElementById('status-title');
+            const msg = document.getElementById('status-message');
+            const btn = document.getElementById('home-btn');
+            const spinner = document.getElementById('spinner');
+            const t = translations[lang];
+
+            document.getElementById('lang-btn').innerText = lang === 'en' ? 'ES' : 'EN';
+            title.innerText = t.verifying;
+            msg.innerText = t.wait;
+            btn.innerText = t.goLogin;
+
+            if (!token || !email) {
+                spinner.style.display = 'none';
+                title.innerText = t.invalid;
+                title.className = "auth-title text-error";
+                msg.innerText = t.missing;
+                btn.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch('/.netlify/functions/verify-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, token })
+                });
+                
+                const data = await res.json();
+                spinner.style.display = 'none';
+                
+                if (res.ok) {
+                    title.innerText = t.verified;
+                    title.className = "auth-title text-success";
+                    msg.innerText = data.message || t.successMsg;
+                } else {
+                    title.innerText = t.failed;
+                    title.className = "auth-title text-error";
+                    msg.innerText = data.error || t.failedMsg;
+                }
+            } catch (e) {
+                spinner.style.display = 'none';
+                title.innerText = t.error;
+                title.className = "auth-title text-error";
+                msg.innerText = t.networkError;
+            }
+            btn.classList.remove('hidden');
+        }
+        
+        verify();
+    </script>
+</body>
+</html>

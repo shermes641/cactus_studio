@@ -73,6 +73,11 @@ export const handler: Handler = async (event: any, context: any) => {
         shipping_addr TEXT,
         cart JSONB,
         is_admin BOOLEAN DEFAULT false,
+        is_verified BOOLEAN DEFAULT false,
+        verification_token TEXT,
+        verification_token_expires TIMESTAMPTZ,
+        reset_token TEXT,
+        reset_token_expires TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT now()
       )
     `;

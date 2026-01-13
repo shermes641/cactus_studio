@@ -5,67 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, viewport-fit=cover" />
     <title>The Cactus Studio</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/site.css" />
   </head>
   <body>
     <!-- Navigation -->
     <header>
-      <img src="/logo.png" class="sidebar-logo" alt="Cactus Studio Logo" style="height: 100px;width: auto;position: static;">
+      <img src="/logo.png" class="header-logo" alt="Cactus Studio Logo">
       <div id="header-hero-content" class="header-title-container">
         <div>🌵 Cactus Studio</div>
         <div class="header-title" data-i18n="heroTitle">Rare & Exotic Cacti</div>
         <div class="header-subtitle" data-i18n="heroSubtitle">Delivered safely from our nursery to your doorstep.</div>
       </div>
-      <div id="pagination-controls" class="pagination-container"><button class="page-btn" onclick="renderPage(0)" disabled="" data-i18n="btnPrev">Prev</button><button class="page-btn active" onclick="renderPage(1)">1</button><button class="page-btn " onclick="renderPage(2)">2</button><button class="page-btn " onclick="renderPage(3)">3</button><button class="page-btn" onclick="renderPage(2)" data-i18n="btnNext">Next</button>
-        <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">
-          <option value="5" data-i18n="opt5Page">5 / page</option>
-          <option value="10" data-i18n="opt10Page">10 / page</option>
-          <option value="20" selected="" data-i18n="opt20Page">20 / page</option>
+      <div id="pagination-header" class="pagination-container">
+        <button class="page-btn" id="prev-btn" onclick="renderPage(currentPage - 1)" disabled data-i18n="btnPrev">Prev</button>
+        <select id="page-select" onchange="renderPage(parseInt(this.value))" class="page-select">
+          <option value="1">1</option>
         </select>
+        <button class="page-btn" id="next-btn" onclick="renderPage(currentPage + 1)" data-i18n="btnNext">Next</button>
       </div>
       <div class="nav-links">
         <button id="lang-btn" onclick="toggleLanguage()">ES</button>
-        <!-- This button is now HIDDEN by default -->
-        <button
-          id="admin-btn"
-          onclick="toggleAdminModal()"
-          style="display: none; min-width: 100px;" data-i18n="addItem"
-        >
-          Add Item
-        </button>
-        <button
-          id="sync-btn"
-          class="add-btn"
-          onclick="syncDatabase()"
-          style="background: #4a90e2; display: none; margin-left: 5px;"
-          data-i18n="btnSync"
-        >
-          Sync DB
-        </button>
-        <button
-          id="run-migrate-btn"
-          class="add-btn"
-          onclick="runMigration()"
-          style="background: #6f42c1; display: none; margin-left: 5px;"
-          data-i18n="btnMigrate"
-        >
-          Run Migration
-        </button>
-        <button
-          id="upload-images-btn"
-          class="add-btn"
-          onclick="uploadImagesToCloudinary()"
-          style="background: #ff6d00; display: none; margin-left: 5px;"
-          data-i18n="btnUploadImages"
-        >
-          Upload Images
-        </button>
-
-        <button id="help-btn" onclick="toggleHelp()" data-i18n="help">Help</button>
         <button id="logout-btn" onclick="logoutUser()" data-i18n="logout">Logout</button>
         <button id="cart-toggle-btn" onclick="toggleCart()">
           <span data-i18n="cart">Cart</span>
           <span id="cart-count" class="cart-count">0</span>
         </button>
+        
+        <!-- Hamburger Menu -->
+        <div id="hamburger-menu-container" class="hamburger-wrapper">
+            <button id="hamburger-menu-btn" onclick="toggleHamburgerMenu()" class="hamburger-btn">☰</button>
+            <div id="hamburger-dropdown" class="hamburger-dropdown">
+                <button id="profile-btn" onclick="openProfileModal()" class="hamburger-menu-item bg-green hidden" data-i18n="btnProfile">Profile</button>
+                <button id="help-btn" onclick="toggleHelp(); document.getElementById('help-content').scrollTop = 0;" class="hamburger-menu-item" data-i18n="help">Help</button>
+                
+                <div class="items-per-page-wrapper">
+                  <label class="items-per-page-label" data-i18n="itemsPerPage">Items / Page:</label>
+                  <select id="items-per-page-select" onchange="changeItemsPerPage(this.value)" class="items-per-page-select">
+                    <option value="5" data-i18n="opt5Page">5</option>
+                    <option value="10" data-i18n="opt10Page">10</option>
+                    <option value="20" selected="" data-i18n="opt20Page">20</option>
+                  </select>
+                </div>
+
+                <button
+                  id="admin-btn"
+                  onclick="toggleAdminModal()"
+                  class="hamburger-menu-item bg-green hidden" data-i18n="addItem"
+                >
+                  Add Item
+                </button>
+                <button
+                  id="sync-btn"
+                  class="add-btn hamburger-menu-item bg-blue hidden"
+                  onclick="syncDatabase()"
+                  data-i18n="btnSync"
+                >
+                  Sync DB
+                </button>
+                <button
+                  id="run-migrate-btn"
+                  class="add-btn hamburger-menu-item bg-purple-dark hidden"
+                  onclick="runMigration()"
+                  data-i18n="btnMigrate"
+                >
+                  Run Migration
+                </button>
+                <button
+                  id="upload-images-btn"
+                  class="add-btn hamburger-menu-item bg-orange hidden"
+                  onclick="uploadImagesToCloudinary()"
+                  data-i18n="btnUploadImages"
+                >
+                  Upload Images
+                </button>
+            </div>
+        </div>
       </div>
     </header>
 
@@ -88,13 +102,13 @@
       <div class="product-grid" id="product-grid">
         <!-- Products will be injected here by JavaScript -->
       </div>
-      <div id="pagination-controls" class="pagination-container"></div>
+      <div id="pagination-controls" class="pagination-container" style="display: none;"></div>
     </div>
 
     <!-- Admin Upload Modal -->
     <div class="modal" id="admin-modal">
       <div class="modal-content">
-        <span class="close-btn" onclick="toggleAdminModal()">&times;</span>
+        <span class="close-btn" onclick="toggleAdminModal()" style="color: red; font-size: 2rem;">&times;</span>
         <h2 data-i18n="uploadTitle">Upload New Cactus</h2>
         <div class="form-group">
           <label data-i18n="labelName">Cactus Name</label>
@@ -106,18 +120,16 @@
         </div>
         <div class="form-group">
           <label data-i18n="labelImage">Image URL</label>
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div class="image-input-group">
             <input
               type="text"
               id="new-image"
               placeholder="Paste image link here"
-              style="flex: 1;"
+              class="image-url-input"
             />
-            <button type="button" id="cloudinary-upload-btn" class="add-btn" style="width: auto; padding: 10px 15px; background: #ff6d00;" onclick="openCloudinaryUpload()" data-i18n="btnUpload">📤 Upload</button>
           </div>
-          <input type="file" id="cloudinary-file-input" accept="image/*" style="display: none;" onchange="uploadToCloudinary(event)">
           <small class="helper-text" data-i18n="helperText"
-            >(Click Upload to select from local files, or paste a URL)</small
+            >(Paste a URL)</small
           >
         </div>
         <div id="admin-btn-row">
@@ -127,22 +139,63 @@
       </div>
     </div>
 
+    <!-- Profile Modal -->
+    <div class="modal" id="profile-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="toggleProfileModal()" style="color: red; font-size: 2rem;">&times;</span>
+        <h2 data-i18n="profileTitle">My Profile</h2>
+        
+        <div class="form-group">
+          <label data-i18n="labelName">Name</label>
+          <input type="text" id="profile-name" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="labelPhone">Phone</label>
+          <input type="text" id="profile-phone" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="labelAddress">Shipping Address</label>
+          <input type="text" id="profile-address" />
+        </div>
+        <button class="add-btn" onclick="saveProfile()" data-i18n="btnSaveProfile">Save Changes</button>
+        
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+        
+        <h3 data-i18n="changePasswordTitle">Change Password</h3>
+        <div class="form-group">
+          <label data-i18n="labelCurrentPassword">Current Password</label>
+          <input type="password" id="profile-current-pass" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="labelNewPassword">New Password</label>
+          <input type="password" id="profile-new-pass" />
+        </div>
+        <button class="add-btn" style="background-color: #6c757d;" onclick="changePassword()" data-i18n="btnChangePassword">Update Password</button>
+      </div>
+    </div>
+
     <!-- Help Dialog -->
-    <div id="help-dialog" style="display: none; position: fixed; top: 80px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 2000;">
-      <span onclick="toggleHelp()" style="position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; font-size: 1.2rem;">&times;</span>
-      <h3 style="margin-top: 0; position: static; width: 25%" class="version-tag" data-i18n="help">Help</h3>
-      <div id="help-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading...</div>
+    <div id="help-dialog" class="help-dialog">
+      <span onclick="toggleHelp()" class="help-close-btn">&times;</span>
+      <h3 class="version-tag help-header" data-i18n="help">Help</h3>
+      <div id="help-content" class="help-body">Loading...</div>
     </div>
 
 
     <!-- Login Modal -->
-    <div id="auth-container" style="display: none; background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500'); background-size: cover; background-position: center;">
+    <div id="auth-container" class="auth-overlay">
+      <div class="auth-lang-pos">
+        <button id="auth-lang-btn" onclick="toggleLanguage()" class="auth-lang-btn">ES</button>
+      </div>
       <!-- Login Form -->
       <form id="login-modal" onsubmit="event.preventDefault(); loginUserEmail()" style="display: block;">
         <h1 data-i18n="loginTitle">Cactus Studio Login</h1>
-        <input type="email" id="login-email" placeholder="Email" required>
-        <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+        <input type="email" id="login-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required>
+        <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="placeholderPassword" required autocomplete="current-password">
         <button type="submit" id="login-btn" data-i18n="btnLogin">Login</button>
+        <p style="text-align: right; margin-top: 5px;">
+          <a href="#" onclick="event.preventDefault(); toggleForgotPasswordForm()" style="color: #666; font-size: 0.9em;" data-i18n="forgotPasswordLink">Forgot Password?</a>
+        </p>
         <p style="text-align: center; margin-top: 15px;">
           <span data-i18n="noAccount">Don't have an account?</span> <a href="#" onclick="event.preventDefault(); toggleRegisterForm()" style="color: #28a745; text-decoration: underline;" data-i18n="registerLink">Register here</a>
         </p>
@@ -152,11 +205,11 @@
       <!-- Register Form -->
       <form id="register-modal" onsubmit="event.preventDefault(); registerUser()" style="display: none;">
         <h1 data-i18n="registerTitle">Create Account</h1>
-        <input type="text" id="register-name" placeholder="Full Name">
-        <input type="email" id="register-email" placeholder="Email" required>
-        <input type="password" id="register-password" placeholder="Password (min 6 chars)" required autocomplete="new-password">
-        <input type="password" id="register-password-confirm" placeholder="Confirm Password" required autocomplete="new-password">
-        <input type="text" id="register-address" placeholder="Shipping Address">
+        <input type="text" id="register-name" placeholder="Full Name" data-i18n-placeholder="placeholderName">
+        <input type="email" id="register-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required>
+        <input type="password" id="register-password" placeholder="Password (min 6 chars)" data-i18n-placeholder="placeholderNewPassMin" required autocomplete="new-password">
+        <input type="password" id="register-password-confirm" placeholder="Confirm Password" data-i18n-placeholder="placeholderPasswordConfirm" required autocomplete="new-password">
+        <input type="text" id="register-address" placeholder="Shipping Address" data-i18n-placeholder="placeholderAddress">
         <button type="submit" id="register-btn" data-i18n="btnRegister">Register</button>
         <p style="text-align: center; margin-top: 15px;">
           <span data-i18n="hasAccount">Already have an account?</span> <a href="#" onclick="event.preventDefault(); toggleRegisterForm()" style="color: #28a745; text-decoration: underline;" data-i18n="loginLink">Login here</a>
@@ -164,18 +217,30 @@
         <div class="version-tag"></div>
       </form>
 
+      <!-- Forgot Password Form -->
+      <form id="forgot-password-modal" onsubmit="event.preventDefault(); requestPasswordReset()" style="display: none;">
+        <h1 data-i18n="resetPasswordTitle">Reset Password</h1>
+        <p data-i18n="resetPasswordDesc" style="color: #666; margin-bottom: 15px;">Enter your email to receive a reset link.</p>
+        <input type="email" id="reset-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required>
+        <button type="submit" id="reset-btn" data-i18n="btnSendReset">Send Reset Link</button>
+        <p style="text-align: center; margin-top: 15px;">
+          <a href="#" onclick="event.preventDefault(); toggleForgotPasswordForm()" style="color: #28a745; text-decoration: underline;" data-i18n="backToLogin">Back to Login</a>
+        </p>
+        <div class="version-tag"></div>
+      </form>
+
       <!-- Corner Logos -->
       <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo top-left" alt="Cactus Studio Logo" style="border-radius: 50%;">
+        <img src="/logo.png" class="corner-logo top-left" alt="Cactus Studio Logo">
       </div>
       <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo top-right" alt="Cactus Studio Logo" style="border-radius: 50%;">
+        <img src="/logo.png" class="corner-logo top-right" alt="Cactus Studio Logo">
       </div>
       <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo bottom-left" alt="Cactus Studio Logo" style="border-radius: 50%;">
+        <img src="/logo.png" class="corner-logo bottom-left" alt="Cactus Studio Logo">
       </div>
       <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo bottom-right" alt="Cactus Studio Logo" style="border-radius: 50%;">
+        <img src="/logo.png" class="corner-logo bottom-right" alt="Cactus Studio Logo">
       </div>
     </div>
 
@@ -187,7 +252,7 @@
           <button class="remove-all-btn" onclick="removeAllFromCart()" data-i18n="btnRemoveAll">Remove All</button>
           <button class="checkout-btn" onclick="checkout()" data-i18n="btnCheckout">Checkout</button>
         </div>
-        <span style="cursor: pointer; font-size: 1.5rem" onclick="toggleCart()"
+        <span class="cart-close-btn" onclick="toggleCart()"
           >&times;</span
         >
       </div>
@@ -195,10 +260,10 @@
         <p data-i18n="cartEmpty">Your cart is empty.</p>
       </div>
       <div id="cart-footer" style="display: none">
-        <h3 style="text-align: right">
+        <h3 class="cart-total-header">
           <span data-i18n="cartTotal">Total:</span> $<span id="cart-total">0.00</span>
         </h3>
-        <div id="paypal-button-container" style="margin-top: 15px;"></div>
+        <div id="paypal-button-container" class="paypal-wrapper"></div>
       </div>
     </div>
 
@@ -215,6 +280,67 @@
     <!-- Version Tag -->
     <div id="main-version" class="version-tag"></div>
     <script>
+      function toggleHamburgerMenu() {
+        const dropdown = document.getElementById('hamburger-dropdown');
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+        }
+      }
+
+      window.addEventListener('click', function(e) {
+        // Hamburger Menu
+        const hamburgerContainer = document.getElementById('hamburger-menu-container');
+        const hamburgerDropdown = document.getElementById('hamburger-dropdown');
+        if (hamburgerContainer && hamburgerDropdown && !hamburgerContainer.contains(e.target)) {
+            hamburgerDropdown.style.display = 'none';
+        }
+
+        // Admin Modal (Backdrop click)
+        const adminModal = document.getElementById('admin-modal');
+        if (adminModal && adminModal.style.display === 'flex' && e.target === adminModal) {
+            toggleAdminModal();
+        }
+
+        // Profile Modal (Backdrop click)
+        const profileModal = document.getElementById('profile-modal');
+        if (profileModal && profileModal.style.display === 'flex' && e.target === profileModal) {
+            toggleProfileModal();
+        }
+
+        // Help Dialog (Click outside)
+        const helpDialog = document.getElementById('help-dialog');
+        const helpBtn = document.getElementById('help-btn');
+        if (helpDialog && helpDialog.style.display !== 'none' && !helpDialog.contains(e.target) && (!helpBtn || !helpBtn.contains(e.target))) {
+             toggleHelp();
+        }
+        
+        // Cart Sidebar (Click outside)
+        const cartSidebar = document.getElementById('cart-sidebar');
+        const cartBtn = document.getElementById('cart-toggle-btn');
+        if (cartSidebar && cartSidebar.classList.contains('open') && !cartSidebar.contains(e.target) && (!cartBtn || !cartBtn.contains(e.target))) {
+            toggleCart();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const dropdown = document.getElementById('hamburger-dropdown');
+        if (dropdown) {
+            // Close menu when any button inside is clicked
+            dropdown.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dropdown.style.display = 'none';
+                });
+            });
+            // Close menu when items per page is changed
+            const select = document.getElementById('items-per-page-select');
+            if (select) {
+                select.addEventListener('change', () => {
+                    dropdown.style.display = 'none';
+                });
+            }
+        }
+      });
+
       (function() {
         const header = document.querySelector('header');
         const container = document.querySelector('.container');

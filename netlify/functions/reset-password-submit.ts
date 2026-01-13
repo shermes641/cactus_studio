@@ -1,0 +1,35 @@
+import { Handler } from "@netlify/functions";
+import { neon } from '@netlify/neon';
+import bcrypt from 'bcryptjs';
+
+export const handler: Handler = async (event: any) => {
+  if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
+
+  try {
+    const { email, token, newPassword } = JSON.parse(event.body || '{}');
+    if (!email || !token || !newPassword) return { statusCode: 400, body: JSON.stringify({ error: "Missing fields" }) };
+
+    if (newPassword.length < 6) return { statusCode: 400, body: JSON.stringify({ error: "Password too short" }) };
+
+    const sql = neon(process.env.NETLIFY_DATABASE_URL!);
+    
+    const users = await sql`SELECT id, reset_token, reset_token_expires FROM users WHERE email = ${email}`;
+    if (users.length === 0) return { statusCode: 404, body: JSON.stringify({ error: "User not found" }) };
+    
+    const user = users[0];
+    
+    if (user.reset_token !== token) return { statusCode: 400, body: JSON.stringify({ error: "Invalid token" }) };
+    
+    if (user.reset_token_expires && new Date() > new Date(user.reset_token_expires)) {
+        return { statusCode: 400, body: JSON.stringify({ error: "Token expired" }) };
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    
+    await sql`UPDATE users SET password_hash = ${hashed}, reset_token = null, reset_token_expires = null WHERE id = ${user.id}`;
+    
+    return { statusCode: 200, body: JSON.stringify({ message: "Password updated" }) };
+  } catch (e: any) {
+    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+  }
+};

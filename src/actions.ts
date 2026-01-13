@@ -2,7 +2,7 @@
 import { state } from './state.js';
 import { translations, PLANT_CLASSES } from './constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask } from './utils.js';
-import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, showPromptModal } from './ui.js';
+import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, showPromptModal, toggleForgotPasswordForm } from './ui.js';
 import { Product } from './types.js';
 
 declare const paypal: any;
@@ -113,9 +113,42 @@ export async function loginUserEmail() {
 
     if (!res.ok) {
       hideLoadingMask();
+      
+      if (res.status === 403 && data.notVerified) {
+        if (confirm("Your email is not verified. Do you want to send a new verification code?")) {
+          showLoadingMask("Sending verification code...");
+          try {
+            const resendRes = await fetch("/.netlify/functions/resend-verification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email })
+            });
+            const resendData = await resendRes.json();
+            hideLoadingMask();
+            
+            if (resendRes.ok) {
+              if (resendData.verificationLink) {
+                await showPromptModal("TEST MODE: Verification Link", resendData.verificationLink, resendData.verificationLink, null, resendData.emailBody);
+              } else {
+                alert("Verification code sent! Please check your email.");
+              }
+            } else {
+              alert(resendData.error || "Failed to send verification code");
+            }
+          } catch (e) {
+            hideLoadingMask();
+            alert("Error sending verification code");
+          }
+        }
+        return;
+      }
+
       alert(data.error || "Login failed");
       return;
     }
+
+    const profileBtn = document.getElementById("profile-btn");
+    if (profileBtn) profileBtn.style.display = "inline-block";
 
     // store user in state
     state.currentUser = email;
@@ -266,7 +299,13 @@ export async function registerUser() {
     }
 
     hideLoadingMask();
-    alert("Registration successful! Please login.");
+    
+    if (data.verificationLink) {
+      await showPromptModal("TEST MODE: Verification Link", data.verificationLink, data.verificationLink, null, data.emailBody);
+    } else {
+      alert("Registration successful! Please login.");
+    }
+    
     toggleRegisterForm();
 
     // Clear form
@@ -364,8 +403,7 @@ export async function fetchDataAndLoad() {
 
 export function logoutUser() {
   const wasAdmin = state.isAdmin;
-  const currentUser = state.currentUser;
-  const currentUserData = state.currentUserData;
+  const { currentUser, currentUserData } = state;
   state.currentUser = null;
   state.cart = [];
   state.pageCache = {};
@@ -384,6 +422,8 @@ export function logoutUser() {
   if(migrateBtn) migrateBtn.style.display = "none";
   const uploadImagesBtn = document.getElementById("upload-images-btn");
   if(uploadImagesBtn) uploadImagesBtn.style.display = "none";
+  const profileBtn = document.getElementById("profile-btn");
+  if(profileBtn) profileBtn.style.display = "none";
   const resetBtn = document.getElementById("reset-schema-btn");
   if(resetBtn) resetBtn.style.display = "none";
   
@@ -1182,14 +1222,6 @@ export function openImageModal(id: number) {
   modal.style.display = "flex";
 }
 
-// Legacy functions to satisfy script.ts imports
-export function openCloudinaryUpload() {
-  console.warn("openCloudinaryUpload is deprecated");
-}
-export async function uploadToCloudinary(event: any) {
-  console.warn("uploadToCloudinary is deprecated");
-}
-
 export async function identifyPlant(imageUrl: string) {
   showLoadingMask("Identifying plant...");
   
@@ -1381,22 +1413,20 @@ await navigator.clipboard.write([item]);
                                     }
                                 }
 
-                                if (!exists) {
-                                    if (confirm(`Class '${extractedClass}' is not in the list. Add it to the database?`)) {
-                                        try {
-                                            await fetch('/.netlify/functions/add-plant-class', {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ name: extractedClass })
-                                            });
-                                            state.plantClasses.push(extractedClass);
-                                            const opt = document.createElement('option');
-                                            opt.value = extractedClass;
-                                            opt.innerText = extractedClass;
-                                            cls.appendChild(opt);
-                                            renderFilterControls();
-                                        } catch (e) { console.error(e); alert("Failed to add class"); }
-                                    }
+                                if (!exists && confirm(`Class '${extractedClass}' is not in the list. Add it to the database?`)) {
+                                      try {
+                                          await fetch('/.netlify/functions/add-plant-class', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ name: extractedClass })
+                                          });
+                                          state.plantClasses.push(extractedClass);
+                                          const opt = document.createElement('option');
+                                          opt.value = extractedClass;
+                                          opt.innerText = extractedClass;
+                                          cls.appendChild(opt);
+                                          renderFilterControls();
+                                      } catch (e) { console.error(e); alert("Failed to add class"); }
                                 }
                                 cls.value = extractedClass;
                                 cls.dispatchEvent(new Event('change'));
@@ -1477,5 +1507,111 @@ export async function fetchPlantClasses() {
     }
   } catch (e) {
     console.error("Failed to fetch plant classes", e);
+  }
+}
+
+export function openProfileModal() {
+  if (!state.currentUserData) return;
+  
+  const nameInput = document.getElementById("profile-name") as HTMLInputElement;
+  const phoneInput = document.getElementById("profile-phone") as HTMLInputElement;
+  const addrInput = document.getElementById("profile-address") as HTMLInputElement;
+  
+  if (nameInput) nameInput.value = state.currentUserData.name || "";
+  if (phoneInput) phoneInput.value = state.currentUserData.phone || "";
+  if (addrInput) addrInput.value = state.currentUserData.shipping_addr || "";
+  
+  toggleProfileModal();
+}
+
+export async function saveProfile() {
+  const name = (document.getElementById("profile-name") as HTMLInputElement).value;
+  const phone = (document.getElementById("profile-phone") as HTMLInputElement).value;
+  const shipping_addr = (document.getElementById("profile-address") as HTMLInputElement).value;
+  
+  showLoadingMask("Updating profile...");
+  
+  try {
+    const res = await fetch('/.netlify/functions/update-user-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.currentUser, name, phone, shipping_addr })
+    });
+    
+    const data = await res.json();
+    hideLoadingMask();
+    
+    if (!res.ok) throw new Error(data.error || "Update failed");
+    
+    state.currentUserData = data.user;
+    localStorage.setItem("currentUserData", JSON.stringify(data.user));
+    alert("Profile updated successfully!");
+    toggleProfileModal();
+  } catch (e: any) {
+    hideLoadingMask();
+    alert("Error: " + e.message);
+  }
+}
+
+export async function requestPasswordReset() {
+  const emailInput = document.getElementById("reset-email") as HTMLInputElement;
+  const email = emailInput.value.trim();
+  
+  if (!email) {
+      alert("Please enter your email");
+      return;
+  }
+
+  showLoadingMask("Sending...");
+
+  try {
+    const res = await fetch('/.netlify/functions/request-password-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+    hideLoadingMask();
+
+    if (res.ok) {
+      if (data.resetLink) {
+        await showPromptModal("TEST MODE: Reset Link", data.resetLink, data.resetLink, null, data.emailBody);
+      } else {
+        alert(translations[state.currentLang].alertResetSent || "Reset link sent.");
+      }
+      toggleForgotPasswordForm();
+    } else {
+      alert(data.error || "Error sending reset link");
+    }
+  } catch (e) {
+    hideLoadingMask();
+    console.error(e);
+    alert("Network error");
+  }
+}
+
+export async function changePassword() {
+  const currentPassword = (document.getElementById("profile-current-pass") as HTMLInputElement).value;
+  const newPassword = (document.getElementById("profile-new-pass") as HTMLInputElement).value;
+  
+  if (!currentPassword || !newPassword) return alert("Please fill in both password fields");
+  
+  showLoadingMask("Changing password...");
+  try {
+    const res = await fetch('/.netlify/functions/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.currentUser, currentPassword, newPassword })
+    });
+    const data = await res.json();
+    hideLoadingMask();
+    if (!res.ok) throw new Error(data.error || "Failed");
+    alert("Password changed successfully!");
+    (document.getElementById("profile-current-pass") as HTMLInputElement).value = "";
+    (document.getElementById("profile-new-pass") as HTMLInputElement).value = "";
+  } catch (e: any) {
+    hideLoadingMask();
+    alert("Error: " + e.message);
   }
 }
