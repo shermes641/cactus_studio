@@ -1,8 +1,8 @@
 
 import { state } from './src/state.js';
-import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask } from './src/utils.js';
+import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './src/utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons } from './src/ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset } from './src/actions.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -34,6 +34,11 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
 (window as any).changePassword = changePassword;
 (window as any).toggleForgotPasswordForm = toggleForgotPasswordForm;
 (window as any).requestPasswordReset = requestPasswordReset;
+(window as any).handleSearch = handleSearch;
+(window as any).applyDiscountCode = applyDiscountCode;
+(window as any).removeDiscount = removeDiscount;
+
+(window as any).togglePasswordVisibility = togglePasswordVisibility;
 
  // Initialize application on page load
  window.onload = function () {
@@ -88,7 +93,9 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
      }
      
      // Load and display products and user data
-     fetchDataAndLoad().then(() => hideLoadingMask());
+     fetchDataAndLoad().then(() => {
+       hideLoadingMask();
+     });
    } else {
      // No user logged in, show the login page
      hideLoadingMask();

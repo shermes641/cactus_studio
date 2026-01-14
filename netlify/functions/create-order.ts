@@ -43,8 +43,11 @@ export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
   
   let cart: any[];
+  let discountCode: string | null;
   try {
-      cart = JSON.parse(event.body || '{}').cart;
+      const body = JSON.parse(event.body || '{}');
+      cart = body.cart;
+      discountCode = body.discountCode;
   } catch (e) {
       return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
@@ -102,6 +105,17 @@ export const handler: Handler = async (event: any) => {
         throw reservationError;
     }
     
+    // Apply discount
+    if (discountCode) {
+        const discounts = await sql`SELECT type, value FROM discounts WHERE code = ${discountCode} AND active = true`;
+        if (discounts.length > 0) {
+            const discount = discounts[0];
+            if (discount.type === 'percent') {
+                totalCents = Math.round(totalCents * (1 - discount.value / 100));
+            }
+        }
+    }
+
     // 2. Create PayPal Order
     const accessToken = await getAccessToken();
     const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {

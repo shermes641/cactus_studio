@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="/site.css" />
   </head>
   <body>
+    <!-- Initial Loader -->
+    <div id="initial-loader" class="initial-loader">
+        <img src="/logo.png" alt="Loading..." class="loader-logo">
+    </div>
+
     <!-- Navigation -->
     <header>
       <img src="/logo.png" class="header-logo" alt="Cactus Studio Logo">
@@ -49,6 +54,11 @@
                     <option value="10" data-i18n="opt10Page">10</option>
                     <option value="20" selected="" data-i18n="opt20Page">20</option>
                   </select>
+                </div>
+                
+                <div class="hamburger-footer" style="margin-top: auto; padding: 15px 0; border-top: 1px solid #eee; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                    <img src="/logo.png" class="header-logo" style="height: auto; width: 90%;" alt="Cactus Studio Logo">
+                    <div id="main-version" class="version-tag" style="position: static; padding: 0; color: #888;"></div>
                 </div>
 
             </div>
@@ -135,15 +145,33 @@
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
         
         <h3 data-i18n="changePasswordTitle">Change Password</h3>
-        <div class="form-group">
-          <label data-i18n="labelCurrentPassword">Current Password</label>
-          <input type="password" id="profile-current-pass" />
-        </div>
-        <div class="form-group">
-          <label data-i18n="labelNewPassword">New Password</label>
-          <input type="password" id="profile-new-pass" />
-        </div>
-        <button class="add-btn" style="background-color: #6c757d;" onclick="changePassword()" data-i18n="btnChangePassword">Update Password</button>
+        <form id="change-password-form" onsubmit="event.preventDefault(); changePassword()">
+          <!-- Hidden username field for accessibility/password managers -->
+          <input type="text" id="profile-username-hidden" autocomplete="username" style="display:none;" aria-hidden="true">
+          <div class="form-group">
+            <label data-i18n="labelCurrentPassword">Current Password</label>
+            <div style="position: relative;">
+              <input type="password" id="profile-current-pass" autocomplete="current-password" style="padding-right: 40px; width: 100%;" />
+              <span id="profile-curr-toggle" onclick="togglePasswordVisibility('profile-current-pass', 'profile-curr-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label data-i18n="labelNewPassword">New Password</label>
+            <div style="position: relative;">
+              <input type="password" id="profile-new-pass" autocomplete="new-password" style="padding-right: 40px; width: 100%;" />
+              <span id="profile-new-toggle" onclick="togglePasswordVisibility('profile-new-pass', 'profile-new-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+            </div>
+            <small style="color: #666; display: block; margin-top: 5px; font-size: 0.8em;">Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char</small>
+          </div>
+          <div class="form-group">
+            <label data-i18n="labelConfirmNewPassword">Confirm New Password</label>
+            <div style="position: relative;">
+              <input type="password" id="profile-confirm-pass" autocomplete="new-password" style="padding-right: 40px; width: 100%;" />
+              <span id="profile-confirm-toggle" onclick="togglePasswordVisibility('profile-confirm-pass', 'profile-confirm-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+            </div>
+          </div>
+          <button type="submit" id="btn-change-password" class="add-btn" style="background-color: #c54c41; opacity: 0.5; cursor: not-allowed;" disabled data-i18n="btnChangePassword">Update Password</button>
+        </form>
       </div>
     </div>
 
@@ -163,8 +191,11 @@
       <!-- Login Form -->
       <form id="login-modal" onsubmit="event.preventDefault(); loginUserEmail()" style="display: block;">
         <h1 data-i18n="loginTitle">Cactus Studio Login</h1>
-        <input type="email" id="login-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required>
-        <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="placeholderPassword" required autocomplete="current-password">
+        <input type="email" id="login-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required autocomplete="username">
+        <div style="position: relative;">
+          <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="placeholderPassword" required autocomplete="current-password" style="padding-right: 40px; width: 100%;">
+          <span id="login-pass-toggle" onclick="togglePasswordVisibility('login-password', 'login-pass-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+        </div>
         <button type="submit" id="login-btn" data-i18n="btnLogin">Login</button>
         <p style="text-align: right; margin-top: 5px;">
           <a href="#" onclick="event.preventDefault(); toggleForgotPasswordForm()" style="color: #666; font-size: 0.9em;" data-i18n="forgotPasswordLink">Forgot Password?</a>
@@ -178,11 +209,17 @@
       <!-- Register Form -->
       <form id="register-modal" onsubmit="event.preventDefault(); registerUser()" style="display: none;">
         <h1 data-i18n="registerTitle">Create Account</h1>
-        <input type="text" id="register-name" placeholder="Full Name" data-i18n-placeholder="placeholderName">
-        <input type="email" id="register-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required>
-        <input type="password" id="register-password" placeholder="Password (min 6 chars)" data-i18n-placeholder="placeholderNewPassMin" required autocomplete="new-password">
-        <input type="password" id="register-password-confirm" placeholder="Confirm Password" data-i18n-placeholder="placeholderPasswordConfirm" required autocomplete="new-password">
-        <input type="text" id="register-address" placeholder="Shipping Address" data-i18n-placeholder="placeholderAddress">
+        <input type="text" id="register-name" placeholder="Full Name" data-i18n-placeholder="placeholderName" autocomplete="name">
+        <input type="email" id="register-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required autocomplete="username">
+        <div style="position: relative;">
+          <input type="password" id="register-password" placeholder="Password (min 8 chars)" data-i18n-placeholder="placeholderNewPassMin" required autocomplete="new-password" style="padding-right: 40px; width: 100%;">
+          <span id="register-pass-toggle" onclick="togglePasswordVisibility('register-password', 'register-pass-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+        </div>
+        <div style="position: relative;">
+          <input type="password" id="register-password-confirm" placeholder="Confirm Password" data-i18n-placeholder="placeholderPasswordConfirm" required autocomplete="new-password" style="padding-right: 40px; width: 100%;">
+          <span id="register-confirm-toggle" onclick="togglePasswordVisibility('register-password-confirm', 'register-confirm-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+        </div>
+        <input type="text" id="register-address" placeholder="Shipping Address" data-i18n-placeholder="placeholderAddress" autocomplete="shipping street-address">
         <button type="submit" id="register-btn" data-i18n="btnRegister">Register</button>
         <p style="text-align: center; margin-top: 15px;">
           <span data-i18n="hasAccount">Already have an account?</span> <a href="#" onclick="event.preventDefault(); toggleRegisterForm()" style="color: #28a745; text-decoration: underline;" data-i18n="loginLink">Login here</a>
@@ -250,8 +287,6 @@
       <button id="modal-add-btn" data-i18n="modalAddCart">Add to Cart +</button>
     </div>
 
-    <!-- Version Tag -->
-    <div id="main-version" class="version-tag"></div>
     <script>
       function toggleHamburgerMenu() {
         const dropdown = document.getElementById('hamburger-dropdown');
@@ -298,19 +333,42 @@
       document.addEventListener('DOMContentLoaded', () => {
         const dropdown = document.getElementById('hamburger-dropdown');
         if (dropdown) {
-            // Close menu when any button inside is clicked
-            dropdown.querySelectorAll('button').forEach(btn => {
-                btn.addEventListener('click', () => {
+            // Use event delegation to handle clicks on both static and dynamic buttons
+            dropdown.addEventListener('click', (e) => {
+                if (e.target.closest('button')) {
                     dropdown.style.display = 'none';
-                });
+                }
             });
-            // Close menu when items per page is changed
-            const select = document.getElementById('items-per-page-select');
-            if (select) {
-                select.addEventListener('change', () => {
+
+            // Use event delegation for selects (e.g. items per page, admin user select)
+            dropdown.addEventListener('change', (e) => {
+                if (e.target.tagName === 'SELECT') {
                     dropdown.style.display = 'none';
-                });
+                }
+            });
+
+            // Password matching logic
+            const newPass = document.getElementById('profile-new-pass');
+            const confirmPass = document.getElementById('profile-confirm-pass');
+            const changeBtn = document.getElementById('btn-change-password');
+
+            function checkPasswordMatch() {
+                if (!newPass || !confirmPass || !changeBtn) return;
+                const val1 = newPass.value;
+                const val2 = confirmPass.value;
+                
+                if (val1 && val2 && val1 === val2) {
+                    changeBtn.disabled = false;
+                    changeBtn.style.opacity = '1';
+                    changeBtn.style.cursor = 'pointer';
+                } else {
+                    changeBtn.disabled = true;
+                    changeBtn.style.opacity = '0.5';
+                    changeBtn.style.cursor = 'not-allowed';
+                }
             }
+            if (newPass) newPass.addEventListener('input', checkPasswordMatch);
+            if (confirmPass) confirmPass.addEventListener('input', checkPasswordMatch);
         }
       });
 

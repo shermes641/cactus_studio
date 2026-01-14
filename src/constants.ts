@@ -84,7 +84,14 @@ export const translations: Translations = {
         placeholderPasswordConfirm: "Confirm Password",
         placeholderName: "Full Name",
         placeholderAddress: "Shipping Address",
-        placeholderNewPassMin: "Password (min 6 chars)"
+        placeholderNewPassMin: "Password (min 8 chars, 1 upper, 1 number, 1 special)",
+        alertDiscountInvalid: "Invalid discount code.",
+        alertDiscountApplied: "Discount applied!",
+        strengthLabel: "Strength",
+        strengthWeak: "Weak",
+        strengthMedium: "Medium",
+        strengthStrong: "Strong",
+        strengthVeryStrong: "Very Strong",
     },
     es: {
         logout: "Cerrar Sesión",
@@ -162,6 +169,13 @@ export const translations: Translations = {
         placeholderPasswordConfirm: "Confirmar Contraseña",
         placeholderName: "Nombre Completo",
         placeholderAddress: "Dirección de Envío",
-        placeholderNewPassMin: "Contraseña (min 6 carácteres)"
+        placeholderNewPassMin: "Contraseña (min 8 carácteres, 1 mayús, 1 num, 1 especial)",
+        alertDiscountInvalid: "Código de descuento inválido.",
+        alertDiscountApplied: "¡Descuento aplicado!",
+        strengthLabel: "Fortaleza",
+        strengthWeak: "Débil",
+        strengthMedium: "Medio",
+        strengthStrong: "Fuerte",
+        strengthVeryStrong: "Muy Fuerte",
     }
 };

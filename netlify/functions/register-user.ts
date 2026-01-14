@@ -17,8 +17,9 @@ export const handler: Handler = async (event: any, context: any) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Email and password are required' }) };
     }
 
-    if (password.length < 6) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Password must be at least 6 characters' }) };
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char' }) };
     }
 
     const connectionString = process.env.NETLIFY_DATABASE_URL;

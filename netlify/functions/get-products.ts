@@ -18,6 +18,7 @@ export const handler: Handler = async (event: any, context: any) => {
   const limit = parseInt(params.limit || '20');
   const offset = (page - 1) * limit;
   const productClass = params.class;
+  const { search } = params;
 
   // Check if DB URL is set
   if (!process.env.NETLIFY_DATABASE_URL) {
@@ -44,27 +45,34 @@ export const handler: Handler = async (event: any, context: any) => {
       return { statusCode: 200, body: JSON.stringify({ products: rows, total: rows.length }) };
     }
 
-    let totalRes;
-    let rows;
+    let baseQuery = `SELECT p.*, i.quantity, i.sku FROM products p LEFT JOIN inventory i ON p.id = i.image_id`;
+    let countQuery = `SELECT COUNT(*) FROM products p LEFT JOIN inventory i ON p.id = i.image_id`;
+    
+    const conditions: string[] = [];
+    const args: any[] = [];
 
     if (productClass && productClass !== 'All') {
-      // Filter by class
-      totalRes = await sql`SELECT COUNT(*) FROM products WHERE class = ${productClass}`;
-      rows = await sql`
-        SELECT p.*, i.quantity 
-        FROM products p 
-        LEFT JOIN inventory i ON p.id = i.image_id 
-        WHERE p.class = ${productClass}
-        ORDER BY p.id LIMIT ${limit} OFFSET ${offset}`;
-    } else {
-      // No filter
-      totalRes = await sql`SELECT COUNT(*) FROM products`;
-      rows = await sql`
-        SELECT p.*, i.quantity 
-        FROM products p 
-        LEFT JOIN inventory i ON p.id = i.image_id 
-        ORDER BY p.id LIMIT ${limit} OFFSET ${offset}`;
+        conditions.push(`p.class = $${args.length + 1}`);
+        args.push(productClass);
     }
+    
+    if (search && search.length >= 2) {
+        const term = `%${search}%`;
+        const idx = args.length + 1;
+        conditions.push(`(p.name ILIKE $${idx} OR (p.price_cents / 100.0)::text ILIKE $${idx} OR i.sku ILIKE $${idx})`);
+        args.push(term);
+    }
+    
+    if (conditions.length > 0) {
+        const where = ' WHERE ' + conditions.join(' AND ');
+        baseQuery += where;
+        countQuery += where;
+    }
+    
+    baseQuery += ` ORDER BY p.id LIMIT ${limit} OFFSET ${offset}`;
+    
+    const totalRes = await sql(countQuery, args);
+    const rows = await sql(baseQuery, args);
 
     const total = parseInt(totalRes[0].count);
 

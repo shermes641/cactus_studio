@@ -38,6 +38,10 @@ export const handler: Handler = async (event: any, context: any) => {
     out.push('ensured users.reset_token');
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ`;
     out.push('ensured users.reset_token_expires');
+    
+    await sql`DROP TABLE IF EXISTS user_discounts`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS discount_code TEXT REFERENCES discounts(code)`;
+    out.push('ensured users.discount_code');
 
     // 3) Ensure orders.status column exists
     await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT`;

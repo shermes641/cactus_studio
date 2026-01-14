@@ -15,6 +15,7 @@ export const handler: Handler = async (event: any, context: any) => {
     await sql`DROP TABLE IF EXISTS order_items CASCADE`;
     await sql`DROP TABLE IF EXISTS payments CASCADE`;
     await sql`DROP TABLE IF EXISTS orders CASCADE`;
+    await sql`DROP TABLE IF EXISTS user_discounts CASCADE`;
     await sql`DROP TABLE IF EXISTS discounts CASCADE`;
     await sql`DROP TABLE IF EXISTS users CASCADE`;
     await sql`DROP TABLE IF EXISTS inventory_events CASCADE`;
@@ -62,6 +63,16 @@ export const handler: Handler = async (event: any, context: any) => {
       )
     `;
 
+    // Discounts (Created before users for FK reference)
+    await sql`
+      CREATE TABLE discounts (
+        code TEXT PRIMARY KEY,
+        type TEXT NOT NULL CHECK (type IN ('percent', 'shipping')),
+        value INTEGER NOT NULL,
+        active BOOLEAN DEFAULT true
+      )
+    `;
+
     // Users
     await sql`
       CREATE TABLE users (
@@ -78,17 +89,8 @@ export const handler: Handler = async (event: any, context: any) => {
         verification_token_expires TIMESTAMPTZ,
         reset_token TEXT,
         reset_token_expires TIMESTAMPTZ,
+        discount_code TEXT REFERENCES discounts(code),
         created_at TIMESTAMPTZ DEFAULT now()
-      )
-    `;
-
-    // Discounts
-    await sql`
-      CREATE TABLE discounts (
-        code TEXT PRIMARY KEY,
-        type TEXT NOT NULL CHECK (type IN ('percent', 'shipping')),
-        value INTEGER NOT NULL,
-        active BOOLEAN DEFAULT true
       )
     `;
 

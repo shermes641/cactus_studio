@@ -19,60 +19,222 @@ export const setVersionDisplay = () => {
 };
 
 export function injectLoadingMask() {
-  if (document.getElementById('loading-mask')) return;
-
-  const style = document.createElement('style');
-  style.innerHTML = `
-    #loading-mask {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(81, 134, 97, 0.9);
-        z-index: 10000;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    .cactus-spinner {
-        width: 300px;
-        height: auto;
-        border-radius: 50%;
-    }
-    #loading-text {
-        margin-top: 20px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #2c3e50;
-        font-family: sans-serif;
-    }
-  `;
-  document.head.appendChild(style);
-
-  const mask = document.createElement('div');
-  mask.id = 'loading-mask';
-  mask.innerHTML = '<img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGhobHJza2x6c3I0NmFoYjFteHRjcHJocTQ3dXVwcDd2Y2gyN3hwYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/2XPiOKpTiLOG4NeXm7/giphy.gif" class="cactus-spinner" alt="Loading..."><div id="loading-text">Processing...</div>';
-  document.body.appendChild(mask);
+  // Ensure the initial-loader has a text container if it doesn't already
+  const loader = document.getElementById('initial-loader');
+  if (loader && !loader.querySelector('.loader-text')) {
+    const txt = document.createElement('div');
+    txt.className = 'loader-text';
+    loader.appendChild(txt);
+  }
 }
 
 export function showLoadingMask(text: string) {
-  const mask = document.getElementById('loading-mask');
-  const txt = document.getElementById('loading-text');
-  if (mask && txt) {
+  const loader = document.getElementById('initial-loader');
+  if (loader) {
+    let txt = loader.querySelector('.loader-text') as HTMLElement;
+    if (!txt) {
+        txt = document.createElement('div');
+        txt.className = 'loader-text';
+        loader.appendChild(txt);
+    }
     txt.innerText = text || "Loading...";
-    mask.style.display = 'flex';
+    loader.classList.remove('loader-dismissed');
+  }
+}
+
+export function fadeOutInitialLoader(dly = 1000) {
+  const loader = document.getElementById('initial-loader');
+  if (loader) {
+    setTimeout(() => {
+      loader.classList.add('loader-dismissed');
+    }, dly);
   }
 }
 
 export function hideLoadingMask() {
-  const mask = document.getElementById('loading-mask');
-  if (mask) {
-    mask.style.display = 'none';
-  }
+  fadeOutInitialLoader();
 }
 
 export function getStorageKey(key: string, currentUser: string | null) {
   return currentUser ? `${key}_${currentUser}` : key;
+}
+
+export function togglePasswordVisibility(inputId: string, iconId: string) {
+  const input = document.getElementById(inputId) as HTMLInputElement;
+  const icon = document.getElementById(iconId);
+  if (!input || !icon) return;
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.innerText = "🙈";
+  } else {
+    input.type = "password";
+    icon.innerText = "👁️";
+  }
+}
+
+export function showPromptModal(
+  message: string,
+  defaultValue: string = "",
+  copyText: string | null = null,
+  copyImage: string | null = null,
+  emailBody: string | null = null
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText =
+      "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:20000;display:flex;justify-content:center;align-items:center;";
+
+    const dialog = document.createElement("div");
+    dialog.style.cssText =
+      "background:white;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.2);min-width:300px;max-width:90%;display:flex;flex-direction:column;gap:10px;";
+
+    const label = document.createElement("label");
+    label.innerText = message;
+    label.style.fontWeight = "bold";
+    label.style.marginBottom = "5px";
+    dialog.appendChild(label);
+
+    if (copyText || copyImage) {
+      const copyContainer = document.createElement("div");
+      copyContainer.style.cssText =
+        "display:flex; gap:5px; align-items:center; margin-bottom:5px; background:#f0f0f0; padding:8px; border-radius:4px;";
+
+      if (copyText) {
+        const copyContent = document.createElement("div");
+        copyContent.innerText = copyText;
+        copyContent.style.cssText =
+          "flex:1; font-size:0.85em; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+        copyContent.title = copyText;
+        copyContainer.appendChild(copyContent);
+
+        const copyBtn = document.createElement("button");
+        copyBtn.innerText = "Copy Prompt";
+        copyBtn.style.cssText =
+          "padding:4px 8px; border:1px solid #ccc; background:white; border-radius:4px; cursor:pointer; font-size:0.8em; white-space:nowrap;";
+        copyBtn.onclick = () => {
+          if (copyBtn.innerText !== "Copy Prompt") return;
+          navigator.clipboard.writeText(copyText);
+          copyBtn.innerText = "Copied!";
+          setTimeout(() => (copyBtn.innerText = "Copy Prompt"), 1500);
+        };
+        copyContainer.appendChild(copyBtn);
+      }
+
+      if (copyImage) {
+        const copyImgBtn = document.createElement("button");
+        copyImgBtn.innerText = "Copy Image";
+        copyImgBtn.style.cssText =
+          "padding:4px 8px; border:1px solid #ccc; background:white; border-radius:4px; cursor:pointer; font-size:0.8em; white-space:nowrap;";
+
+        copyImgBtn.onclick = async () => {
+          if (copyImgBtn.innerText !== "Copy Image") return;
+          copyImgBtn.innerText = "...";
+          try {
+            let blob: Blob;
+            if (copyImage.startsWith("data:")) {
+              blob = await (await fetch(copyImage)).blob();
+            } else {
+              const resp = await fetch(copyImage);
+              blob = await resp.blob();
+            }
+
+            if (blob.type !== "image/png") {
+              const img = new Image();
+              img.src = URL.createObjectURL(blob);
+              await new Promise<void>((r) => (img.onload = () => r()));
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d")!;
+              ctx.drawImage(img, 0, 0);
+              blob = await new Promise<Blob>((r) =>
+                canvas.toBlob((b) => r(b!), "image/png")
+              );
+            }
+
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob }),
+            ]);
+            copyImgBtn.innerText = "Copied!";
+          } catch (e) {
+            console.error(e);
+            copyImgBtn.innerText = "Error";
+          }
+          setTimeout(() => (copyImgBtn.innerText = "Copy Image"), 1500);
+        };
+        copyContainer.appendChild(copyImgBtn);
+      }
+
+      dialog.appendChild(copyContainer);
+    }
+
+    if (emailBody) {
+      const previewContainer = document.createElement("div");
+      previewContainer.style.cssText =
+        "margin-bottom:10px; border:1px solid #ddd; padding:10px; background:#f8f9fa; max-height:300px; overflow-y:auto; font-family:sans-serif;";
+
+      const header = document.createElement("div");
+      header.innerText = "📧 Email Preview (Test Mode):";
+      header.style.cssText =
+        "font-weight:bold; margin-bottom:5px; color:#555; font-size:0.9em;";
+      previewContainer.appendChild(header);
+
+      const content = document.createElement("div");
+      content.innerHTML = emailBody;
+      previewContainer.appendChild(content);
+
+      dialog.appendChild(previewContainer);
+    }
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = defaultValue;
+    input.style.padding = "8px";
+    input.style.border = "1px solid #ccc";
+    input.style.borderRadius = "4px";
+    input.style.width = "100%";
+    input.style.boxSizing = "border-box";
+    dialog.appendChild(input);
+
+    const btnContainer = document.createElement("div");
+    btnContainer.style.cssText =
+      "display:flex;justify-content:flex-end;gap:10px;margin-top:10px;";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerText = "Cancel";
+    cancelBtn.style.cssText =
+      "padding:8px 12px;border:1px solid #ccc;background:white;border-radius:4px;cursor:pointer;";
+
+    const okBtn = document.createElement("button");
+    okBtn.innerText = "OK";
+    okBtn.style.cssText =
+      "padding:8px 12px;border:none;background:#17a2b8;color:white;border-radius:4px;cursor:pointer;";
+
+    const cleanup = () => {
+      if (document.body.contains(overlay)) document.body.removeChild(overlay);
+    };
+
+    cancelBtn.onclick = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    okBtn.onclick = () => {
+      cleanup();
+      resolve(input.value);
+    };
+
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") okBtn.click();
+      if (e.key === "Escape") cancelBtn.click();
+    };
+
+    btnContainer.appendChild(cancelBtn);
+    btnContainer.appendChild(okBtn);
+    dialog.appendChild(btnContainer);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    input.focus();
+  });
 }

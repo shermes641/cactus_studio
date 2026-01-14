@@ -9,7 +9,8 @@ export const handler: Handler = async (event: any) => {
     const { email, token, newPassword } = JSON.parse(event.body || '{}');
     if (!email || !token || !newPassword) return { statusCode: 400, body: JSON.stringify({ error: "Missing fields" }) };
 
-    if (newPassword.length < 6) return { statusCode: 400, body: JSON.stringify({ error: "Password too short" }) };
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) return { statusCode: 400, body: JSON.stringify({ error: "Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char" }) };
 
     const sql = neon(process.env.NETLIFY_DATABASE_URL!);
     

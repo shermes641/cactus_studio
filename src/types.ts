@@ -7,6 +7,7 @@ export interface Product {
   class?: string;
   quantity?: number;
   notes?: string;
+  sku?: string;
 }
 
 export interface PageCacheEntry {
@@ -20,4 +21,9 @@ export interface Translations {
     }
 }
 
-
+export interface Discount {
+    code: string;
+    type: 'percent' | 'shipping';
+    value: number;
+    active: boolean;
+}

@@ -1,9 +1,9 @@
 //force build
 import { state } from './state.js';
 import { translations, PLANT_CLASSES } from './constants.js';
-import { getStorageKey, showLoadingMask, hideLoadingMask } from './utils.js';
-import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, showPromptModal, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons } from './ui.js';
-import { Product } from './types.js';
+import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from './utils.js';
+import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons, toggleCart, setupPasswordStrengthMeter } from './ui.js';
+import { Product, Discount } from './types.js';
 
 declare const paypal: any;
 declare const window: any;
@@ -256,8 +256,9 @@ export async function registerUser() {
     return;
   }
 
-  if (password.length < 6) {
-    alert("Password must be at least 6 characters");
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    alert("Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char");
     return;
   }
 
@@ -299,6 +300,9 @@ export async function registerUser() {
     passwordInput.value = "";
     confirmInput.value = "";
     addressInput.value = "";
+
+    // Reset strength meter
+    passwordInput.dispatchEvent(new Event('input'));
   } catch (e) {
     hideLoadingMask();
     console.error("Registration error:", e);
@@ -315,6 +319,44 @@ export function toggleRegisterForm() {
   const loginVisible = loginForm.style.display !== "none";
   loginForm.style.display = loginVisible ? "none" : "block";
   registerForm.style.display = loginVisible ? "block" : "none";
+
+  if (loginVisible) {
+    setTimeout(() => setupPasswordStrengthMeter(), 100);
+  }
+}
+
+export async function applyDiscountCode() {
+    const input = document.getElementById('discount-code-input') as HTMLInputElement;
+    if (!input) return;
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+        const emailParam = state.currentUser ? `&email=${encodeURIComponent(state.currentUser)}` : '';
+        const res = await fetch(`/.netlify/functions/validate-discount?code=${code}${emailParam}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.error || translations[state.currentLang].alertDiscountInvalid || 'Invalid discount code.');
+            input.value = '';
+            state.activeDiscount = null;
+        } else {
+            state.activeDiscount = data.discount as Discount;
+            alert(translations[state.currentLang].alertDiscountApplied || 'Discount applied!');
+        }
+        updateCartUI();
+    } catch (e) {
+        console.error('Discount validation error:', e);
+        alert('Error validating discount code.');
+        state.activeDiscount = null;
+        updateCartUI();
+    }
+}
+
+export function removeDiscount(e?: Event) {
+    if (e) e.stopPropagation();
+    state.activeDiscount = null;
+    updateCartUI();
 }
 
 export function removeAllFromCart() {
@@ -507,6 +549,20 @@ export function applyFilter(type: string) {
   renderPage(1);
 }
 
+export function handleSearch(query: string) {
+  const prev = state.searchQuery;
+  state.searchQuery = query;
+  
+  const prevEffective = prev.length >= 2;
+  const currentEffective = query.length >= 2;
+  
+  if (prevEffective || currentEffective) {
+      state.currentPage = 1;
+      state.pageCache = {};
+      renderPage(1);
+  }
+}
+
 export async function renderPage(page: number, skipFetch = false) {
   localStorage.setItem('cactusPage', page.toString());
   state.currentPage = page;
@@ -516,7 +572,8 @@ export async function renderPage(page: number, skipFetch = false) {
       state.products = state.pageCache[page].products;
       state.totalItems = state.pageCache[page].total;
 
-      fetch(`/.netlify/functions/get-products?page=${page}&limit=${state.itemsPerPage}&class=${state.currentFilter}`)
+      const searchParam = state.searchQuery.length >= 2 ? `&search=${encodeURIComponent(state.searchQuery)}` : '';
+      fetch(`/.netlify/functions/get-products?page=${page}&limit=${state.itemsPerPage}&class=${state.currentFilter}${searchParam}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (data) {
@@ -532,7 +589,8 @@ export async function renderPage(page: number, skipFetch = false) {
     } else {
       try {
         showLoadingMask("Loading Products...");
-        const res = await fetch(`/.netlify/functions/get-products?page=${page}&limit=${state.itemsPerPage}&class=${state.currentFilter}`);
+        const searchParam = state.searchQuery.length >= 2 ? `&search=${encodeURIComponent(state.searchQuery)}` : '';
+        const res = await fetch(`/.netlify/functions/get-products?page=${page}&limit=${state.itemsPerPage}&class=${state.currentFilter}${searchParam}`);
         if (res.ok) {
           const data = await res.json();
           state.products = data.products;
@@ -553,6 +611,17 @@ export async function renderPage(page: number, skipFetch = false) {
         if (p.class) return p.class === state.currentFilter;
         return p.scientific && p.scientific.includes(state.currentFilter);
       });
+    }
+
+    if (state.searchQuery.length >= 2) {
+        const q = state.searchQuery.toLowerCase();
+        visibleProducts = visibleProducts.filter(p => {
+            const price = (p.price_cents / 100).toFixed(2);
+            const sku = `BOT-${p.id}-STD`.toLowerCase();
+            return p.name.toLowerCase().includes(q) || 
+                   price.includes(q) ||
+                   sku.includes(q);
+        });
     }
 
     state.totalItems = visibleProducts.length;
@@ -586,7 +655,53 @@ export async function renderPage(page: number, skipFetch = false) {
       if (state.hiddenProductIds.has(product.id)) return;
 
       const sciName = product.scientific
-        ? `<div class="scientific-name">${product.scientific}</div>`
+        ? `<span class="scientific-name">${product.scientific}</span>`
+        : "";
+
+      const classDisplay = product.class
+        ? `<span class="product-class">${product.class}</span>`
+        : "";
+
+      const metaRow = (sciName || classDisplay)
+        ? `<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8em; color: #666; margin-bottom: 4px;">
+             ${sciName}
+             ${classDisplay}
+           </div>`
+        : "";
+
+      const skuDisplay = product.sku
+        ? `<span class="product-sku">SKU: ${product.sku}</span>`
+        : "";
+
+      let matchInfo = "";
+      if (state.searchQuery && state.searchQuery.length >= 2) {
+        const q = state.searchQuery.toLowerCase();
+        const matches: string[] = [];
+        const lang = state.currentLang === 'es' ? 'es' : 'en';
+        const labels = {
+            en: { name: "Name", sci: "Scientific", price: "Price", sku: "SKU", matched: "Matched" },
+            es: { name: "Nombre", sci: "Científico", price: "Precio", sku: "SKU", matched: "Coincidencia" }
+        }[lang];
+
+        if (product.name.toLowerCase().includes(q)) matches.push(labels.name);
+        if (product.scientific && product.scientific.toLowerCase().includes(q)) matches.push(labels.sci);
+        
+        const price = (Number(product.price_cents) / 100).toFixed(2);
+        if (price.includes(q)) matches.push(labels.price);
+        
+        const genSku = `BOT-${product.id}-STD`.toLowerCase();
+        if ((product.sku && product.sku.toLowerCase().includes(q)) || genSku.includes(q)) matches.push(labels.sku);
+
+        if (matches.length > 0) {
+            matchInfo = `<span class="match-info" style="color: #d35400;">${labels.matched}: ${matches.join(", ")}</span>`;
+        }
+      }
+
+      const detailsRow = (skuDisplay || matchInfo)
+        ? `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: #888; margin-bottom: 2px;">
+             ${skuDisplay}
+             ${matchInfo}
+           </div>`
         : "";
 
       let displayImage = product.image_url;
@@ -619,8 +734,8 @@ export async function renderPage(page: number, skipFetch = false) {
               </picture>
               <div class="product-info">
                   <div class="product-name">${product.name}</div>
-                  ${sciName}
-                  ${product.class ? `<div class="product-class" style="font-size: 0.8em; color: #666;">${product.class}</div>` : ''}
+                  ${metaRow}
+                  ${detailsRow}
                   ${stockDisplay}
                   <div class="product-price">$${(Number(product.price_cents) / 100).toFixed(2)}</div>
                   <button class="add-btn" ${btnAttrs} style="${btnStyle}">${btnText}</button>
@@ -877,7 +992,7 @@ export async function checkout() {
 
   const paypalContainer = document.getElementById("paypal-button-container");
   if (!paypalContainer) return;
-  paypalContainer.innerHTML = "<div style='text-align:center; margin-top:10px;'>Loading...</div>";
+  showLoadingMask("Loading Payment Options...");
 
   let CLIENT_ID;
   try {
@@ -898,6 +1013,7 @@ export async function checkout() {
 
   const render = () => {
     paypalContainer.innerHTML = "";
+    // Loading mask is hidden when buttons render or on error
     if (typeof paypal === "undefined" || !paypal || !paypal.Buttons) {
         console.error("PayPal SDK not ready.");
         alert("Payment system loading error. Please try again.");
@@ -941,7 +1057,10 @@ export async function checkout() {
         return fetch('/.netlify/functions/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cart: state.cart })
+          body: JSON.stringify({
+            cart: state.cart,
+            discountCode: state.activeDiscount ? state.activeDiscount.code : null
+          })
         })
         .then(async res => {
           if (!res.ok) {
@@ -968,15 +1087,14 @@ export async function checkout() {
             body: JSON.stringify({
               orderId: data.orderID,
               details: details,
-              cart: state.cart
+              cart: state.cart,
+              discountCode: state.activeDiscount ? state.activeDiscount.code : null
             })
           }).then(() => {
             state.cart = [];
             localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
             updateCartUI();
-            // toggleCart(); // Circular dep if imported, but we can rely on window or just import it.
-            // Since toggleCart is in UI, and we import UI, we can call it.
-            const { toggleCart } = require('./ui');
+            // Since toggleCart is in UI, and we import UI, we can call it directly.
             toggleCart();
             setTimeout(function() {
               alert('Transaction completed by ' + details.payer.name.given_name + '!');
@@ -1024,7 +1142,9 @@ export async function checkout() {
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
       }
-    }).render('#paypal-button-container');
+    }).render('#paypal-button-container').then(() => {
+        hideLoadingMask();
+    });
   };
 
   if (!script) {
@@ -1041,6 +1161,7 @@ export async function checkout() {
     script.onerror = () => {
         paypalContainer.innerHTML = "Error loading payment system.";
         if (checkoutBtn) checkoutBtn.style.display = "";
+        hideLoadingMask();
     };
     document.body.appendChild(script);
   } else {
@@ -1494,17 +1615,67 @@ export async function fetchPlantClasses() {
   }
 }
 
-export function openProfileModal() {
-  if (!state.currentUserData) return;
+export async function openProfileModal(userData?: any) {
+  const targetUser = userData || state.currentUserData;
+  if (!targetUser) return;
   
   const nameInput = document.getElementById("profile-name") as HTMLInputElement;
   const phoneInput = document.getElementById("profile-phone") as HTMLInputElement;
   const addrInput = document.getElementById("profile-address") as HTMLInputElement;
+  const hiddenUserInput = document.getElementById("profile-username-hidden") as HTMLInputElement;
   
-  if (nameInput) nameInput.value = state.currentUserData.name || "";
-  if (phoneInput) phoneInput.value = state.currentUserData.phone || "";
-  if (addrInput) addrInput.value = state.currentUserData.shipping_addr || "";
+  if (nameInput) nameInput.value = targetUser.name || "";
+  if (phoneInput) phoneInput.value = targetUser.phone || "";
+  if (addrInput) addrInput.value = targetUser.shipping_addr || "";
+  if (hiddenUserInput) hiddenUserInput.value = targetUser.email || "";
   
+  // Admin Discount Logic
+  const modalContent = document.querySelector("#profile-modal .modal-content");
+  const existingDiscountDiv = document.getElementById("admin-discount-wrapper");
+  if (existingDiscountDiv) existingDiscountDiv.remove();
+
+  if (state.isAdmin && modalContent) {
+      const discountDiv = document.createElement("div");
+      discountDiv.id = "admin-discount-wrapper";
+      discountDiv.className = "form-group";
+      discountDiv.style.marginTop = "15px";
+      discountDiv.style.borderTop = "1px solid #eee";
+      discountDiv.style.paddingTop = "15px";
+
+      const label = document.createElement("label");
+      label.innerText = "Discount Code (Admin Only)";
+      discountDiv.appendChild(label);
+
+      const select = document.createElement("select");
+      select.id = "profile-discount-select";
+      select.style.width = "100%";
+      select.style.padding = "8px";
+      
+      const noneOpt = document.createElement("option");
+      noneOpt.value = "";
+      noneOpt.innerText = "None";
+      select.appendChild(noneOpt);
+
+      try {
+          const res = await fetch('/.netlify/functions/get-discounts');
+          if (res.ok) {
+              const discounts = await res.json();
+              discounts.forEach((d: any) => {
+                  const opt = document.createElement("option");
+                  opt.value = d.code;
+                  opt.innerText = d.code;
+                  if (targetUser.discount_code === d.code) opt.selected = true;
+                  select.appendChild(opt);
+              });
+          }
+      } catch (e) { console.error(e); }
+
+      discountDiv.appendChild(select);
+      
+      const saveBtn = modalContent.querySelector("button.add-btn");
+      if (saveBtn) modalContent.insertBefore(discountDiv, saveBtn);
+  }
+
   toggleProfileModal();
 }
 
@@ -1512,14 +1683,21 @@ export async function saveProfile() {
   const name = (document.getElementById("profile-name") as HTMLInputElement).value;
   const phone = (document.getElementById("profile-phone") as HTMLInputElement).value;
   const shipping_addr = (document.getElementById("profile-address") as HTMLInputElement).value;
+  const email = (document.getElementById("profile-username-hidden") as HTMLInputElement).value || state.currentUser;
+  
+  const discountSelect = document.getElementById("profile-discount-select") as HTMLSelectElement;
+  const discount_code = discountSelect ? discountSelect.value : undefined;
   
   showLoadingMask("Updating profile...");
   
   try {
+    const body: any = { email, name, phone, shipping_addr };
+    if (discount_code !== undefined) body.discount_code = discount_code || null;
+
     const res = await fetch('/.netlify/functions/update-user-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: state.currentUser, name, phone, shipping_addr })
+      body: JSON.stringify(body)
     });
     
     const data = await res.json();
@@ -1527,10 +1705,21 @@ export async function saveProfile() {
     
     if (!res.ok) throw new Error(data.error || "Update failed");
     
-    state.currentUserData = data.user;
-    localStorage.setItem("currentUserData", JSON.stringify(data.user));
+    if (email === state.currentUser) {
+        state.currentUserData = data.user;
+        localStorage.setItem("currentUserData", JSON.stringify(data.user));
+    }
+    
     alert("Profile updated successfully!");
     toggleProfileModal();
+    
+    // Refresh admin list if needed (optional, requires re-fetching)
+    if (state.isAdmin) {
+        const select = document.getElementById("admin-user-select") as HTMLSelectElement;
+        if (select) {
+             // Triggering a re-fetch would be ideal, but for now we leave it
+        }
+    }
   } catch (e: any) {
     hideLoadingMask();
     alert("Error: " + e.message);
@@ -1578,9 +1767,17 @@ export async function requestPasswordReset() {
 export async function changePassword() {
   const currentPassword = (document.getElementById("profile-current-pass") as HTMLInputElement).value;
   const newPassword = (document.getElementById("profile-new-pass") as HTMLInputElement).value;
+  const confirmPassword = (document.getElementById("profile-confirm-pass") as HTMLInputElement).value;
   
   if (!currentPassword || !newPassword) return alert("Please fill in both password fields");
+  if (newPassword !== confirmPassword) return alert("Passwords do not match");
   
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+  if (!passwordRegex.test(newPassword)) {
+    alert("Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char");
+    return;
+  }
+
   showLoadingMask("Changing password...");
   try {
     const res = await fetch('/.netlify/functions/change-password', {
@@ -1594,6 +1791,13 @@ export async function changePassword() {
     alert("Password changed successfully!");
     (document.getElementById("profile-current-pass") as HTMLInputElement).value = "";
     (document.getElementById("profile-new-pass") as HTMLInputElement).value = "";
+    (document.getElementById("profile-confirm-pass") as HTMLInputElement).value = "";
+    const btn = document.getElementById("btn-change-password");
+    if (btn) {
+        (btn as HTMLButtonElement).disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+    }
   } catch (e: any) {
     hideLoadingMask();
     alert("Error: " + e.message);
