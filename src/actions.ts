@@ -1,6 +1,6 @@
 //force build
 import { state } from './state.js';
-import { translations, PLANT_CLASSES } from './constants.js';
+import { translations } from './constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from './utils.js';
 import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons, toggleCart, setupPasswordStrengthMeter } from './ui.js';
 import { Product, Discount } from './types.js';
@@ -84,7 +84,6 @@ export function toggleLanguage() {
     if (confirm(msg)) {
       state.currentLang = nextLang;
       localStorage.setItem('cactusLang', state.currentLang);
-      logoutUser();
       window.location.reload();
     }
   }
@@ -96,11 +95,11 @@ export async function loginUserEmail() {
   const password = passwordInput.value.trim();
 
   if (!email || !password) {
-    alert(translations[state.currentLang].alertValidNumber || "Email and password required");
+    alert(translations[state.currentLang].alertEmailPasswordRequired);
     return;
   }
 
-  showLoadingMask("Logging in...");
+  showLoadingMask(translations[state.currentLang].loadingLogin);
 
   try {
     const res = await fetch("/.netlify/functions/login-user", {
@@ -115,8 +114,8 @@ export async function loginUserEmail() {
       hideLoadingMask();
       
       if (res.status === 403 && data.notVerified) {
-        if (confirm("Your email is not verified. Do you want to send a new verification code?")) {
-          showLoadingMask("Sending verification code...");
+        if (confirm(translations[state.currentLang].alertVerifyEmail)) {
+          showLoadingMask(translations[state.currentLang].loadingSending);
           try {
             const resendRes = await fetch("/.netlify/functions/resend-verification", {
               method: "POST",
@@ -130,20 +129,20 @@ export async function loginUserEmail() {
               if (resendData.verificationLink) {
                 await showPromptModal("TEST MODE: Verification Link", resendData.verificationLink, resendData.verificationLink, null, resendData.emailBody);
               } else {
-                alert("Verification code sent! Please check your email.");
+                alert(translations[state.currentLang].alertVerificationSent);
               }
             } else {
               alert(resendData.error || "Failed to send verification code");
             }
           } catch (e) {
             hideLoadingMask();
-            alert("Error sending verification code");
+            alert(translations[state.currentLang].alertNetworkError);
           }
         }
         return;
       }
 
-      alert(data.error || "Login failed");
+      alert(data.error || translations[state.currentLang].alertLoginFailed);
       return;
     }
 
@@ -252,22 +251,22 @@ export async function registerUser() {
   const shipping_addr = addressInput.value.trim();
 
   if (!email || !password) {
-    alert("Email and password are required");
+    alert(translations[state.currentLang].alertEmailPasswordRequired);
     return;
   }
 
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
   if (!passwordRegex.test(password)) {
-    alert("Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char");
+    alert(translations[state.currentLang].alertPasswordRequirements);
     return;
   }
 
   if (password !== passwordConfirm) {
-    alert("Passwords do not match");
+    alert(translations[state.currentLang].alertPasswordsDoNotMatch);
     return;
   }
 
-  showLoadingMask("Registering...");
+  showLoadingMask(translations[state.currentLang].loadingRegister);
 
   try {
     const res = await fetch("/.netlify/functions/register-user", {
@@ -280,7 +279,7 @@ export async function registerUser() {
 
     if (!res.ok) {
       hideLoadingMask();
-      alert(data.error || "Registration failed");
+      alert(data.error || translations[state.currentLang].alertRegistrationFailed);
       return;
     }
 
@@ -289,7 +288,7 @@ export async function registerUser() {
     if (data.verificationLink) {
       await showPromptModal("TEST MODE: Verification Link", data.verificationLink, data.verificationLink, null, data.emailBody);
     } else {
-      alert("Registration successful! Please login.");
+      alert(translations[state.currentLang].alertRegistrationSuccess);
     }
     
     toggleRegisterForm();
@@ -337,7 +336,14 @@ export async function applyDiscountCode() {
         const data = await res.json();
 
         if (!res.ok) {
-            alert(data.error || translations[state.currentLang].alertDiscountInvalid || 'Invalid discount code.');
+            let msg = data.error;
+            const t = translations[state.currentLang];
+            if (msg === 'You have no active discounts') msg = t.alertNoActiveDiscounts;
+            else if (msg === 'Discount code not found in your account') msg = t.alertDiscountNotAssigned;
+            else if (msg === 'Discount code is not active') msg = t.alertDiscountNotActive;
+            else if (msg === 'Discount code not found') msg = t.alertDiscountInvalid;
+            
+            alert(msg || t.alertDiscountInvalid);
             input.value = '';
             state.activeDiscount = null;
         } else {
@@ -347,7 +353,7 @@ export async function applyDiscountCode() {
         updateCartUI();
     } catch (e) {
         console.error('Discount validation error:', e);
-        alert('Error validating discount code.');
+        alert(translations[state.currentLang].errorValidatingDiscount);
         state.activeDiscount = null;
         updateCartUI();
     }
@@ -437,6 +443,8 @@ export function logoutUser() {
   updateCartUI();
   const grid = document.getElementById("product-grid");
   if (grid) grid.innerHTML = "";
+  const noRes = document.getElementById("no-results-message");
+  if (noRes) noRes.remove();
   const btn = document.getElementById("logout-btn");
   if (btn) btn.style.display = "none";
   
@@ -559,11 +567,11 @@ export function handleSearch(query: string) {
   if (prevEffective || currentEffective) {
       state.currentPage = 1;
       state.pageCache = {};
-      renderPage(1);
+      renderPage(1, false, true);
   }
 }
 
-export async function renderPage(page: number, skipFetch = false) {
+export async function renderPage(page: number, skipFetch = false, suppressLoading = false) {
   localStorage.setItem('cactusPage', page.toString());
   state.currentPage = page;
 
@@ -588,7 +596,7 @@ export async function renderPage(page: number, skipFetch = false) {
         .catch(e => console.error("Background stock check failed:", e));
     } else {
       try {
-        showLoadingMask("Loading Products...");
+        if (!suppressLoading) showLoadingMask("Loading Products...");
         const searchParam = state.searchQuery.length >= 2 ? `&search=${encodeURIComponent(state.searchQuery)}` : '';
         const res = await fetch(`/.netlify/functions/get-products?page=${page}&limit=${state.itemsPerPage}&class=${state.currentFilter}${searchParam}`);
         if (res.ok) {
@@ -600,7 +608,7 @@ export async function renderPage(page: number, skipFetch = false) {
       } catch (e) {
         console.error("Error fetching products:", e);
       } finally {
-        hideLoadingMask();
+        if (!suppressLoading) hideLoadingMask();
       }
     }
   } else if (!state.useDB) {
@@ -651,6 +659,20 @@ export async function renderPage(page: number, skipFetch = false) {
 
     grid.innerHTML = "";
     
+    const existingMsg = document.getElementById('no-results-message');
+    if (existingMsg) existingMsg.remove();
+    
+    if (state.products.length === 0) {
+      const msgDiv = document.createElement('div');
+      msgDiv.id = 'no-results-message';
+      msgDiv.style.cssText = "position: fixed; bottom: 20px; left: 20px; background: white; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; max-width: 300px;";
+      msgDiv.innerHTML = `
+          <h3 class="no-results" style="margin: 0 0 10px 0;">Sorry! We couldn't find what you are searching for.</h3>
+          <p class="no-results" style="margin: 0;">Try adjusting your search terms.</p>
+      `;
+      document.body.appendChild(msgDiv);
+    }
+
     state.products.forEach((product) => {
       if (state.hiddenProductIds.has(product.id)) return;
 
@@ -930,16 +952,22 @@ export async function handlePaymentReset() {
   if (state.cart.length !== initialCount) {
     localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
     updateCartUI();
-    alert("Some items were removed from your cart because they are no longer available.");
+    alert(translations[state.currentLang].alertCartItemsRemoved);
   }
 }
 
 export async function checkout() {
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
 
+  // Ensure logged-in user has a shipping address
+  if (state.currentUser && !state.currentUserData?.shipping_addr) {
+    alert(translations[state.currentLang].alertShippingAddressRequired);
+    return;
+  }
+
   if (state.useDB && state.cart.length > 0) {
     if (checkoutBtn) {
-      checkoutBtn.innerText = "Checking Stock...";
+      checkoutBtn.innerText = translations[state.currentLang].checkingStock;
       checkoutBtn.disabled = true;
     }
 
@@ -978,7 +1006,7 @@ export async function checkout() {
         checkoutBtn.innerText = translations[state.currentLang].btnCheckout;
         checkoutBtn.disabled = false;
       }
-      alert(`The following items are out of stock and have been removed from your cart:\n\n- ${outOfStockList.join('\n- ')}\n\nPlease review your cart and try again.`);
+      alert(`${translations[state.currentLang].outOfStockRemoved}\n\n- ${outOfStockList.join('\n- ')}\n\nPlease review your cart and try again.`);
       return;
     }
     
@@ -1050,7 +1078,7 @@ export async function checkout() {
           localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
           updateCartUI();
           renderPage(state.currentPage, true);
-          alert(`The following items are out of stock and have been removed from your cart:\n\n- ${outOfStockList.join('\n- ')}\n\nPlease review your cart and try again.`);
+          alert(`${translations[state.currentLang].outOfStockRemoved}\n\n- ${outOfStockList.join('\n- ')}\n\nPlease review your cart and try again.`);
           throw new Error("PRE_CHECKOUT_OOS");
         }
 
@@ -1097,11 +1125,11 @@ export async function checkout() {
             // Since toggleCart is in UI, and we import UI, we can call it directly.
             toggleCart();
             setTimeout(function() {
-              alert('Transaction completed by ' + details.payer.name.given_name + '!');
+              alert(translations[state.currentLang].alertTransactionSuccess.replace('{name}', details.payer.name.given_name));
             }, 500);
           }).catch(err => {
             console.error("Error recording order:", err);
-            alert('Payment successful, but there was an error saving the receipt.');
+            alert(translations[state.currentLang].alertPaymentSavedError);
           });
         });
       },
@@ -1125,7 +1153,7 @@ export async function checkout() {
             }).then(() => handlePaymentReset());
         }
         
-        alert('An error occurred during payment.');
+        alert(translations[state.currentLang].paymentError);
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
       },
@@ -1138,7 +1166,7 @@ export async function checkout() {
             }).then(() => handlePaymentReset());
         }
 
-        alert("Payment Cancelled");
+        alert(translations[state.currentLang].paymentCancel);
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
       }
@@ -1257,8 +1285,31 @@ export async function resetDatabaseSchema() {
   }
 }
 
-export function openImageModal(id: number) {
-  const product = state.products.find((p) => p.id == id);
+export async function openImageModal(id: number, fromCart: boolean = false) {
+  let product = state.products.find((p) => p.id == id);
+
+  if (!product) {
+    // If not on the current page, check the cart
+    product = state.cart.find((p) => p.id == id);
+  }
+
+  // If still not found and we're using a DB, fetch it directly
+  if (!product && state.useDB) {
+    try {
+      showLoadingMask("Loading product...");
+      const res = await fetch(`/.netlify/functions/get-products?id=${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.products && data.products.length > 0) {
+          product = data.products[0];
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch product for modal", e);
+    } finally {
+      hideLoadingMask();
+    }
+  }
   if (!product) return;
 
   if (state.isAdmin) {
@@ -1313,6 +1364,7 @@ export function openImageModal(id: number) {
   btn.style.color = "";
   btn.style.cursor = "";
   btn.style.borderColor = "";
+  btn.style.display = fromCart ? "none" : "";
 
   if (state.useDB && product.quantity !== undefined && product.quantity !== null && Number(product.quantity) <= 0) {
     btn.innerText = translations[state.currentLang].outOfStock;
@@ -1411,7 +1463,7 @@ export async function identifyPlant(imageUrl: string) {
         failedApis.push(usedApi);
         const uniqueFailed = [...new Set(failedApis)];
 
-        const promptText = "Can you identify this plant? Please provide the only Scientific Name: and Class: only as text";
+        const promptText = "Can you identify this plant? Please provide only the Scientific Name: and Class: as text";
         
         const copyToClipboard = async () => {
             showLoadingMask("Copying to clipboard...");
@@ -1710,7 +1762,7 @@ export async function saveProfile() {
         localStorage.setItem("currentUserData", JSON.stringify(data.user));
     }
     
-    alert("Profile updated successfully!");
+    alert(translations[state.currentLang].alertProfileUpdated);
     toggleProfileModal();
     
     // Refresh admin list if needed (optional, requires re-fetching)
@@ -1731,11 +1783,11 @@ export async function requestPasswordReset() {
   const email = emailInput.value.trim();
   
   if (!email) {
-      alert("Please enter your email");
+      alert(translations[state.currentLang].alertEmailRequired);
       return;
   }
 
-  showLoadingMask("Sending...");
+  showLoadingMask(translations[state.currentLang].loadingSending);
 
   try {
     const res = await fetch('/.netlify/functions/request-password-reset', {
@@ -1755,13 +1807,36 @@ export async function requestPasswordReset() {
       }
       toggleForgotPasswordForm();
     } else {
-      alert(data.error || "Error sending reset link");
+      alert(data.error || translations[state.currentLang].alertResetError);
     }
   } catch (e) {
     hideLoadingMask();
     console.error(e);
-    alert("Network error");
+    alert(translations[state.currentLang].alertNetworkError);
   }
+}
+
+export async function updateShippingAddress(newAddress: string) {
+    if (!state.currentUser) return;
+
+    if (!state.currentUserData) {
+        state.currentUserData = {};
+    }
+    state.currentUserData.shipping_addr = newAddress;
+    localStorage.setItem('currentUserData', JSON.stringify(state.currentUserData));
+
+    // Persist to server (best-effort)
+    try {
+        await fetch('/.netlify/functions/save-user-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email: state.currentUser, 
+                cart: state.cart, // send current cart to avoid wiping it
+                shipping_addr: newAddress 
+            })
+        });
+    } catch (e) { console.warn('Failed to save shipping address to server:', e); }
 }
 
 export async function changePassword() {
@@ -1769,16 +1844,16 @@ export async function changePassword() {
   const newPassword = (document.getElementById("profile-new-pass") as HTMLInputElement).value;
   const confirmPassword = (document.getElementById("profile-confirm-pass") as HTMLInputElement).value;
   
-  if (!currentPassword || !newPassword) return alert("Please fill in both password fields");
-  if (newPassword !== confirmPassword) return alert("Passwords do not match");
+  if (!currentPassword || !newPassword) return alert(translations[state.currentLang].alertFillPasswordFields);
+  if (newPassword !== confirmPassword) return alert(translations[state.currentLang].alertPasswordsDoNotMatch);
   
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
   if (!passwordRegex.test(newPassword)) {
-    alert("Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 special char");
+    alert(translations[state.currentLang].alertPasswordRequirements);
     return;
   }
 
-  showLoadingMask("Changing password...");
+  showLoadingMask(translations[state.currentLang].loadingChangingPass);
   try {
     const res = await fetch('/.netlify/functions/change-password', {
       method: 'POST',
@@ -1788,7 +1863,7 @@ export async function changePassword() {
     const data = await res.json();
     hideLoadingMask();
     if (!res.ok) throw new Error(data.error || "Failed");
-    alert("Password changed successfully!");
+    alert(translations[state.currentLang].alertPasswordChanged);
     (document.getElementById("profile-current-pass") as HTMLInputElement).value = "";
     (document.getElementById("profile-new-pass") as HTMLInputElement).value = "";
     (document.getElementById("profile-confirm-pass") as HTMLInputElement).value = "";

@@ -1,13 +1,13 @@
 import { state } from "./state.js";
-import { translations, PLANT_CLASSES } from "./constants.js";
+import { translations, THEME } from "./constants.js";
 import { setVersionDisplay } from "./utils.js";
 import {
-  addToCart,
   renderPage,
   applyFilter,
   changeItemsPerPage,
   removeFromCart,
   identifyPlant,
+  updateShippingAddress,
   handleSearch,
   openProfileModal,
 } from "./actions.js";
@@ -51,7 +51,7 @@ export function renderFilterControls() {
   });
   html += `</select></div>`;
 
-  html += `<div><input type="text" id="product-search" placeholder="Search..." value="${state.searchQuery}" oninput="handleSearch(this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid black; background: aquamarine; font-size: 1.5rem; font-weight: bolder; width: 115px; height: 23px;"></div>`;
+  html += `<div><input type="text" id="product-search" placeholder="${translations[state.currentLang].searchPlaceholder}" value="${state.searchQuery}" oninput="handleSearch(this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid ${THEME.primary}; background: ${THEME.searchBg}; font-size: 1.5rem; font-weight: bolder; width: 115px; height: 23px;"></div>`;
 
   html += `</div>`;
   container.innerHTML = html;
@@ -106,7 +106,7 @@ export function updatePaginationControls(totalCount: number) {
       translations[state.currentLang].prev
     }</button>`;
 
-    html += `<select onchange="renderPage(parseInt(this.value))" style="margin: 0 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">`;
+    html += `<select onchange="renderPage(parseInt(this.value))" style="margin: 0 10px; padding: 8px; border-radius: 4px; border: 1px solid ${THEME.primary};">`;
     for (let i = 1; i <= totalPages; i++) {
       html += `<option value="${i}" ${
         i === state.currentPage ? "selected" : ""
@@ -121,7 +121,7 @@ export function updatePaginationControls(totalCount: number) {
     }</button>`;
 
     html += `
-        <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid var(--primary);">
+        <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid ${THEME.primary};">
           <option value="5" ${state.itemsPerPage === 5 ? "selected" : ""}>${
       translations[state.currentLang].opt5Page
     }</option>
@@ -168,33 +168,65 @@ export function updateCartUI() {
         if (!item) return;
         const itemPrice = Number(item.price_cents) / 100;
         total += itemPrice;
+
+        const thumbnailUrl = item.image_url.includes('cloudinary.com')
+          ? item.image_url.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/')
+          : item.image_url;
+
         cartItemsDiv.innerHTML += `
                     <div class="cart-item">
-                        <div>
+                        <img src="${thumbnailUrl}" alt="${item.name}" class="cart-item-thumbnail" onclick="openImageModal(${item.id}, true)">
+                        <div class="cart-item-info">
                             <strong>${item.name}</strong><br>
                             $${itemPrice.toFixed(2)}
                         </div>
-                        <button onclick="removeFromCart(${index})" style="background:none; border:none; color:red; cursor:pointer;">${
+                        <button onclick="removeFromCart(${index})" class="cart-item-remove">${
           translations[state.currentLang].btnRemove
         }</button>
                     </div>
                 `;
       });
 
-      // Discount section
+      // Shipping Address section
+      let shippingSection = document.getElementById("shipping-section");
+      if (!shippingSection) {
+        shippingSection = document.createElement("div");
+        shippingSection.id = "shipping-section";
+        shippingSection.style.padding = "10px 0";
+        shippingSection.style.borderBottom = `1px solid ${THEME.gray200}`;
+        shippingSection.style.marginBottom = "10px";
+        
+        const totalHeader = cartFooter.querySelector(".cart-total-header");
+        if (totalHeader) {
+          cartFooter.insertBefore(shippingSection, totalHeader);
+        } else {
+          cartFooter.insertBefore(shippingSection, paypalContainer);
+        }
+      }
+
+      if (state.currentUser) {
+        shippingSection.style.display = 'block';
+        const currentAddress = state.currentUserData?.shipping_addr || '';
+        const labelText = translations[state.currentLang].labelAddress;
+        const placeholderText = translations[state.currentLang].placeholderAddress;
+        shippingSection.innerHTML = `
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-weight: bold; font-size: 0.9em; margin-bottom: 5px; display: block;">${labelText}</label>
+                <textarea id="cart-shipping-address" onblur="updateShippingAddress(this.value)" style="width: 100%; box-sizing: border-box; min-height: 60px; padding: 8px; border: 1px solid ${THEME.gray400}; border-radius: 4px;" placeholder="${placeholderText}">${currentAddress}</textarea>
+            </div>
+        `;
+      } else {
+        shippingSection.style.display = 'none';
+        shippingSection.innerHTML = '';
+      }
+
+      // Discount section (inserted after shipping)
       let discountSection = document.getElementById("discount-section");
       if (!discountSection) {
         discountSection = document.createElement("div");
         discountSection.id = "discount-section";
         discountSection.style.padding = "10px 0";
-        
-        // Insert before the total header
-        const totalHeader = cartFooter.querySelector(".cart-total-header");
-        if (totalHeader) {
-          cartFooter.insertBefore(discountSection, totalHeader);
-        } else {
-          cartFooter.insertBefore(discountSection, paypalContainer);
-        }
+        shippingSection.insertAdjacentElement('afterend', discountSection);
       }
 
       let finalTotal = total;
@@ -204,15 +236,15 @@ export function updateCartUI() {
 
         discountSection.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <span style="color: green;">Code: <strong>${state.activeDiscount.code}</strong></span>
-                    <button onclick="removeDiscount(event)" title="Remove discount" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; font-size: 1.2em;">&times;</button>
+                    <span style="color: ${THEME.success};">Code: <strong>${state.activeDiscount.code}</strong></span>
+                    <button onclick="removeDiscount(event)" title="Remove discount" style="background: none; border: none; color: ${THEME.danger}; cursor: pointer; font-weight: bold; font-size: 1.2em;">&times;</button>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #666;">
-                    <span>Subtotal:</span>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: ${THEME.textMuted};">
+                    <span>${translations[state.currentLang].subtotal}:</span>
                     <span>$${total.toFixed(2)}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: green; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                    <span>Discount (${state.activeDiscount.value}%):</span>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: ${THEME.success}; margin-bottom: 5px; border-bottom: 1px solid ${THEME.gray200}; padding-bottom: 5px;">
+                    <span>${translations[state.currentLang].discount} (${state.activeDiscount.value}%):</span>
                     <span>-$${discountAmount.toFixed(2)}</span>
                 </div>
             `;
@@ -221,16 +253,16 @@ export function updateCartUI() {
         if (state.activeDiscount) {
           // Handle other types like 'shipping'
           discountSection.innerHTML = `
-                    <div style="color: green; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center;">
-                        <span>Discount Applied: <strong>${state.activeDiscount.code}</strong></span>
-                        <button onclick="removeDiscount(event)" title="Remove discount" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; font-size: 1.2em;">&times;</button>
+                    <div style="color: ${THEME.success}; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center;">
+                        <span>${translations[state.currentLang].alertDiscountApplied} <strong>${state.activeDiscount.code}</strong></span>
+                        <button onclick="removeDiscount(event)" title="${translations[state.currentLang].removeDiscount}" style="background: none; border: none; color: ${THEME.danger}; cursor: pointer; font-weight: bold; font-size: 1.2em;">&times;</button>
                     </div>
                 `;
         } else {
           discountSection.innerHTML = `
                     <div style="display: flex; gap: 5px; align-items: center;">
-                        <input type="text" id="discount-code-input" placeholder="Discount Code" oninput="this.value = this.value.toUpperCase()" onkeydown="if(event.key==='Enter') applyDiscountCode()" style="flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <button onclick="applyDiscountCode()" style="padding: 8px 12px; border: none; background-color: #555; color: white; border-radius: 4px; cursor: pointer;">Apply</button>
+                        <input type="text" id="discount-code-input" placeholder="${translations[state.currentLang].discountCode}" oninput="this.value = this.value.toUpperCase()" onkeydown="if(event.key==='Enter') applyDiscountCode()" style="flex-grow: 1; padding: 8px; border: 1px solid ${THEME.gray400}; border-radius: 4px;">
+                        <button onclick="applyDiscountCode()" style="padding: 8px 12px; border: none; background-color: ${THEME.gray700}; color: ${THEME.white}; border-radius: 4px; cursor: pointer;">${translations[state.currentLang].apply}</button>
                     </div>
                 `;
         }
@@ -307,10 +339,10 @@ export function updateDropZonePreview(src: string) {
 
   if (src) {
     dropZone.style.backgroundImage = `url('${src}')`;
-    dropZone.innerHTML = `<p>Click or Drop to Replace</p>`;
+    dropZone.innerHTML = `<p>${translations[state.currentLang].clickDropReplace}</p>`;
   } else {
     dropZone.style.backgroundImage = "";
-    dropZone.innerHTML = `<p>Drag & Drop Image Here</p>`;
+    dropZone.innerHTML = `<p>${translations[state.currentLang].dragDropImage}</p>`;
   }
 }
 
@@ -395,7 +427,7 @@ export function ensureAdminFieldsExist() {
   sciInput.placeholder = "Scientific Name";
   sciInput.style.marginBottom = "10px";
   sciInput.style.padding = "8px";
-  sciInput.style.border = "1px solid #ddd";
+  sciInput.style.border = `1px solid ${THEME.gray300}`;
   sciInput.style.borderRadius = "4px";
   sciInput.style.flex = "1";
 
@@ -403,7 +435,7 @@ export function ensureAdminFieldsExist() {
   const classSelect = document.createElement("select");
   classSelect.id = "new-class";
   classSelect.style.padding = "8px";
-  classSelect.style.border = "1px solid #ddd";
+  classSelect.style.border = `1px solid ${THEME.gray300}`;
   classSelect.style.borderRadius = "4px";
   classSelect.style.flex = "1";
 
@@ -427,8 +459,8 @@ export function ensureAdminFieldsExist() {
   findBtn.innerText = "Find Class";
   findBtn.style.marginLeft = "10px";
   findBtn.style.padding = "8px 12px";
-  findBtn.style.backgroundColor = "#17a2b8";
-  findBtn.style.color = "white";
+  findBtn.style.backgroundColor = THEME.primary;
+  findBtn.style.color = THEME.white;
   findBtn.style.border = "none";
   findBtn.style.borderRadius = "4px";
   findBtn.style.cursor = "pointer";
@@ -468,7 +500,7 @@ export function ensureAdminFieldsExist() {
   notesInput.placeholder = "Notes / Description";
   notesInput.style.marginBottom = "10px";
   notesInput.style.padding = "8px";
-  notesInput.style.border = "1px solid #ddd";
+  notesInput.style.border = `1px solid ${THEME.gray300}`;
   notesInput.style.borderRadius = "4px";
   notesInput.style.width = "100%";
   notesInput.rows = 3;
@@ -686,7 +718,7 @@ export async function injectAdminButtons() {
   userSelectContainer.style.flexDirection = "column";
   userSelectContainer.style.gap = "5px";
   userSelectContainer.style.cursor = "default";
-  userSelectContainer.style.background = "cyan";
+  userSelectContainer.style.background = THEME.adminBg;
   userSelectContainer.id = "admin-user-select-container";
   userSelectContainer.style.borderRadius = "50px";
   userSelectContainer.style.width = "85%";
@@ -696,7 +728,7 @@ export async function injectAdminButtons() {
   select.style.width = "100%";
   select.style.padding = "5px";
   select.style.borderRadius = "4px";
-  select.style.border = "1px solid #fff";
+  select.style.border = `1px solid ${THEME.primary}`;
   select.style.fontWeight = "bold";
   select.style.fontSize = "1rem";
   
@@ -721,7 +753,7 @@ export async function injectAdminButtons() {
 
   select.onchange = () => {
       const selectedOpt = select.options[select.selectedIndex];
-      const userData = (selectedOpt as any).userData;
+      const { userData } = selectedOpt as any;
       if (userData) openProfileModal(userData);
       select.value = "";
   };
@@ -755,7 +787,7 @@ export function setupPasswordStrengthMeter(inputId: string = "register-password"
   const meterTrack = document.createElement("div");
   meterTrack.style.height = "4px";
   meterTrack.style.width = "100%";
-  meterTrack.style.backgroundColor = "#eee";
+  meterTrack.style.backgroundColor = THEME.gray200;
   meterTrack.style.borderRadius = "2px";
   meterTrack.style.marginBottom = "3px";
   meterTrack.style.overflow = "hidden";
@@ -764,7 +796,7 @@ export function setupPasswordStrengthMeter(inputId: string = "register-password"
   const meterBar = document.createElement("div");
   meterBar.style.height = "100%";
   meterBar.style.width = "0%";
-  meterBar.style.backgroundColor = "#dc3545";
+  meterBar.style.backgroundColor = THEME.danger;
   meterBar.style.transition = "width 0.3s, background-color 0.3s";
   
   meterTrack.appendChild(meterBar);
@@ -804,10 +836,10 @@ export function setupPasswordStrengthMeter(inputId: string = "register-password"
 
     const strength = val.length < 8 ? 0 : score;
     const configs = [
-      { width: "25%", color: "#dc3545", label: t.strengthWeak },       // 0-1 (Weak)
-      { width: "50%", color: "#ffc107", label: t.strengthMedium },     // 2 (Medium)
-      { width: "75%", color: "#28a745", label: t.strengthStrong },     // 3 (Strong)
-      { width: "100%", color: "#198754", label: t.strengthVeryStrong } // 4 (Very Strong)
+      { width: "25%", color: THEME.danger, label: t.strengthWeak },       // 0-1 (Weak)
+      { width: "50%", color: THEME.warning, label: t.strengthMedium },     // 2 (Medium)
+      { width: "75%", color: THEME.success, label: t.strengthStrong },     // 3 (Strong)
+      { width: "100%", color: THEME.successDark, label: t.strengthVeryStrong } // 4 (Very Strong)
     ];
 
     // Map score to config: 0-1 -> index 0, 2 -> index 1, 3 -> index 2, 4 -> index 3

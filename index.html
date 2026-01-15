@@ -23,22 +23,27 @@
       </div>
       <div id="pagination-header" class="pagination-container">
         <button class="page-btn" id="prev-btn" onclick="renderPage(currentPage - 1)" disabled data-i18n="btnPrev">Prev</button>
-        <select id="page-select" onchange="renderPage(parseInt(this.value))" class="page-select">
+        <select id="page-select" onchange="renderPage(parseInt(this.value))" class="page-btn">
           <option value="1">1</option>
         </select>
         <button class="page-btn" id="next-btn" onclick="renderPage(currentPage + 1)" data-i18n="btnNext">Next</button>
+          <select id="items-per-page-select" onchange="changeItemsPerPage(this.value)" class="page-btn">
+            <option value="5" data-i18n="opt5Page">5</option>
+            <option value="10" data-i18n="opt10Page">10</option>
+            <option value="20" selected="" data-i18n="opt20Page">20</option>
+          </select>
       </div>
       <div class="nav-links">
         <button id="lang-btn" onclick="toggleLanguage()">ES</button>
         <button id="logout-btn" onclick="logoutUser()" data-i18n="logout">Logout</button>
         <button id="cart-toggle-btn" onclick="toggleCart()">
-          <span data-i18n="cart">Cart</span>
+          <span data-i18n="cart" style="background: var(--accent); border-radius: 10%; padding: 6px;">Cart</span>
           <span id="cart-count" class="cart-count">0</span>
         </button>
         
         <!-- Hamburger Menu -->
         <div id="hamburger-menu-container" class="hamburger-wrapper">
-            <button id="hamburger-menu-btn" onclick="toggleHamburgerMenu()" class="hamburger-btn">☰</button>
+            <button id="hamburger-menu-btn" onclick="toggleHamburgerMenu()" class="hamburger-btn" style="font-size: 2rem; margin: -10px;">☰</button>
             <div id="hamburger-dropdown" class="hamburger-dropdown">
                 <div id="hamburger-user-info" class="hamburger-user-info" style="display: none;">
                     <div id="hamburger-user-email" class="hamburger-email"></div>
@@ -46,15 +51,6 @@
                 </div>
                 <button id="profile-btn" onclick="openProfileModal()" class="hamburger-menu-item bg-green hidden" data-i18n="btnProfile">Profile</button>
                 <button id="help-btn" onclick="toggleHelp(); document.getElementById('help-content').scrollTop = 0;" class="hamburger-menu-item" data-i18n="help">Help</button>
-                
-                <div class="items-per-page-wrapper">
-                  <label class="items-per-page-label" data-i18n="itemsPerPage">Items / Page:</label>
-                  <select id="items-per-page-select" onchange="changeItemsPerPage(this.value)" class="items-per-page-select">
-                    <option value="5" data-i18n="opt5Page">5</option>
-                    <option value="10" data-i18n="opt10Page">10</option>
-                    <option value="20" selected="" data-i18n="opt20Page">20</option>
-                  </select>
-                </div>
                 
                 <div class="hamburger-footer" style="margin-top: auto; padding: 15px 0; border-top: 1px solid #eee; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px;">
                     <img src="/logo.png" class="header-logo" style="height: auto; width: 90%;" alt="Cactus Studio Logo">
@@ -243,15 +239,6 @@
       <div class="sidebar-logo-container">
         <img src="/logo.png" class="corner-logo top-left" alt="Cactus Studio Logo">
       </div>
-      <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo top-right" alt="Cactus Studio Logo">
-      </div>
-      <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo bottom-left" alt="Cactus Studio Logo">
-      </div>
-      <div class="sidebar-logo-container">
-        <img src="/logo.png" class="corner-logo bottom-right" alt="Cactus Studio Logo">
-      </div>
     </div>
 
     <!-- Cart Sidebar -->
@@ -286,6 +273,7 @@
       <!-- stops propagation only to allow the specific add function to run first, then bubble to close -->
       <button id="modal-add-btn" data-i18n="modalAddCart">Add to Cart +</button>
     </div>
+    <footer style="/* text-align: center; */padding: 20px;margin-top: 40px;color: var(--black);font-size: 1.5rem;bottom: 0px;position: fixed;/* width: 100%; */z-index: 99999;">© 2026 Cactus Studio. All rights reserved.</footer>
 
     <script>
       function toggleHamburgerMenu() {
@@ -325,7 +313,9 @@
         // Cart Sidebar (Click outside)
         const cartSidebar = document.getElementById('cart-sidebar');
         const cartBtn = document.getElementById('cart-toggle-btn');
-        if (cartSidebar && cartSidebar.classList.contains('open') && !cartSidebar.contains(e.target) && (!cartBtn || !cartBtn.contains(e.target))) {
+        const imageModal = document.getElementById('image-modal');
+        const isImageModal = imageModal && (imageModal === e.target || imageModal.contains(e.target));
+        if (cartSidebar && cartSidebar.classList.contains('open') && !cartSidebar.contains(e.target) && (!cartBtn || !cartBtn.contains(e.target)) && !isImageModal) {
             toggleCart();
         }
       });

@@ -1,4 +1,4 @@
-import { MAX_IMG_CACHE_PERCENT, MAX_IMGS, DEFAULT_IMG_CACHE, APP_VERSION } from './constants.js';
+import { MAX_IMG_CACHE_PERCENT, MAX_IMGS, DEFAULT_IMG_CACHE, APP_VERSION, THEME } from './constants.js';
 
 export const calculateMaxImgCache = () => {
   try {
@@ -83,11 +83,11 @@ export function showPromptModal(
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.style.cssText =
-      "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:20000;display:flex;justify-content:center;align-items:center;";
+      `position:fixed;top:0;left:0;width:100%;height:100%;background:${THEME.overlay};z-index:20000;display:flex;justify-content:center;align-items:center;`;
 
     const dialog = document.createElement("div");
     dialog.style.cssText =
-      "background:white;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.2);min-width:300px;max-width:90%;display:flex;flex-direction:column;gap:10px;";
+      `background:${THEME.white};padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.2);min-width:300px;max-width:90%;display:flex;flex-direction:column;gap:10px;`;
 
     const label = document.createElement("label");
     label.innerText = message;
@@ -98,20 +98,20 @@ export function showPromptModal(
     if (copyText || copyImage) {
       const copyContainer = document.createElement("div");
       copyContainer.style.cssText =
-        "display:flex; gap:5px; align-items:center; margin-bottom:5px; background:#f0f0f0; padding:8px; border-radius:4px;";
+        `display:flex; gap:5px; align-items:center; margin-bottom:5px; background:${THEME.gray100}; padding:8px; border-radius:4px;`;
 
       if (copyText) {
         const copyContent = document.createElement("div");
         copyContent.innerText = copyText;
         copyContent.style.cssText =
-          "flex:1; font-size:0.85em; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+          `flex:1; font-size:0.85em; color:${THEME.text}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;`;
         copyContent.title = copyText;
         copyContainer.appendChild(copyContent);
 
         const copyBtn = document.createElement("button");
         copyBtn.innerText = "Copy Prompt";
         copyBtn.style.cssText =
-          "padding:4px 8px; border:1px solid #ccc; background:white; border-radius:4px; cursor:pointer; font-size:0.8em; white-space:nowrap;";
+          `padding:4px 8px; border:1px solid ${THEME.gray400}; background:${THEME.white}; border-radius:4px; cursor:pointer; font-size:0.8em; white-space:nowrap;`;
         copyBtn.onclick = () => {
           if (copyBtn.innerText !== "Copy Prompt") return;
           navigator.clipboard.writeText(copyText);
@@ -125,7 +125,7 @@ export function showPromptModal(
         const copyImgBtn = document.createElement("button");
         copyImgBtn.innerText = "Copy Image";
         copyImgBtn.style.cssText =
-          "padding:4px 8px; border:1px solid #ccc; background:white; border-radius:4px; cursor:pointer; font-size:0.8em; white-space:nowrap;";
+          `padding:4px 8px; border:1px solid ${THEME.gray400}; background:${THEME.white}; border-radius:4px; cursor:pointer; font-size:0.8em; white-space:nowrap;`;
 
         copyImgBtn.onclick = async () => {
           if (copyImgBtn.innerText !== "Copy Image") return;
@@ -172,12 +172,12 @@ export function showPromptModal(
     if (emailBody) {
       const previewContainer = document.createElement("div");
       previewContainer.style.cssText =
-        "margin-bottom:10px; border:1px solid #ddd; padding:10px; background:#f8f9fa; max-height:300px; overflow-y:auto; font-family:sans-serif;";
+        `margin-bottom:10px; border:1px solid ${THEME.gray300}; padding:10px; background:${THEME.light}; max-height:300px; overflow-y:auto; font-family:sans-serif;`;
 
       const header = document.createElement("div");
       header.innerText = "📧 Email Preview (Test Mode):";
       header.style.cssText =
-        "font-weight:bold; margin-bottom:5px; color:#555; font-size:0.9em;";
+        `font-weight:bold; margin-bottom:5px; color:${THEME.gray700}; font-size:0.9em;`;
       previewContainer.appendChild(header);
 
       const content = document.createElement("div");
@@ -191,7 +191,7 @@ export function showPromptModal(
     input.type = "text";
     input.value = defaultValue;
     input.style.padding = "8px";
-    input.style.border = "1px solid #ccc";
+    input.style.border = `1px solid ${THEME.gray400}`;
     input.style.borderRadius = "4px";
     input.style.width = "100%";
     input.style.boxSizing = "border-box";
@@ -204,12 +204,12 @@ export function showPromptModal(
     const cancelBtn = document.createElement("button");
     cancelBtn.innerText = "Cancel";
     cancelBtn.style.cssText =
-      "padding:8px 12px;border:1px solid #ccc;background:white;border-radius:4px;cursor:pointer;";
+      `padding:8px 12px;border:1px solid ${THEME.gray400};background:${THEME.white};border-radius:4px;cursor:pointer;`;
 
     const okBtn = document.createElement("button");
     okBtn.innerText = "OK";
     okBtn.style.cssText =
-      "padding:8px 12px;border:none;background:#17a2b8;color:white;border-radius:4px;cursor:pointer;";
+      `padding:8px 12px;border:none;background:${THEME.primary};color:${THEME.white};border-radius:4px;cursor:pointer;`;
 
     const cleanup = () => {
       if (document.body.contains(overlay)) document.body.removeChild(overlay);

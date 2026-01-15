@@ -118,6 +118,11 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
      
      if (!(event.target as Node).isConnected) return;
  
+     const imageModal = document.getElementById('image-modal');
+     if (imageModal && (imageModal === event.target || imageModal.contains(event.target as Node))) {
+       return;
+     }
+
      if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(event.target as Node) && toggleBtn && !toggleBtn.contains(event.target as Node)) {
        toggleCart();
      }

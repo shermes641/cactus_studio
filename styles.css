@@ -1,10 +1,41 @@
 /* CSS Variables for consistent theming */
 :root {
-    --primary: #2d6a4f;
-    --secondary: #d8f3dc;
-    --accent: #d4a373;
-    --text: #333;
+    --primary: #5a9460;
+    --secondary: #F19C79;
+    --accent: #F19C79;
+    --text: #333333;
     --white: #ffffff;
+    --success: #D4E09B;
+    --success-dark: #8A9A5B;
+    --danger: #A44A3F;
+    --warning: #F19C79;
+    --info: #CBDFBD;
+    --light: #F6F4D2;
+    --dark: #343a40;
+    --black: #000000;
+    --gray-100: #F6F4D2;
+    --gray-200: #eeeeee;
+    --gray-300: #dddddd;
+    --gray-400: #cccccc;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #555555;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    --text-muted: #666666;
+    --border: #CBDFBD;
+    --overlay: rgba(0,0,0,0.5);
+    --search-bg: #F6F4D2;
+    --admin-bg: #CBDFBD;
+}
+option:checked {
+  background-color: var(--success-dark);
+  color: var(--white);
+}
+
+option:hover {
+  background-color: var(--success);
+  color: var(--white);
 }
 
 /* Base styles */
@@ -84,7 +115,8 @@ header {
 }
 
 #lang-btn {
-    background-color: #20c997;
+    background-color: var(--info);
+    color: var(--text);
     border: none;
     border-radius: 4px;
     padding: 5px 10px;
@@ -93,28 +125,31 @@ header {
 #help-btn, #profile-btn {
     border-radius: 20px;
     padding: 5px 10px;
-    background: green;
-    color: var(--white);
+    color: var(--text);
 }
 
 #help-btn {
-    background-color: #523ee8;
+    background-color: var(--secondary);
+    color: var(--white);
+}
+
+#profile-btn {
+    background-color: var(--success);
 }
 
 #cart-toggle-btn {
-    background-color: #fd7e14;
+    background-color: var(--primary);
     border-radius: 4px;
     padding: 5px 10px;
 }
 
 #cart-toggle-btn .cart-count {
-    background-color: var(--white);
-    color: var(--text);
+    background-color: var(--light);
+    color: var(--primary);
 }
 
 #lang-btn:hover, #help-btn:hover, #profile-btn:hover, #cart-toggle-btn:hover {
     filter: brightness(90%);
-    color: var(--white);
 }
 
 .cart-count {
@@ -306,7 +341,7 @@ header {
 }
 
 .add-btn:hover {
-    background-color: #1b4332;
+    filter: brightness(90%);
 }
 
 /* Modal Styles (Shared for Admin and Upload) */
@@ -408,7 +443,7 @@ header {
 }
 
 .remove-all-btn {
-    background-color: #dc3545;
+    background-color: var(--danger);
     color: var(--white);
     border: none;
     padding: 10px;
@@ -422,7 +457,7 @@ header {
 }
 
 .remove-all-btn:hover {
-    background-color: #c82333;
+    filter: brightness(85%);
 }
 
 .cart-items {
@@ -433,10 +468,40 @@ header {
 
 .cart-item {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
+    gap: 10px;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
+}
+
+.cart-item-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.cart-item-thumbnail:hover {
+    transform: scale(1.1);
+}
+
+.cart-item-info {
+    flex-grow: 1;
+}
+
+.cart-item-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
 }
 
 .checkout-btn {
@@ -498,7 +563,7 @@ header {
 
 #image-modal button:hover {
     transform: scale(1.1);
-    background-color: #1b4332;
+    filter: brightness(90%);
 }
 
 /* Login Modal */
@@ -565,16 +630,12 @@ header {
     border-radius: 50%;
     object-fit: cover;
 }
-.corner-logo.top-left { top: 0; left: 0; }
-.corner-logo.top-right { top: 0; right: 0; }
-.corner-logo.bottom-left { bottom: 0; left: 0; }
-.corner-logo.bottom-right { bottom: 0; right: 0; }
-
+.corner-logo.top-left { top: 10px; left: 10px; }
 
 #auth-container h1 {
     margin-bottom: 25px;
     font-size: 28px;
-    color: #28a745;
+    color: var(--primary);
 }
 
 #auth-container input {
@@ -589,14 +650,14 @@ header {
 
 #auth-container input:focus {
     outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+    border-color: var(--primary);
+    box-shadow: 0 0 5px rgba(164, 74, 63, 0.3);
 }
 
 #auth-container button {
     width: 100%;
     padding: 12px;
-    background: #28a745;
+    background: var(--primary);
     color: white;
     border: none;
     border-radius: 4px;
@@ -607,7 +668,7 @@ header {
 }
 
 #auth-container button:hover {
-    background: #218838;
+    filter: brightness(90%);
 }
 
 /* Center lang button and version tag on auth screen */
@@ -633,7 +694,7 @@ header {
 
 #login-btn {
     padding: 10px 20px;
-    background: #28a745;
+    background: var(--primary);
     color: white;
     border: none;
     border-radius: 4px;
@@ -643,7 +704,7 @@ header {
 /* Logout Button */
 #logout-btn {
     padding: 8px 15px;
-    background: #dc3545;
+    background: var(--danger);
     color: white;
     border: none;
     border-radius: 4px;
@@ -729,7 +790,7 @@ header {
     left: 50px;
     font-size: 1.2rem;
     color: #666;
-    background-color: rgba(28, 128, 3, 0.2);
+    background-color: var(--light);
     padding: 4px 8px;
     border-radius: 4px;
     z-index: 900;
@@ -810,7 +871,7 @@ header {
 }
 
 .page-btn:hover, .page-btn.active {
-    background-color: blue;
+    background-color: var(--accent);
     color: var(--white);
 }
 
@@ -970,35 +1031,35 @@ header {
 
 /* Colorful variants for admin buttons */
 .hamburger-dropdown .hamburger-menu-item.bg-green {
-    background-color: #28a745;
-    color: white;
+    background-color: var(--success);
+    color: var(--text);
 }
 .hamburger-dropdown .hamburger-menu-item.bg-green:hover {
-    background-color: #218838;
+    filter: brightness(90%);
 }
 
 .hamburger-dropdown .hamburger-menu-item.bg-blue {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--info);
+    color: var(--text);
 }
 .hamburger-dropdown .hamburger-menu-item.bg-blue:hover {
-    background-color: #0069d9;
+    filter: brightness(90%);
 }
 
 .hamburger-dropdown .hamburger-menu-item.bg-purple-dark {
-    background-color: #6f42c1;
-    color: white;
+    background-color: var(--primary);
+    color: var(--white);
 }
 .hamburger-dropdown .hamburger-menu-item.bg-purple-dark:hover {
-    background-color: #5a32a3;
+    filter: brightness(90%);
 }
 
 .hamburger-dropdown .hamburger-menu-item.bg-orange {
-    background-color: #fd7e14;
-    color: white;
+    background-color: var(--secondary);
+    color: var(--white);
 }
 .hamburger-dropdown .hamburger-menu-item.bg-orange:hover {
-    background-color: #e36d0e;
+    filter: brightness(90%);
 }
 
 /* Initial Loader */

@@ -166,3 +166,9 @@
 .help-close-btn { position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; font-size: 2rem; }
 .help-header { margin-top: 0; position: static; width: 25%; }
 .help-body { white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+
+.no-results {
+    font-size: 1.5rem;
+    color: black;
+    font-weight: bolder;
+}
