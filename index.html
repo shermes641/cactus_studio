@@ -34,10 +34,8 @@
           </select>
       </div>
       <div class="nav-links">
-        <button id="lang-btn" onclick="toggleLanguage()">ES</button>
-        <button id="logout-btn" onclick="logoutUser()" data-i18n="logout">Logout</button>
         <button id="cart-toggle-btn" onclick="toggleCart()">
-          <span data-i18n="cart" style="background: var(--accent); border-radius: 10%; padding: 6px;">Cart</span>
+          <span data-i18n="cart" class="cart-label">Cart</span>
           <span id="cart-count" class="cart-count">0</span>
         </button>
         
@@ -49,6 +47,8 @@
                     <div id="hamburger-user-email" class="hamburger-email"></div>
                     <div id="hamburger-admin-badge" class="hamburger-badge" style="display: none;">ADMIN</div>
                 </div>
+                <button id="lang-btn" onclick="toggleLanguage()">ES</button>
+                <button id="logout-btn" onclick="logoutUser()" data-i18n="logout">Logout</button>
                 <button id="profile-btn" onclick="openProfileModal()" class="hamburger-menu-item bg-green hidden" data-i18n="btnProfile">Profile</button>
                 <button id="help-btn" onclick="toggleHelp(); document.getElementById('help-content').scrollTop = 0;" class="hamburger-menu-item" data-i18n="help">Help</button>
                 
@@ -190,7 +190,7 @@
         <input type="email" id="login-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required autocomplete="username">
         <div style="position: relative;">
           <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="placeholderPassword" required autocomplete="current-password" style="padding-right: 40px; width: 100%;">
-          <span id="login-pass-toggle" onclick="togglePasswordVisibility('login-password', 'login-pass-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 1.2em;">👁️</span>
+          <span id="login-pass-toggle" onclick="togglePasswordVisibility('login-password', 'login-pass-toggle')" style="position: absolute;right: 10px;top: 20px;transform: translateY(-50%);cursor: pointer;user-select: none;font-size: 25px;">👁️</span>
         </div>
         <button type="submit" id="login-btn" data-i18n="btnLogin">Login</button>
         <p style="text-align: right; margin-top: 5px;">
@@ -273,8 +273,6 @@
       <!-- stops propagation only to allow the specific add function to run first, then bubble to close -->
       <button id="modal-add-btn" data-i18n="modalAddCart">Add to Cart +</button>
     </div>
-    <footer style="/* text-align: center; */padding: 20px;margin-top: 40px;color: var(--black);font-size: 1.5rem;bottom: 0px;position: fixed;/* width: 100%; */z-index: 99999;">© 2026 Cactus Studio. All rights reserved.</footer>
-
     <script>
       function toggleHamburgerMenu() {
         const dropdown = document.getElementById('hamburger-dropdown');

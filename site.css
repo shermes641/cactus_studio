@@ -172,3 +172,14 @@
     color: black;
     font-weight: bolder;
 }
+
+.cart-label {
+    background: var(--accent);
+    border-radius: 10%;
+    padding: 6px;
+}
+
+.cart-label:hover {
+    filter: brightness(1.1);
+    color: var(--black);
+}

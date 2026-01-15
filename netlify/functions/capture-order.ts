@@ -5,7 +5,7 @@ export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
-    const { orderId, details, cart, discountCode } = JSON.parse(event.body || '{}');
+    const { orderId, details, cart, discountCode, shippingAddress } = JSON.parse(event.body || '{}');
     const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
     // 1. Ensure Tables Exist (Idempotent check)
@@ -20,6 +20,7 @@ export const handler: Handler = async (event: any) => {
         total_amount_cents INTEGER,
         currency TEXT,
         status TEXT,
+        shipping_addr TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
@@ -60,9 +61,9 @@ export const handler: Handler = async (event: any) => {
     // 3. Insert Order
     const orderResult = await sql`
       INSERT INTO orders 
-        (paypal_order_id, customer_email, customer_name, total_amount_cents, currency, status, discount_code)
+        (paypal_order_id, customer_email, customer_name, total_amount_cents, currency, status, discount_code, shipping_addr)
       VALUES 
-        (${orderId}, ${payer.email_address}, ${payer.name.given_name} || ' ' || ${payer.name.surname}, ${totalCents}, ${purchaseUnit.amount.currency_code}, 'COMPLETED', ${discountCode || null})
+        (${orderId}, ${payer.email_address}, ${payer.name.given_name} || ' ' || ${payer.name.surname}, ${totalCents}, ${purchaseUnit.amount.currency_code}, 'COMPLETED', ${discountCode || null}, ${shippingAddress || null})
       RETURNING id
     `;
     const internalOrderId = orderResult[0].id;

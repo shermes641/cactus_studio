@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { translations, THEME } from "./constants.js";
+import { translations } from "./constants.js";
 import { setVersionDisplay } from "./utils.js";
 import {
   renderPage,
@@ -38,9 +38,9 @@ export function renderFilterControls() {
   const label = translations[state.currentLang].filterLabel;
   const allLabel = translations[state.currentLang].allOption;
 
-  let html = `<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">`;
+  let html = `<div class="filter-controls">`;
 
-  html += `<div><label style="margin-right:5px;">${label}</label>`;
+  html += `<div><label class="filter-label">${label}</label>`;
   html += `<select onchange="applyFilter(this.value)">`;
 
   state.plantClasses.forEach((type) => {
@@ -51,7 +51,7 @@ export function renderFilterControls() {
   });
   html += `</select></div>`;
 
-  html += `<div><input type="text" id="product-search" placeholder="${translations[state.currentLang].searchPlaceholder}" value="${state.searchQuery}" oninput="handleSearch(this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid ${THEME.primary}; background: ${THEME.searchBg}; font-size: 1.5rem; font-weight: bolder; width: 115px; height: 23px;"></div>`;
+  html += `<div><input type="text" id="product-search" class="search-input" placeholder="${translations[state.currentLang].searchPlaceholder}" value="${state.searchQuery}" oninput="handleSearch(this.value)"></div>`;
 
   html += `</div>`;
   container.innerHTML = html;
@@ -106,7 +106,7 @@ export function updatePaginationControls(totalCount: number) {
       translations[state.currentLang].prev
     }</button>`;
 
-    html += `<select onchange="renderPage(parseInt(this.value))" style="margin: 0 10px; padding: 8px; border-radius: 4px; border: 1px solid ${THEME.primary};">`;
+    html += `<select onchange="renderPage(parseInt(this.value))" class="page-select">`;
     for (let i = 1; i <= totalPages; i++) {
       html += `<option value="${i}" ${
         i === state.currentPage ? "selected" : ""
@@ -121,7 +121,7 @@ export function updatePaginationControls(totalCount: number) {
     }</button>`;
 
     html += `
-        <select onchange="changeItemsPerPage(this.value)" style="margin-left: 15px; padding: 8px; border-radius: 4px; border: 1px solid ${THEME.primary};">
+        <select onchange="changeItemsPerPage(this.value)" class="items-per-page-select">
           <option value="5" ${state.itemsPerPage === 5 ? "selected" : ""}>${
       translations[state.currentLang].opt5Page
     }</option>
@@ -192,9 +192,7 @@ export function updateCartUI() {
       if (!shippingSection) {
         shippingSection = document.createElement("div");
         shippingSection.id = "shipping-section";
-        shippingSection.style.padding = "10px 0";
-        shippingSection.style.borderBottom = `1px solid ${THEME.gray200}`;
-        shippingSection.style.marginBottom = "10px";
+        shippingSection.className = "shipping-section";
         
         const totalHeader = cartFooter.querySelector(".cart-total-header");
         if (totalHeader) {
@@ -211,8 +209,8 @@ export function updateCartUI() {
         const placeholderText = translations[state.currentLang].placeholderAddress;
         shippingSection.innerHTML = `
             <div class="form-group" style="margin-bottom: 0;">
-                <label style="font-weight: bold; font-size: 0.9em; margin-bottom: 5px; display: block;">${labelText}</label>
-                <textarea id="cart-shipping-address" onblur="updateShippingAddress(this.value)" style="width: 100%; box-sizing: border-box; min-height: 60px; padding: 8px; border: 1px solid ${THEME.gray400}; border-radius: 4px;" placeholder="${placeholderText}">${currentAddress}</textarea>
+                <label class="shipping-label">${labelText}</label>
+                <textarea id="cart-shipping-address" onblur="updateShippingAddress(this.value)" class="shipping-address-input" placeholder="${placeholderText}">${currentAddress}</textarea>
             </div>
         `;
       } else {
@@ -225,7 +223,7 @@ export function updateCartUI() {
       if (!discountSection) {
         discountSection = document.createElement("div");
         discountSection.id = "discount-section";
-        discountSection.style.padding = "10px 0";
+        discountSection.className = "discount-section";
         shippingSection.insertAdjacentElement('afterend', discountSection);
       }
 
@@ -235,15 +233,15 @@ export function updateCartUI() {
         finalTotal = total - discountAmount;
 
         discountSection.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <span style="color: ${THEME.success};">Code: <strong>${state.activeDiscount.code}</strong></span>
-                    <button onclick="removeDiscount(event)" title="Remove discount" style="background: none; border: none; color: ${THEME.danger}; cursor: pointer; font-weight: bold; font-size: 1.2em;">&times;</button>
+                <div class="discount-row">
+                    <span class="discount-code">Code: <strong>${state.activeDiscount.code}</strong></span>
+                    <button onclick="removeDiscount(event)" class="remove-discount-btn" title="Remove discount">&times;</button>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: ${THEME.textMuted};">
+                <div class="subtotal-row">
                     <span>${translations[state.currentLang].subtotal}:</span>
                     <span>$${total.toFixed(2)}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: ${THEME.success}; margin-bottom: 5px; border-bottom: 1px solid ${THEME.gray200}; padding-bottom: 5px;">
+                <div class="discount-value-row">
                     <span>${translations[state.currentLang].discount} (${state.activeDiscount.value}%):</span>
                     <span>-$${discountAmount.toFixed(2)}</span>
                 </div>
@@ -253,16 +251,16 @@ export function updateCartUI() {
         if (state.activeDiscount) {
           // Handle other types like 'shipping'
           discountSection.innerHTML = `
-                    <div style="color: ${THEME.success}; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="discount-alert">
                         <span>${translations[state.currentLang].alertDiscountApplied} <strong>${state.activeDiscount.code}</strong></span>
-                        <button onclick="removeDiscount(event)" title="${translations[state.currentLang].removeDiscount}" style="background: none; border: none; color: ${THEME.danger}; cursor: pointer; font-weight: bold; font-size: 1.2em;">&times;</button>
+                        <button onclick="removeDiscount(event)" class="remove-discount-btn" title="${translations[state.currentLang].removeDiscount}">&times;</button>
                     </div>
                 `;
         } else {
           discountSection.innerHTML = `
-                    <div style="display: flex; gap: 5px; align-items: center;">
-                        <input type="text" id="discount-code-input" placeholder="${translations[state.currentLang].discountCode}" oninput="this.value = this.value.toUpperCase()" onkeydown="if(event.key==='Enter') applyDiscountCode()" style="flex-grow: 1; padding: 8px; border: 1px solid ${THEME.gray400}; border-radius: 4px;">
-                        <button onclick="applyDiscountCode()" style="padding: 8px 12px; border: none; background-color: ${THEME.gray700}; color: ${THEME.white}; border-radius: 4px; cursor: pointer;">${translations[state.currentLang].apply}</button>
+                    <div class="discount-input-container">
+                        <input type="text" id="discount-code-input" class="discount-input" placeholder="${translations[state.currentLang].discountCode}" oninput="this.value = this.value.toUpperCase()" onkeydown="if(event.key==='Enter') applyDiscountCode()">
+                        <button onclick="applyDiscountCode()" class="apply-discount-btn">${translations[state.currentLang].apply}</button>
                     </div>
                 `;
         }
@@ -425,19 +423,12 @@ export function ensureAdminFieldsExist() {
   sciInput.type = "text";
   sciInput.id = "new-scientific";
   sciInput.placeholder = "Scientific Name";
-  sciInput.style.marginBottom = "10px";
-  sciInput.style.padding = "8px";
-  sciInput.style.border = `1px solid ${THEME.gray300}`;
-  sciInput.style.borderRadius = "4px";
-  sciInput.style.flex = "1";
+  sciInput.className = "admin-input";
 
   // Class Select
   const classSelect = document.createElement("select");
   classSelect.id = "new-class";
-  classSelect.style.padding = "8px";
-  classSelect.style.border = `1px solid ${THEME.gray300}`;
-  classSelect.style.borderRadius = "4px";
-  classSelect.style.flex = "1";
+  classSelect.className = "admin-input";
 
   // Add None option
   const noneOpt = document.createElement("option");
@@ -457,13 +448,7 @@ export function ensureAdminFieldsExist() {
   // Find Class Button
   const findBtn = document.createElement("button");
   findBtn.innerText = "Find Class";
-  findBtn.style.marginLeft = "10px";
-  findBtn.style.padding = "8px 12px";
-  findBtn.style.backgroundColor = THEME.primary;
-  findBtn.style.color = THEME.white;
-  findBtn.style.border = "none";
-  findBtn.style.borderRadius = "4px";
-  findBtn.style.cursor = "pointer";
+  findBtn.className = "find-class-btn";
   findBtn.onclick = (e) => {
     e.preventDefault();
     if (state.pendingUploadFile) {
@@ -482,8 +467,7 @@ export function ensureAdminFieldsExist() {
   };
 
   const classContainer = document.createElement("div");
-  classContainer.style.display = "flex";
-  classContainer.style.marginBottom = "10px";
+  classContainer.className = "admin-class-container";
   classContainer.appendChild(classSelect);
   classContainer.appendChild(findBtn);
 
@@ -498,11 +482,7 @@ export function ensureAdminFieldsExist() {
   const notesInput = document.createElement("textarea");
   notesInput.id = "new-notes";
   notesInput.placeholder = "Notes / Description";
-  notesInput.style.marginBottom = "10px";
-  notesInput.style.padding = "8px";
-  notesInput.style.border = `1px solid ${THEME.gray300}`;
-  notesInput.style.borderRadius = "4px";
-  notesInput.style.width = "100%";
+  notesInput.className = "admin-notes";
   notesInput.rows = 3;
 
   // Insert after price
@@ -589,19 +569,7 @@ export function groupSidebarElements() {
   const wrapper = document.createElement("div");
   wrapper.id = containerId;
 
-  wrapper.style.position = "fixed";
-  wrapper.style.bottom = "0";
-  wrapper.style.left = "0";
-  wrapper.style.width = "100%";
-  wrapper.style.display = "flex";
-  wrapper.style.alignItems = "center";
-  wrapper.style.justifyContent = "flex-end";
-  wrapper.style.gap = "15px";
-  wrapper.style.zIndex = "1000";
-  wrapper.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
-  wrapper.style.padding = "10px 20px";
-  wrapper.style.boxShadow = "0 -2px 10px rgba(0,0,0,0.1)";
-  wrapper.style.boxSizing = "border-box";
+  wrapper.className = "sidebar-group-container";
 
   document.body.appendChild(wrapper);
 
@@ -713,24 +681,12 @@ export async function injectAdminButtons() {
 
   // Admin User Select
   const userSelectContainer = document.createElement("div");
-  userSelectContainer.className = "hamburger-menu-item bg-purple";
-  userSelectContainer.style.display = "flex";
-  userSelectContainer.style.flexDirection = "column";
-  userSelectContainer.style.gap = "5px";
-  userSelectContainer.style.cursor = "default";
-  userSelectContainer.style.background = THEME.adminBg;
+  userSelectContainer.className = "hamburger-menu-item bg-purple admin-user-select-container";
   userSelectContainer.id = "admin-user-select-container";
-  userSelectContainer.style.borderRadius = "50px";
-  userSelectContainer.style.width = "85%";
 
   const select = document.createElement("select");
   select.id = "admin-user-select";
-  select.style.width = "100%";
-  select.style.padding = "5px";
-  select.style.borderRadius = "4px";
-  select.style.border = `1px solid ${THEME.primary}`;
-  select.style.fontWeight = "bold";
-  select.style.fontSize = "1rem";
+  select.className = "admin-user-select";
   
   const defaultOpt = document.createElement("option");
   defaultOpt.value = "";
@@ -779,32 +735,20 @@ export function setupPasswordStrengthMeter(inputId: string = "register-password"
 
   const meterContainer = document.createElement("div");
   meterContainer.id = meterId;
-  meterContainer.style.marginTop = "0px";
-  meterContainer.style.marginBottom = "5px";
-  meterContainer.style.fontSize = "0.8em";
+  meterContainer.className = "password-strength-container";
 
   // Track (background)
   const meterTrack = document.createElement("div");
-  meterTrack.style.height = "4px";
-  meterTrack.style.width = "100%";
-  meterTrack.style.backgroundColor = THEME.gray200;
-  meterTrack.style.borderRadius = "2px";
-  meterTrack.style.marginBottom = "3px";
-  meterTrack.style.overflow = "hidden";
+  meterTrack.className = "password-strength-track";
 
   // Bar (foreground)
   const meterBar = document.createElement("div");
-  meterBar.style.height = "100%";
-  meterBar.style.width = "0%";
-  meterBar.style.backgroundColor = THEME.danger;
-  meterBar.style.transition = "width 0.3s, background-color 0.3s";
+  meterBar.className = "password-strength-bar";
   
   meterTrack.appendChild(meterBar);
 
   const meterText = document.createElement("div");
-  meterText.style.textAlign = "right";
-  meterText.style.fontWeight = "bold";
-  meterText.style.minHeight = "1.2em";
+  meterText.className = "password-strength-text";
   meterText.innerText = "";
 
   meterContainer.appendChild(meterTrack);
@@ -836,10 +780,10 @@ export function setupPasswordStrengthMeter(inputId: string = "register-password"
 
     const strength = val.length < 8 ? 0 : score;
     const configs = [
-      { width: "25%", color: THEME.danger, label: t.strengthWeak },       // 0-1 (Weak)
-      { width: "50%", color: THEME.warning, label: t.strengthMedium },     // 2 (Medium)
-      { width: "75%", color: THEME.success, label: t.strengthStrong },     // 3 (Strong)
-      { width: "100%", color: THEME.successDark, label: t.strengthVeryStrong } // 4 (Very Strong)
+      { width: "25%", className: "strength-weak", label: t.strengthWeak },       // 0-1 (Weak)
+      { width: "50%", className: "strength-medium", label: t.strengthMedium },     // 2 (Medium)
+      { width: "75%", className: "strength-strong", label: t.strengthStrong },     // 3 (Strong)
+      { width: "100%", className: "strength-very-strong", label: t.strengthVeryStrong } // 4 (Very Strong)
     ];
 
     // Map score to config: 0-1 -> index 0, 2 -> index 1, 3 -> index 2, 4 -> index 3
@@ -850,12 +794,39 @@ export function setupPasswordStrengthMeter(inputId: string = "register-password"
 
     const config = configs[idx];
     
+    meterBar.className = "password-strength-bar"; // reset
+    meterText.className = "password-strength-text"; // reset
+    meterBar.classList.add(config.className);
+    meterText.classList.add(`${config.className}-text`);
     meterBar.style.width = config.width;
-    meterBar.style.backgroundColor = config.color;
     meterText.innerText = `${t.strengthLabel}: ${config.label}`;
-    meterText.style.color = config.color;
   };
 
   passwordInput.addEventListener("input", updateMeter);
   passwordInput.addEventListener("keyup", updateMeter);
+}
+
+export function setupHamburgerMenu() {
+  const dropdown = document.getElementById("hamburger-dropdown");
+  if (!dropdown) return;
+
+  const langBtn = document.getElementById("lang-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+
+  const row = document.createElement("div");
+  row.className = "hamburger-row";
+
+  if (langBtn) {
+    row.appendChild(langBtn);
+    langBtn.classList.add("hamburger-menu-item", "hamburger-custom-btn", "btn-lang");
+  }
+
+  if (logoutBtn) {
+    row.appendChild(logoutBtn);
+    logoutBtn.classList.add("hamburger-menu-item", "hamburger-custom-btn", "btn-logout");
+  }
+
+  if (row.children.length > 0) {
+    dropdown.prepend(row);
+  }
 }

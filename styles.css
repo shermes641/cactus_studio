@@ -2,7 +2,7 @@
 :root {
     --primary: #5a9460;
     --secondary: #F19C79;
-    --accent: #F19C79;
+    --accent: #a45d3f;
     --text: #333333;
     --white: #ffffff;
     --success: #D4E09B;
@@ -35,7 +35,7 @@ option:checked {
 
 option:hover {
   background-color: var(--success);
-  color: var(--white);
+  color: var(--black);
 }
 
 /* Base styles */
@@ -120,6 +120,7 @@ header {
     border: none;
     border-radius: 4px;
     padding: 5px 10px;
+    width: 33px;    
 }
 
 #help-btn, #profile-btn {
@@ -148,7 +149,7 @@ header {
     color: var(--primary);
 }
 
-#lang-btn:hover, #help-btn:hover, #profile-btn:hover, #cart-toggle-btn:hover {
+#help-btn:hover, #profile-btn:hover, #cart-toggle-btn:hover {
     filter: brightness(90%);
 }
 
@@ -160,6 +161,12 @@ header {
     font-size: 0.8rem;
     right: -2px;
     position: relative
+}
+
+#lang-btn:hover,
+#logout-btn:hover {
+    filter: brightness(90%);
+    color: var(--black) !important;
 }
 
 /* Sidebar Logo Container */
@@ -710,6 +717,7 @@ header {
     border-radius: 4px;
     cursor: pointer;
     display: none;
+    width: 65px;
 }
 
 /* Admin Modal Extras */
@@ -872,7 +880,7 @@ header {
 
 .page-btn:hover, .page-btn.active {
     background-color: var(--accent);
-    color: var(--white);
+    color: var(--black);
 }
 
 .page-btn:disabled {
@@ -1015,8 +1023,8 @@ header {
 }
 
 .hamburger-dropdown .hamburger-menu-item:hover {
-    background-color: #f1f1f1;
-    color: #333;
+    background-color: var(--gray-200);
+    color: var(--black) !important;
 }
 
 .items-per-page-wrapper {
@@ -1122,4 +1130,394 @@ header {
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     z-index: 10;
+}
+
+/* Merged from style.css */
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    margin-right: 5px;
+}
+
+.search-input {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid var(--primary);
+    background: var(--search-bg);
+    font-size: 1.5rem;
+    font-weight: bolder;
+    width: 115px;
+    height: 23px;
+}
+
+.page-select {
+    margin: 0 10px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--primary);
+}
+
+.items-per-page-select {
+    margin-left: 15px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--primary);
+}
+
+.shipping-section {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 10px;
+}
+
+.shipping-label {
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.shipping-address-input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid var(--gray-400);
+    border-radius: 4px;
+}
+
+.discount-section {
+    padding: 10px 0;
+}
+
+.discount-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.discount-code {
+    color: var(--success);
+}
+
+.remove-discount-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.discount-value-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: var(--success);
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 5px;
+}
+
+.discount-alert {
+    color: var(--success);
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.discount-input-container {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.discount-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid var(--gray-400);
+    border-radius: 4px;
+}
+
+.apply-discount-btn {
+    padding: 8px 12px;
+    border: none;
+    background-color: var(--gray-700);
+    color: var(--white);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.sidebar-group-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+.admin-user-select-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: default;
+    background: var(--admin-bg);
+    border-radius: 50px;
+    width: 85%;
+}
+
+.admin-user-select {
+    width: 100%;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid var(--primary);
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.password-strength-container {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    font-size: 0.8em;
+}
+
+.password-strength-track {
+    height: 4px;
+    width: 100%;
+    background-color: var(--gray-200);
+    border-radius: 2px;
+    margin-bottom: 3px;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--danger);
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.password-strength-text {
+    text-align: right;
+    font-weight: bold;
+    min-height: 1.2em;
+}
+
+.strength-weak { background-color: var(--danger); }
+.strength-weak-text { color: var(--danger); }
+.strength-medium { background-color: var(--warning); }
+.strength-medium-text { color: var(--warning); }
+.strength-strong { background-color: var(--success); }
+.strength-strong-text { color: var(--success); }
+.strength-very-strong { background-color: var(--success-dark); }
+.strength-very-strong-text { color: var(--success-dark); }
+
+.admin-input {
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+    flex: 1;
+}
+
+.find-class-btn {
+    margin-left: 10px;
+    padding: 8px 12px;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-class-container {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.admin-notes {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+}
+
+.hamburger-custom-btn {
+    width: 100%;
+    border-radius: 0;
+    margin: 0;
+    text-align: left;
+    padding: 12px 15px;
+    border: none;
+    border-bottom: 1px solid #eee;
+}
+
+.btn-logout {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.btn-lang {
+    background-color: var(--info);
+    color: var(--text);
+}
+
+#no-results-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-width: 300px;
+    text-align: center;
+}
+
+.no-results-title {
+    margin: 0 0 10px 0;
+}
+
+.no-results-text {
+    margin: 0;
+}
+
+.product-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.product-details-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75em;
+    color: #888;
+    margin-bottom: 2px;
+}
+
+.match-info {
+    color: #d35400;
+}
+
+.out-of-stock-label {
+    color: red;
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.btn-disabled-custom {
+    background-color: #e0e0e0 !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+    border-color: #ccc !important;
+}
+
+.product-image-zoom {
+    cursor: zoom-in;
+}
+
+.admin-discount-wrapper {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.profile-discount-select {
+    width: 100%;
+    padding: 8px;
+}
+
+.btn-disabled-opacity {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Hover Effects */
+.hamburger-menu-item:hover {
+    color: var(--black) !important;
+    cursor: pointer;
+    filter: brightness(0.95);
+}
+
+.add-btn:hover,
+.find-class-btn:hover,
+.apply-discount-btn:hover,
+.checkout-btn:hover {
+    filter: brightness(1.1);
+    cursor: pointer;
+    transform: translateY(-1px);
+}
+
+.cart-item-remove:hover {
+    text-decoration: underline;
+    color: var(--danger);
+}
+
+.remove-discount-btn:hover {
+    opacity: 0.7;
+}
+
+.page-btn:hover:not(:disabled) {
+    background-color: var(--gray-200);
+    cursor: pointer;
+}
+
+.product-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+/* Hamburger Row for Lang and Logout */
+.hamburger-row {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid #eee;
+}
+
+.hamburger-row .hamburger-custom-btn {
+    border-bottom: none;
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+}
+
+.hamburger-row .hamburger-custom-btn:last-child {
+    border-left: 1px solid #eee;
+}
+
+.hamburger-row #lang-btn,
+.hamburger-row #logout-btn {
+    width: auto;
 }

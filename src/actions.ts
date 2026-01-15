@@ -665,16 +665,16 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
     if (state.products.length === 0) {
       const msgDiv = document.createElement('div');
       msgDiv.id = 'no-results-message';
-      msgDiv.style.cssText = "position: fixed; bottom: 20px; left: 20px; background: white; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; max-width: 300px;";
+      // msgDiv.style.cssText = "position: fixed; bottom: 20px; left: 20px; background: white; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; max-width: 300px;";
       msgDiv.innerHTML = `
-          <h3 class="no-results" style="margin: 0 0 10px 0;">Sorry! We couldn't find what you are searching for.</h3>
-          <p class="no-results" style="margin: 0;">Try adjusting your search terms.</p>
+          <h3 class="no-results-title">${translations[state.currentLang].noResultsTitle}</h3>
+          <p class="no-results-text">${translations[state.currentLang].noResultsText}</p>
       `;
       document.body.appendChild(msgDiv);
     }
 
     state.products.forEach((product) => {
-      if (state.hiddenProductIds.has(product.id)) return;
+      // if (state.hiddenProductIds.has(product.id)) return;
 
       const sciName = product.scientific
         ? `<span class="scientific-name">${product.scientific}</span>`
@@ -685,7 +685,7 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         : "";
 
       const metaRow = (sciName || classDisplay)
-        ? `<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.8em; color: #666; margin-bottom: 4px;">
+        ? `<div class="product-meta-row">
              ${sciName}
              ${classDisplay}
            </div>`
@@ -699,28 +699,24 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
       if (state.searchQuery && state.searchQuery.length >= 2) {
         const q = state.searchQuery.toLowerCase();
         const matches: string[] = [];
-        const lang = state.currentLang === 'es' ? 'es' : 'en';
-        const labels = {
-            en: { name: "Name", sci: "Scientific", price: "Price", sku: "SKU", matched: "Matched" },
-            es: { name: "Nombre", sci: "Científico", price: "Precio", sku: "SKU", matched: "Coincidencia" }
-        }[lang];
+        const t = translations[state.currentLang];
 
-        if (product.name.toLowerCase().includes(q)) matches.push(labels.name);
-        if (product.scientific && product.scientific.toLowerCase().includes(q)) matches.push(labels.sci);
+        if (product.name.toLowerCase().includes(q)) matches.push(t.labelMatchName);
+        if (product.scientific && product.scientific.toLowerCase().includes(q)) matches.push(t.labelMatchSci);
         
         const price = (Number(product.price_cents) / 100).toFixed(2);
-        if (price.includes(q)) matches.push(labels.price);
+        if (price.includes(q)) matches.push(t.labelMatchPrice);
         
         const genSku = `BOT-${product.id}-STD`.toLowerCase();
-        if ((product.sku && product.sku.toLowerCase().includes(q)) || genSku.includes(q)) matches.push(labels.sku);
+        if ((product.sku && product.sku.toLowerCase().includes(q)) || genSku.includes(q)) matches.push(t.labelMatchSku);
 
         if (matches.length > 0) {
-            matchInfo = `<span class="match-info" style="color: #d35400;">${labels.matched}: ${matches.join(", ")}</span>`;
+            matchInfo = `<span class="match-info">${t.labelMatchMatched}: ${matches.join(", ")}</span>`;
         }
       }
 
       const detailsRow = (skuDisplay || matchInfo)
-        ? `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: #888; margin-bottom: 2px;">
+        ? `<div class="product-details-row">
              ${skuDisplay}
              ${matchInfo}
            </div>`
@@ -731,13 +727,18 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
       let stockDisplay = "";
       let btnAttrs = `onclick="addToCart(${product.id})"`;
       let btnText = translations[state.currentLang].btnAddCart;
-      let btnStyle = "";
+      let btnClass = "";
 
       if (state.useDB && product.quantity !== undefined && product.quantity !== null && Number(product.quantity) <= 0) {
-        stockDisplay = `<div style="color: red; font-weight: bold; font-size: 0.9em; margin-bottom: 5px;">OUT OF STOCK</div>`;
+        stockDisplay = `<div class="out-of-stock-label">${translations[state.currentLang].outOfStock.toUpperCase()}</div>`;
         btnAttrs = "disabled";
         btnText = translations[state.currentLang].outOfStock;
-        btnStyle = "background-color: #e0e0e0; color: #888; cursor: not-allowed; border-color: #ccc;";
+        btnClass = "btn-disabled-custom";
+      } else if (state.hiddenProductIds.has(product.id)) {
+        stockDisplay = `<div class="out-of-stock-label">${(translations[state.currentLang].itemInCart || "Item in Cart").toUpperCase()}</div>`;
+        btnAttrs = "disabled";
+        btnText = translations[state.currentLang].itemInCart || "Item in Cart";
+        btnClass = "btn-disabled-custom";
       }
 
       grid.innerHTML += `
@@ -748,11 +749,10 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
                 <img src="${displayImage}?w=500,q_auto" 
                      srcset="${displayImage}?w=300,q_auto 300w, ${displayImage}?w=400,q_auto 400w, ${displayImage}?w=500,q_auto 500w"
                      sizes="(max-width: 600px) 300px, (max-width: 900px) 400px, 500px"
-                     class="product-image" 
+                     class="product-image product-image-zoom" 
                      alt="${product.name}" 
                      loading="lazy"
-                     onclick="openImageModal(${product.id})" 
-                     style="cursor:zoom-in;">
+                     onclick="openImageModal(${product.id})">
               </picture>
               <div class="product-info">
                   <div class="product-name">${product.name}</div>
@@ -760,7 +760,7 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
                   ${detailsRow}
                   ${stockDisplay}
                   <div class="product-price">$${(Number(product.price_cents) / 100).toFixed(2)}</div>
-                  <button class="add-btn" ${btnAttrs} style="${btnStyle}">${btnText}</button>
+                  <button class="add-btn ${btnClass}" ${btnAttrs}>${btnText}</button>
               </div>
           </div>
       `;
@@ -892,6 +892,7 @@ export async function addProduct() {
 }
 
 export async function addToCart(id: number) {
+  if (state.hiddenProductIds.has(id)) return;
   let product = state.products.find((p) => p.id == id);
   if (!product) return;
 
@@ -959,8 +960,22 @@ export async function handlePaymentReset() {
 export async function checkout() {
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
 
-  // Ensure logged-in user has a shipping address
-  if (state.currentUser && !state.currentUserData?.shipping_addr) {
+  const shippingInput = document.getElementById("cart-shipping-address") as HTMLTextAreaElement;
+  const inputAddr = shippingInput ? shippingInput.value.trim() : "";
+  const storedAddr = state.currentUserData?.shipping_addr || "";
+  
+  let finalShippingAddr = "";
+
+  if (inputAddr) {
+      finalShippingAddr = inputAddr;
+      if (!storedAddr && state.currentUser) {
+          updateShippingAddress(inputAddr);
+      }
+  } else {
+      finalShippingAddr = storedAddr;
+  }
+
+  if (state.currentUser && !finalShippingAddr) {
     alert(translations[state.currentLang].alertShippingAddressRequired);
     return;
   }
@@ -1087,7 +1102,8 @@ export async function checkout() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             cart: state.cart,
-            discountCode: state.activeDiscount ? state.activeDiscount.code : null
+            discountCode: state.activeDiscount ? state.activeDiscount.code : null,
+            shippingAddress: finalShippingAddr
           })
         })
         .then(async res => {
@@ -1116,7 +1132,8 @@ export async function checkout() {
               orderId: data.orderID,
               details: details,
               cart: state.cart,
-              discountCode: state.activeDiscount ? state.activeDiscount.code : null
+              discountCode: state.activeDiscount ? state.activeDiscount.code : null,
+              shippingAddress: finalShippingAddr
             })
           }).then(() => {
             state.cart = [];
@@ -1126,6 +1143,7 @@ export async function checkout() {
             toggleCart();
             setTimeout(function() {
               alert(translations[state.currentLang].alertTransactionSuccess.replace('{name}', details.payer.name.given_name));
+              window.location.reload();
             }, 500);
           }).catch(err => {
             console.error("Error recording order:", err);
@@ -1360,19 +1378,18 @@ export async function openImageModal(id: number, fromCart: boolean = false) {
 
   // Reset styles
   btn.disabled = false;
-  btn.style.backgroundColor = "";
-  btn.style.color = "";
-  btn.style.cursor = "";
-  btn.style.borderColor = "";
+  btn.classList.remove("btn-disabled-custom");
   btn.style.display = fromCart ? "none" : "";
 
   if (state.useDB && product.quantity !== undefined && product.quantity !== null && Number(product.quantity) <= 0) {
     btn.innerText = translations[state.currentLang].outOfStock;
     btn.disabled = true;
-    btn.style.backgroundColor = "#e0e0e0";
-    btn.style.color = "#888";
-    btn.style.cursor = "not-allowed";
-    btn.style.borderColor = "#ccc";
+    btn.classList.add("btn-disabled-custom");
+    btn.onclick = null;
+  } else if (state.hiddenProductIds.has(product.id) && !fromCart) {
+    btn.innerText = translations[state.currentLang].itemInCart || "Item in Cart";
+    btn.disabled = true;
+    btn.classList.add("btn-disabled-custom");
     btn.onclick = null;
   }
 
@@ -1690,9 +1707,7 @@ export async function openProfileModal(userData?: any) {
       const discountDiv = document.createElement("div");
       discountDiv.id = "admin-discount-wrapper";
       discountDiv.className = "form-group";
-      discountDiv.style.marginTop = "15px";
-      discountDiv.style.borderTop = "1px solid #eee";
-      discountDiv.style.paddingTop = "15px";
+      discountDiv.classList.add("admin-discount-wrapper");
 
       const label = document.createElement("label");
       label.innerText = "Discount Code (Admin Only)";
@@ -1700,8 +1715,7 @@ export async function openProfileModal(userData?: any) {
 
       const select = document.createElement("select");
       select.id = "profile-discount-select";
-      select.style.width = "100%";
-      select.style.padding = "8px";
+      select.className = "profile-discount-select";
       
       const noneOpt = document.createElement("option");
       noneOpt.value = "";
@@ -1870,8 +1884,7 @@ export async function changePassword() {
     const btn = document.getElementById("btn-change-password");
     if (btn) {
         (btn as HTMLButtonElement).disabled = true;
-        btn.style.opacity = "0.5";
-        btn.style.cursor = "not-allowed";
+        btn.classList.add("btn-disabled-opacity");
     }
   } catch (e: any) {
     hideLoadingMask();

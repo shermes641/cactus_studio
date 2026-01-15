@@ -1,7 +1,7 @@
 
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './src/utils.js';
-import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons } from './src/ui.js';
+import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, setupHamburgerMenu } from './src/ui.js';
 import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
@@ -56,6 +56,7 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
    
    // Render Filter Controls
    renderFilterControls();
+   setupHamburgerMenu();
  
    // Check for persisted login and restore session if user is logged in
    const persistedEmail = localStorage.getItem("currentUserEmail");
