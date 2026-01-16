@@ -23,7 +23,7 @@ export const state = {
     currentLang: localStorage.getItem('cactusLang') || 'en',
     MAX_IMG_CACHE: calculateMaxImgCache(),
     pendingUploadFile: null as File | null,
-    plantClasses: [...PLANT_CLASSES],
+    plantClasses: ['All', ...PLANT_CLASSES],
     activeDiscount: null as Discount | null,
 };
 

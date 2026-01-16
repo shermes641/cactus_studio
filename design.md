@@ -133,7 +133,7 @@ Returns:
 [ { "id": 1, "name": "...", "price": 1000, "available": 5 } ]
 ```
 
-Update `script.ts` to fetch this instead of `data.json`.
+Update `main.ts` to fetch this instead of `data.json`.
 
 **Step B: Checkout**
 Your PayPal button stays the same.

@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { translations } from "./constants.js";
+import { translations, EXCHANGE_RATE } from "./constants.js";
 import { setVersionDisplay } from "./utils.js";
 import {
   renderPage,
@@ -9,6 +9,8 @@ import {
   identifyPlant,
   handleSearch,
   openProfileModal,
+  submitManualPayment,
+  handleReceiptFileSelect
 } from "./actions.js";
 
 export function applyTranslations() {
@@ -144,11 +146,14 @@ export function updateCartUI() {
   const cartFooter = document.getElementById("cart-footer");
   const removeAllBtn = document.querySelector(".remove-all-btn") as HTMLElement;
 
-  const currentCurrency = (state as any).currency || (state.currentLang === 'en' ? 'USD' : 'CRC');
-  (state as any).currency = currentCurrency;
-  const currencySymbol = currentCurrency === 'USD' ? '$' : '₡';
-
+  // Inject Other Payment Button if missing
   const paypalContainer = document.getElementById("paypal-button-container");
+  const otherBtn = document.getElementById("other-payment-btn");
+  if (otherBtn) {
+      otherBtn.innerText = translations[state.currentLang].btnOtherPayment;
+      otherBtn.style.display = "none";
+  }
+
   if (paypalContainer) paypalContainer.innerHTML = "";
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLElement;
   if (checkoutBtn) checkoutBtn.style.display = "";
@@ -169,8 +174,9 @@ export function updateCartUI() {
       let total = 0;
       state.cart.forEach((item, index) => {
         if (!item) return;
-        const itemPrice = Number(item.price_cents) / 100;
-        total += itemPrice;
+        const itemPriceUSD = Number(item.price_cents) / 100;
+        const itemPriceCRC = itemPriceUSD * EXCHANGE_RATE;
+        total += itemPriceUSD;
 
         const thumbnailUrl = item.image_url.includes('cloudinary.com')
           ? item.image_url.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/')
@@ -181,7 +187,7 @@ export function updateCartUI() {
                         <img src="${thumbnailUrl}" alt="${item.name}" class="cart-item-thumbnail" onclick="openImageModal(${item.id}, true)">
                         <div class="cart-item-info">
                             <strong>${item.name}</strong><br>
-                            ${currencySymbol}${itemPrice.toFixed(2)}
+                            $${itemPriceUSD.toFixed(2)} / ₡${itemPriceCRC.toLocaleString()}
                         </div>
                         <button onclick="removeFromCart(${index})" class="cart-item-remove">${
           translations[state.currentLang].btnRemove
@@ -221,24 +227,9 @@ export function updateCartUI() {
         shippingSection.innerHTML = '';
       }
 
-      // Currency section
-      let currencySection = document.getElementById("currency-section");
-      if (!currencySection) {
-        currencySection = document.createElement("div");
-        currencySection.id = "currency-section";
-        currencySection.className = "currency-section";
-        if (shippingSection && shippingSection.parentNode) {
-            shippingSection.insertAdjacentElement('afterend', currencySection);
-        }
-      }
-      currencySection.innerHTML = `
-        <div class="form-group" style="margin-bottom: 0; margin-top: 10px;">
-            <select onchange="updateCurrency(this.value)" style="font-size: 1rem;">
-                <option value="USD" ${currentCurrency === 'USD' ? 'selected' : ''}>USD ($)</option>
-                <option value="CRC" ${currentCurrency === 'CRC' ? 'selected' : ''}>CRC (₡)</option>
-            </select>
-        </div>
-      `;
+      // Remove Currency section if it exists
+      const currencySection = document.getElementById("currency-section");
+      if (currencySection) currencySection.remove();
 
       // Discount section (inserted after shipping)
       let discountSection = document.getElementById("discount-section");
@@ -246,13 +237,15 @@ export function updateCartUI() {
         discountSection = document.createElement("div");
         discountSection.id = "discount-section";
         discountSection.className = "discount-section";
-        currencySection.insertAdjacentElement('afterend', discountSection);
+        shippingSection.insertAdjacentElement('afterend', discountSection);
       }
 
       let finalTotal = total;
       if (state.activeDiscount && state.activeDiscount.type === "percent") {
-        const discountAmount = total * (state.activeDiscount.value / 100);
-        finalTotal = total - discountAmount;
+        const discountAmountUSD = total * (state.activeDiscount.value / 100);
+        const discountAmountCRC = discountAmountUSD * EXCHANGE_RATE;
+        finalTotal = total - discountAmountUSD;
+        const finalTotalCRC = finalTotal * EXCHANGE_RATE;
 
         discountSection.innerHTML = `
                 <div class="discount-row">
@@ -261,14 +254,14 @@ export function updateCartUI() {
                 </div>
                 <div class="subtotal-row">
                     <span>${translations[state.currentLang].subtotal}:</span>
-                    <span>${currencySymbol}${total.toFixed(2)}</span>
+                    <span>$${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}</span>
                 </div>
                 <div class="discount-value-row">
                     <span>${translations[state.currentLang].discount} (${state.activeDiscount.value}%):</span>
-                    <span>-${currencySymbol}${discountAmount.toFixed(2)}</span>
+                    <span>-$${discountAmountUSD.toFixed(2)} / ₡${discountAmountCRC.toLocaleString()}</span>
                 </div>
             `;
-        cartTotal.innerText = finalTotal.toFixed(2);
+        cartTotal.innerText = `${finalTotal.toFixed(2)} / ₡${finalTotalCRC.toLocaleString()}`;
       } else {
         if (state.activeDiscount) {
           // Handle other types like 'shipping'
@@ -286,13 +279,13 @@ export function updateCartUI() {
                     </div>
                 `;
         }
-        cartTotal.innerText = total.toFixed(2);
+        cartTotal.innerText = `${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}`;
       }
 
       // Update total header symbol
       const totalHeader = cartFooter.querySelector(".cart-total-header");
       if (totalHeader) {
-          totalHeader.innerHTML = `<span data-i18n="cartTotal">${translations[state.currentLang].cartTotal}</span> ${currencySymbol}<span id="cart-total">${cartTotal.innerText}</span>`;
+          totalHeader.innerHTML = `<span data-i18n="cartTotal">${translations[state.currentLang].cartTotal}</span> <span id="cart-total">$${cartTotal.innerText}</span>`;
       }
 
       cartFooter.style.display = "block";
@@ -857,4 +850,91 @@ export function setupHamburgerMenu() {
   if (row.children.length > 0) {
     dropdown.prepend(row);
   }
+}
+
+export function toggleOtherPaymentModal() {
+    const modal = document.getElementById("other-payment-modal");
+    if (!modal) return;
+    
+    const isHidden = modal.style.display !== "flex";
+    modal.style.display = isHidden ? "flex" : "none";
+    
+    if (isHidden) {
+        // Render summary
+        const summaryDiv = document.getElementById("manual-order-summary");
+        if (summaryDiv) {
+            let total = 0;
+            let html = "";
+            state.cart.forEach(item => {
+                const priceUSD = Number(item.price_cents) / 100;
+                const priceCRC = priceUSD * EXCHANGE_RATE;
+                total += priceUSD;
+                html += `<div class="manual-order-item"><span>${item.name}</span><span>$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</span></div>`;
+            });
+            
+            if (state.activeDiscount) {
+                 const discountAmountUSD = total * (state.activeDiscount.value / 100);
+                 const discountAmountCRC = discountAmountUSD * EXCHANGE_RATE;
+                 total -= discountAmountUSD;
+                 html += `<div class="manual-order-item" style="color: var(--success);"><span>Discount (${state.activeDiscount.code})</span><span>-$${discountAmountUSD.toFixed(2)} / ₡${discountAmountCRC.toLocaleString()}</span></div>`;
+            }
+            
+            html += `<div class="manual-order-item" style="font-weight: bold; border-top: 1px solid #ccc; margin-top: 5px; padding-top: 5px;"><span>Total</span><span>$${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}</span></div>`;
+            summaryDiv.innerHTML = html;
+        }
+
+        const shippingDiv = document.getElementById("manual-order-shipping");
+        if (shippingDiv) {
+            const shippingInput = document.getElementById("cart-shipping-address") as HTMLTextAreaElement;
+            const address = shippingInput ? shippingInput.value.trim() : (state.currentUserData?.shipping_addr || "");
+            shippingDiv.innerText = address || "No address provided";
+        }
+        updateReceiptDropZonePreview("");
+    } else {
+        const otherBtn = document.getElementById("other-payment-btn");
+        if (otherBtn) otherBtn.style.display = "none";
+        const checkoutBtn = document.querySelector(".checkout-btn") as HTMLElement;
+        if (checkoutBtn) checkoutBtn.style.display = "";
+        const paypalContainer = document.getElementById("paypal-button-container");
+        if (paypalContainer) paypalContainer.innerHTML = "";
+    }
+}
+
+export function setupReceiptDropZone() {
+    const dropZone = document.getElementById("receipt-drop-zone");
+    if (!dropZone) return;
+
+    dropZone.onclick = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e: any) => {
+            if (e.target.files.length > 0) handleReceiptFileSelect(e.target.files[0]);
+        };
+        input.click();
+    };
+
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("dragover"); };
+    dropZone.ondragleave = (e) => { e.preventDefault(); dropZone.classList.remove("dragover"); };
+    dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove("dragover"); if (e.dataTransfer?.files.length) handleReceiptFileSelect(e.dataTransfer.files[0]); };
+}
+
+export function updateReceiptDropZonePreview(src: string) {
+    const dropZone = document.getElementById("receipt-drop-zone");
+    if (dropZone) dropZone.style.backgroundImage = src ? `url('${src}')` : "";
+    if (dropZone) dropZone.innerHTML = src ? "" : `<p>${translations[state.currentLang].dropReceiptHere}</p>`;
+}
+
+export function initManualPaymentUI() {
+    setupReceiptDropZone();
+    document.addEventListener('paste', (e: ClipboardEvent) => {
+        const modal = document.getElementById("other-payment-modal");
+        if (modal && modal.style.display === "flex") {
+            if (e.clipboardData && e.clipboardData.files.length > 0) {
+                const file = e.clipboardData.files[0];
+                handleReceiptFileSelect(file);
+                e.preventDefault();
+            }
+        }
+    });
 }

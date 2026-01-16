@@ -1,11 +1,12 @@
 import { Translations } from './types.js';
 
 export const APP_VERSION = '1.1.0';
+export const EXCHANGE_RATE = (window as any).env?.EXCHANGE_RATE || 525;
 export const DEFAULT_IMG_CACHE = 100;
 export const MAX_IMGS = 1000;
 export const MAX_IMG_CACHE_PERCENT = 0.25;
 
-export const PLANT_CLASSES = ["All", "Opuntia", "Euphorbia", "Mammillaria", "Aizoaceae", "Aloe", "Crassula", "Echeveria", "Haworthia", "Sansevieria", "Sedum", "Sempervivum"];
+export const PLANT_CLASSES = ["Opuntia", "Euphorbia", "Mammillaria", "Aizoaceae", "Aloe", "Crassula", "Echeveria", "Haworthia", "Sansevieria", "Sedum", "Sempervivum"];
 
 export const THEME = {
     primary: 'var(--primary)',
@@ -167,6 +168,13 @@ export const translations: Translations = {
         labelMatchPrice: "Price",
         labelMatchSku: "SKU",
         labelMatchMatched: "Matched",
+        btnOtherPayment: "Other Payment",
+        modalOtherPaymentTitle: "Manual Payment",
+        labelReceiptImage: "Receipt Image",
+        dropReceiptHere: "Drop receipt image here, paste (Ctrl+V), or click to upload",
+        btnConfirmPurchase: "Confirm Purchase",
+        alertReceiptRequired: "Please upload a receipt image.",
+        alertManualOrderSuccess: "Order placed successfully! We will review your receipt.",
     },
     es: {
         logout: "Cerrar Sesión",
@@ -298,5 +306,12 @@ export const translations: Translations = {
         labelMatchPrice: "Precio",
         labelMatchSku: "SKU",
         labelMatchMatched: "Coincidencia",
+        btnOtherPayment: "Otro Pago",
+        modalOtherPaymentTitle: "Pago Manual",
+        labelReceiptImage: "Imagen del Recibo",
+        dropReceiptHere: "Arrastra el recibo aquí, pega (Ctrl+V), o haz clic para subir",
+        btnConfirmPurchase: "Confirmar Compra",
+        alertReceiptRequired: "Por favor sube una imagen del recibo.",
+        alertManualOrderSuccess: "¡Orden realizada con éxito! Revisaremos tu recibo.",
     }
 };

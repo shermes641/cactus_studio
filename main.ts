@@ -1,8 +1,8 @@
 
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './src/utils.js';
-import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, setupHamburgerMenu } from './src/ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount, updateCurrency, updateShippingAddress } from './src/actions.js';
+import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal, initManualPaymentUI } from './src/ui.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -39,6 +39,8 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
 (window as any).removeDiscount = removeDiscount;
 (window as any).updateCurrency = updateCurrency;
 (window as any).updateShippingAddress = updateShippingAddress;
+(window as any).toggleOtherPaymentModal = toggleOtherPaymentModal;
+(window as any).submitManualPayment = submitManualPayment;
 
 (window as any).togglePasswordVisibility = togglePasswordVisibility;
 
@@ -59,6 +61,7 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
    // Render Filter Controls
    renderFilterControls();
    setupHamburgerMenu();
+   initManualPaymentUI();
  
    // Check for persisted login and restore session if user is logged in
    const persistedEmail = localStorage.getItem("currentUserEmail");
@@ -133,6 +136,3 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
      }
    });
  };
- 
- // Listen for hash changes to trigger admin check dynamically
- //window.addEventListener("hashchange", checkAdminAccess);

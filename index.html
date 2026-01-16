@@ -172,6 +172,29 @@
       </div>
     </div>
 
+    <!-- Other Payment Modal -->
+    <div id="other-payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleOtherPaymentModal()">&times;</span>
+            <h2 data-i18n="modalOtherPaymentTitle">Manual Payment</h2>
+            <div id="manual-order-summary" class="manual-order-summary"></div>
+            <div class="form-group">
+                <label data-i18n="labelAddress">Shipping Address</label>
+                <p id="manual-order-shipping" class="manual-shipping-info"></p>
+            </div>
+            <div class="form-group">
+                <label data-i18n="labelReceiptImage">Receipt Image</label>
+                <div id="receipt-drop-zone" class="receipt-drop-zone">
+                    <p data-i18n="dropReceiptHere">Drop receipt image here, paste (Ctrl+V), or click to upload</p>
+                </div>
+            </div>
+            <div class="manual-payment-actions">
+                <button class="cancel-btn add-btn" onclick="toggleOtherPaymentModal()" data-i18n="btnCancel">Cancel</button>
+                <button class="add-btn" onclick="submitManualPayment()" data-i18n="btnConfirmPurchase">Confirm Purchase</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Help Dialog -->
     <div id="help-dialog" class="help-dialog">
       <span onclick="toggleHelp()" class="help-close-btn">&times;</span>
@@ -261,12 +284,13 @@
         <h3 class="cart-total-header">
           <span data-i18n="cartTotal">Total:</span> $<span id="cart-total">0.00</span>
         </h3>
+        <button id="other-payment-btn" onclick="toggleOtherPaymentModal()" data-i18n="btnOtherPayment" style="display: none;">Other Payment</button>
         <div id="paypal-button-container" class="paypal-wrapper"></div>
       </div>
     </div>
 
     <script src="/env.js"></script>
-    <script type="module" src="/script.js"></script>
+    <script type="module" src="/main.js"></script>
 
     <!-- Full Screen Image Modal -->
     <div id="image-modal" onclick="closeImageModal()">
@@ -314,6 +338,12 @@
             toggleProfileModal();
         }
 
+        // Other Payment Modal (Backdrop click)
+        const otherPaymentModal = document.getElementById('other-payment-modal');
+        if (otherPaymentModal && otherPaymentModal.style.display === 'flex' && e.target === otherPaymentModal) {
+            toggleOtherPaymentModal();
+        }
+
         // Help Dialog (Click outside)
         const helpDialog = document.getElementById('help-dialog');
         const helpBtn = document.getElementById('help-btn');
@@ -326,7 +356,8 @@
         const cartBtn = document.getElementById('cart-toggle-btn');
         const imageModal = document.getElementById('image-modal');
         const isImageModal = imageModal && (imageModal === e.target || imageModal.contains(e.target));
-        if (cartSidebar && cartSidebar.classList.contains('open') && !cartSidebar.contains(e.target) && (!cartBtn || !cartBtn.contains(e.target)) && !isImageModal) {
+        const isOtherPaymentModal = otherPaymentModal && (otherPaymentModal === e.target || otherPaymentModal.contains(e.target));
+        if (cartSidebar && cartSidebar.classList.contains('open') && !cartSidebar.contains(e.target) && (!cartBtn || !cartBtn.contains(e.target)) && !isImageModal && !isOtherPaymentModal) {
             toggleCart();
         }
       });

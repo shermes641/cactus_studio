@@ -1,8 +1,8 @@
 //force build
 import { state } from './state.js';
-import { translations } from './constants.js';
+import { translations, EXCHANGE_RATE } from './constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from './utils.js';
-import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons, toggleCart, setupPasswordStrengthMeter } from './ui.js';
+import { updateCartUI, injectLogoutButton, injectLoginUI, toggleAdminModal, toggleProfileModal, updatePaginationControls, groupSidebarElements, setupDropZone, ensureAdminFieldsExist, renderFilterControls, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons, toggleCart, setupPasswordStrengthMeter, toggleOtherPaymentModal, updateReceiptDropZonePreview } from './ui.js';
 import { Product, Discount } from './types.js';
 
 declare const paypal: any;
@@ -741,6 +741,9 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         btnClass = "btn-disabled-custom";
       }
 
+      const priceUSD = Number(product.price_cents) / 100;
+      const priceCRC = priceUSD * EXCHANGE_RATE;
+
       grid.innerHTML += `
           <div class="product-card">
               <picture>
@@ -759,7 +762,7 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
                   ${metaRow}
                   ${detailsRow}
                   ${stockDisplay}
-                  <div class="product-price">$${(Number(product.price_cents) / 100).toFixed(2)}</div>
+                  <div class="product-price">$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</div>
                   <button class="add-btn ${btnClass}" ${btnAttrs}>${btnText}</button>
               </div>
           </div>
@@ -778,6 +781,21 @@ export function changeItemsPerPage(val: string) {
   renderPage(1);
 }
 
+async function uploadFileToCloudinary(file: File): Promise<string> {
+    const configRes = await fetch('/.netlify/functions/get-cloudinary-config');
+    if (!configRes.ok) throw new Error("Failed to get Cloudinary config");
+    const config = await configRes.json();
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", config.uploadPreset);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`, { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
+    return data.secure_url;
+}
+
 export async function addProduct() {
   const name = (document.getElementById("new-name") as HTMLInputElement).value;
   const priceInput = parseFloat((document.getElementById("new-price") as HTMLInputElement).value);
@@ -790,23 +808,11 @@ export async function addProduct() {
   if (state.pendingUploadFile) {
       showLoadingMask("Uploading image...");
       try {
-        const configRes = await fetch('/.netlify/functions/get-cloudinary-config');
-        if (!configRes.ok) throw new Error("Failed to get Cloudinary config");
-        const config = await configRes.json();
-        
-        const formData = new FormData();
-        formData.append("file", state.pendingUploadFile);
-        formData.append("upload_preset", config.uploadPreset);
-        
+        image = await uploadFileToCloudinary(state.pendingUploadFile);
+        // Preserve public_id logic if needed, but for new uploads it's fresh
         if (image && image.includes('cloudinary.com')) {
-            const matches = image.match(/\/upload\/(?:v\d\/)?(.)\.[^.]$/);
-            if (matches && matches[1]) formData.append("public_id", matches[1]);
+             // Logic to keep public_id if replacing existing image could be added here
         }
-
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`, { method: "POST", body: formData });
-        if (!res.ok) throw new Error("Upload failed");
-        const data = await res.json();
-        image = data.secure_url;
       } catch (e: any) {
           hideLoadingMask();
           alert("Image upload failed: "  + e.message);
@@ -1040,6 +1046,10 @@ export async function checkout() {
 
   const paypalContainer = document.getElementById("paypal-button-container");
   if (!paypalContainer) return;
+
+  const otherBtn = document.getElementById("other-payment-btn");
+  if (otherBtn) otherBtn.style.display = "block";
+
   showLoadingMask("Loading Payment Options...");
 
   let CLIENT_ID;
@@ -1688,7 +1698,7 @@ export async function fetchPlantClasses() {
     const res = await fetch('/.netlify/functions/get-plant-classes');
     if (res.ok) {
       const classes = await res.json();
-      state.plantClasses = ['All', ...classes];
+      state.plantClasses = ['All', ...(Array.isArray(classes) ? classes : [])];
       renderFilterControls();
     }
   } catch (e) {
@@ -1802,6 +1812,73 @@ export async function saveProfile() {
     hideLoadingMask();
     alert("Error: " + e.message);
   }
+}
+
+let pendingReceiptFile: File | null = null;
+
+export function handleReceiptFileSelect(file: File) {
+    if (!file.type.startsWith("image/")) return;
+    pendingReceiptFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        updateReceiptDropZonePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+}
+
+export async function submitManualPayment() {
+    if (!pendingReceiptFile) {
+        alert(translations[state.currentLang].alertReceiptRequired);
+        return;
+    }
+
+    const shippingInput = document.getElementById("cart-shipping-address") as HTMLTextAreaElement;
+    const shippingAddress = shippingInput ? shippingInput.value.trim() : (state.currentUserData?.shipping_addr || "");
+
+    if (!shippingAddress) {
+        alert(translations[state.currentLang].alertShippingAddressRequired);
+        return;
+    }
+
+    showLoadingMask("Uploading receipt...");
+    let receiptUrl = "";
+    try {
+        receiptUrl = await uploadFileToCloudinary(pendingReceiptFile);
+    } catch (e: any) {
+        hideLoadingMask();
+        alert("Receipt upload failed: " + e.message);
+        return;
+    }
+
+    showLoadingMask("Placing order...");
+    try {
+        // Using create-order endpoint but passing receiptUrl to indicate manual payment
+        const res = await fetch('/.netlify/functions/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cart: state.cart,
+                discountCode: state.activeDiscount ? state.activeDiscount.code : null,
+                shippingAddress: shippingAddress,
+                currency: (state as any).currency || 'USD',
+                receiptUrl: receiptUrl,
+                isManual: true
+            })
+        });
+        
+        state.cart = [];
+        localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
+        updateCartUI();
+        toggleOtherPaymentModal();
+        pendingReceiptFile = null;
+        alert(translations[state.currentLang].alertManualOrderSuccess);
+    } catch (e: any) {
+        console.error("Manual order error:", e);
+        alert("Failed to place order: " + e.message);
+    } finally {
+        hideLoadingMask();
+    }
 }
 
 export async function requestPasswordReset() {
