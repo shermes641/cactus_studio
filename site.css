@@ -122,7 +122,8 @@
 
 .auth-overlay {
     display: none;
-    background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500');
+    /* background: linear-gradient(rgba(220, 255, 220, 0.3), rgba(220, 255, 220, 0.9)), url('/main.webp'); */
+    background: url('/main.webp');
     background-size: cover;
     background-position: center;
 }
