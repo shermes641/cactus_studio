@@ -44,10 +44,12 @@ export const handler: Handler = async (event: any) => {
   
   let cart: any[];
   let discountCode: string | null;
+  let currency: string;
   try {
       const body = JSON.parse(event.body || '{}');
       cart = body.cart;
       discountCode = body.discountCode;
+      currency = body.currency || 'USD';
   } catch (e) {
       return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
@@ -57,52 +59,24 @@ export const handler: Handler = async (event: any) => {
   try {
     // 1. Calculate Total & Validate/Reserve Stock
     let totalCents = 0;
-    const reservedItems: any[] = [];
     
-    // Process items sequentially to reserve stock
-    // Note: Neon HTTP driver doesn't support interactive transactions (sql.transaction(fn)).
-    // We use sequential updates with manual rollback on failure.
-    try {
-        for (const item of cart) {
-            const sku = `BOT-${item.id}-STD`;
-            
-            // Atomic decrement: Only update if quantity > 0
-            const result = await sql`
-                UPDATE inventory 
-                SET quantity = quantity - 1 
-                WHERE sku = ${sku} AND quantity > 0 
-                RETURNING quantity
-            `;
-            
-            if (result.length === 0) {
-                throw new Error(`Out of stock for item: ${item.name}`);
-            }
-            
-            // Log Event
-            await sql`
-                INSERT INTO inventory_events (sku, delta, reason) 
-                VALUES (${sku}, -1, 'paypal_start')
-            `;
-            
-            reservedItems.push(item);
-            totalCents += item.price_cents; 
+    // Aggregate cart items to check total quantity needed per SKU
+    const skuCounts: { [sku: string]: number } = {};
+    for (const item of cart) {
+        const sku = `BOT-${item.id}-STD`;
+        skuCounts[sku] = (skuCounts[sku] || 0) + 1;
+        totalCents += item.price_cents;
+    }
+    
+    // Check stock availability
+    for (const [sku, count] of Object.entries(skuCounts)) {
+        const result = await sql`
+            SELECT quantity FROM inventory WHERE sku = ${sku}
+        `;
+        
+        if (result.length === 0 || result[0].quantity < count) {
+            throw new Error(`Out of stock for item: ${sku} (Requested: ${count}, Available: ${result.length > 0 ? result[0].quantity : 0})`);
         }
-    } catch (reservationError) {
-        // Rollback successful reservations
-        console.error("Reservation failed, rolling back:", reservationError);
-        for (const item of reservedItems) {
-            const sku = `BOT-${item.id}-STD`;
-            await sql`
-                UPDATE inventory 
-                SET quantity = quantity + 1 
-                WHERE sku = ${sku}
-            `;
-            await sql`
-                INSERT INTO inventory_events (sku, delta, reason) 
-                VALUES (${sku}, 1, 'paypal_start_rollback')
-            `;
-        }
-        throw reservationError;
     }
     
     // Apply discount
@@ -128,7 +102,7 @@ export const handler: Handler = async (event: any) => {
             intent: 'CAPTURE',
             purchase_units: [{
                 amount: {
-                    currency_code: 'USD',
+                    currency_code: currency,
                     value: (totalCents / 100).toFixed(2)
                 }
             }]

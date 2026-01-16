@@ -5,7 +5,7 @@ export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
-    const { orderId, details, cart, discountCode, shippingAddress } = JSON.parse(event.body || '{}');
+    const { orderId, details, cart, discountCode, shippingAddress, userId } = JSON.parse(event.body || '{}');
     const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
     // 1. Ensure Tables Exist (Idempotent check)
@@ -61,9 +61,9 @@ export const handler: Handler = async (event: any) => {
     // 3. Insert Order
     const orderResult = await sql`
       INSERT INTO orders 
-        (paypal_order_id, customer_email, customer_name, total_amount_cents, currency, status, discount_code, shipping_addr)
+        (user_id, paypal_order_id, customer_email, customer_name, total_amount_cents, currency, status, discount_code, shipping_addr)
       VALUES 
-        (${orderId}, ${payer.email_address}, ${payer.name.given_name} || ' ' || ${payer.name.surname}, ${totalCents}, ${purchaseUnit.amount.currency_code}, 'COMPLETED', ${discountCode || null}, ${shippingAddress || null})
+        (${userId || null}, ${orderId}, ${payer.email_address}, ${payer.name.given_name} || ' ' || ${payer.name.surname}, ${totalCents}, ${purchaseUnit.amount.currency_code}, 'COMPLETED', ${discountCode || null}, ${shippingAddress || null})
       RETURNING id
     `;
     const internalOrderId = orderResult[0].id;
@@ -81,6 +81,19 @@ export const handler: Handler = async (event: any) => {
       await sql`
         INSERT INTO order_items (order_id, product_id, name, price_cents, quantity)
         VALUES (${internalOrderId}, ${item.id}, ${item.name}, ${item.price_cents}, 1)
+      `;
+      
+      // Decrement Inventory
+      const sku = `BOT-${item.id}-STD`;
+      await sql`
+        UPDATE inventory 
+        SET quantity = quantity - 1 
+        WHERE sku = ${sku}
+      `;
+      
+      await sql`
+        INSERT INTO inventory_events (sku, delta, reason) 
+        VALUES (${sku}, -1, 'paypal_capture')
       `;
     }
 

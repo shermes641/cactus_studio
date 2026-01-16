@@ -8,24 +8,11 @@ export const handler: Handler = async (event: any) => {
   const sql = neon(process.env.NETLIFY_DATABASE_URL!);
   
   try {
-    for (const item of cart) {
-        const sku = `BOT-${item.id}-STD`;
-        
-        // Increment stock back
-        await sql`
-            UPDATE inventory 
-            SET quantity = quantity + 1 
-            WHERE sku = ${sku}
-        `;
-        
-        // Log Event
-        await sql`
-            INSERT INTO inventory_events (sku, delta, reason) 
-            VALUES (${sku}, 1, 'paypal_cancel')
-        `;
-    }
+    // No-op: Inventory is now only decremented on capture, so no need to release reservation.
+    // We keep this function endpoint valid so the frontend doesn't break, 
+    // but it performs no DB actions.
     
-    return { statusCode: 200, body: JSON.stringify({ message: 'Inventory released' }) };
+    return { statusCode: 200, body: JSON.stringify({ message: 'Order cancelled' }) };
   } catch (error: any) {
     console.error("Cancel Order Error:", error);
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };

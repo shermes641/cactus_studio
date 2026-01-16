@@ -48,6 +48,8 @@ export const handler: Handler = async (event: any, context: any) => {
     out.push('ensured orders.status column');
     await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_addr TEXT`;
     out.push('ensured orders.shipping_addr column');
+    await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency TEXT`;
+    out.push('ensured orders.currency column');
 
     // 4) Populate statuses with common values + any existing order.status values
     const defaults = ['pending','processing','completed','cancelled','refunded'];

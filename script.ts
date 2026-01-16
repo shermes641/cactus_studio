@@ -2,7 +2,7 @@
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './src/utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, setupHamburgerMenu } from './src/ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount } from './src/actions.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount, updateCurrency, updateShippingAddress } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -37,6 +37,8 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
 (window as any).handleSearch = handleSearch;
 (window as any).applyDiscountCode = applyDiscountCode;
 (window as any).removeDiscount = removeDiscount;
+(window as any).updateCurrency = updateCurrency;
+(window as any).updateShippingAddress = updateShippingAddress;
 
 (window as any).togglePasswordVisibility = togglePasswordVisibility;
 
@@ -71,6 +73,8 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
        } catch (e) {
          console.warn("Failed to parse currentUserData:", e);
        }
+     } else {
+       console.warn("No localStorage.getItem('currentUserData')");
      }
      
      // Hide the login UI

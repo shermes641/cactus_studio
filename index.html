@@ -43,6 +43,7 @@
         <div id="hamburger-menu-container" class="hamburger-wrapper">
             <button id="hamburger-menu-btn" onclick="toggleHamburgerMenu()" class="hamburger-btn" style="font-size: 2rem; margin: -10px;">☰</button>
             <div id="hamburger-dropdown" class="hamburger-dropdown">
+                <span class="hamburger-close-btn" onclick="toggleHamburgerMenu()">&times;</span>
                 <div id="hamburger-user-info" class="hamburger-user-info" style="display: none;">
                     <div id="hamburger-user-email" class="hamburger-email"></div>
                     <div id="hamburger-admin-badge" class="hamburger-badge" style="display: none;">ADMIN</div>
@@ -277,7 +278,7 @@
       function toggleHamburgerMenu() {
         const dropdown = document.getElementById('hamburger-dropdown');
         if (dropdown) {
-            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+            dropdown.classList.toggle('open');
         }
       }
 
@@ -286,7 +287,7 @@
         const hamburgerContainer = document.getElementById('hamburger-menu-container');
         const hamburgerDropdown = document.getElementById('hamburger-dropdown');
         if (hamburgerContainer && hamburgerDropdown && !hamburgerContainer.contains(e.target)) {
-            hamburgerDropdown.style.display = 'none';
+            hamburgerDropdown.classList.remove('open');
         }
 
         // Admin Modal (Backdrop click)
@@ -324,14 +325,14 @@
             // Use event delegation to handle clicks on both static and dynamic buttons
             dropdown.addEventListener('click', (e) => {
                 if (e.target.closest('button')) {
-                    dropdown.style.display = 'none';
+                    dropdown.classList.remove('open');
                 }
             });
 
             // Use event delegation for selects (e.g. items per page, admin user select)
             dropdown.addEventListener('change', (e) => {
                 if (e.target.tagName === 'SELECT') {
-                    dropdown.style.display = 'none';
+                    dropdown.classList.remove('open');
                 }
             });
 

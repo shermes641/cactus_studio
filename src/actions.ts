@@ -957,19 +957,24 @@ export async function handlePaymentReset() {
   }
 }
 
+export function updateCurrency(currency: string) {
+  (state as any).currency = currency;
+  updateCartUI();
+}
+
 export async function checkout() {
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
 
   const shippingInput = document.getElementById("cart-shipping-address") as HTMLTextAreaElement;
   const inputAddr = shippingInput ? shippingInput.value.trim() : "";
-  const storedAddr = state.currentUserData?.shipping_addr || "";
+  const storedAddr = (state.currentUserData?.shipping_addr || "").trim();
   
   let finalShippingAddr = "";
 
   if (inputAddr) {
       finalShippingAddr = inputAddr;
       if (!storedAddr && state.currentUser) {
-          updateShippingAddress(inputAddr);
+          await updateShippingAddress(inputAddr);
       }
   } else {
       finalShippingAddr = storedAddr;
@@ -1053,6 +1058,10 @@ export async function checkout() {
   const locale = state.currentLang === 'es' ? 'es_ES' : 'en_US';
   const scriptId = 'paypal-sdk';
   let script = document.getElementById(scriptId) as HTMLScriptElement;
+  
+  const currency = (state as any).currency || (state.currentLang === 'en' ? 'USD' : 'CRC');
+  // PayPal does not support CRC, so we use USD for the transaction
+  const paymentCurrency = currency === 'CRC' ? 'USD' : currency;
 
   const render = () => {
     paypalContainer.innerHTML = "";
@@ -1103,7 +1112,8 @@ export async function checkout() {
           body: JSON.stringify({
             cart: state.cart,
             discountCode: state.activeDiscount ? state.activeDiscount.code : null,
-            shippingAddress: finalShippingAddr
+            shippingAddress: finalShippingAddr,
+            currency: paymentCurrency
           })
         })
         .then(async res => {
@@ -1133,7 +1143,9 @@ export async function checkout() {
               details: details,
               cart: state.cart,
               discountCode: state.activeDiscount ? state.activeDiscount.code : null,
-              shippingAddress: finalShippingAddr
+              shippingAddress: finalShippingAddr,
+              currency: paymentCurrency,
+              userId: state.currentUserData ? state.currentUserData.id : null
             })
           }).then(() => {
             state.cart = [];

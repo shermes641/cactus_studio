@@ -72,6 +72,12 @@ header {
     object-fit: cover;
 }
 
+@media (max-height: 600px) {
+    header .header-logo {
+        display: none;
+    }
+}
+
 .nav-links {
     display: flex;
     align-items: center;
@@ -409,7 +415,7 @@ header {
     top: -5px;
     right: -1000px;
     min-width: 250px;
-    height: 97%;
+    height: 90%;
     background: var(--white);
     box-shadow: -2px 0 5px rgba(0,0,0,0.1);
     z-index: 1500;
@@ -418,6 +424,8 @@ header {
     padding: 20px;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 .cart-header {
@@ -470,6 +478,7 @@ header {
 .cart-items {
     flex-grow: 1;
     overflow-y: auto;
+    overflow-x: auto;
     margin-top: 20px;
 }
 
@@ -990,18 +999,40 @@ header {
 }
 
 .hamburger-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    border-radius: 4px;
-    overflow: hidden;
-    display: none; /* Toggled by JS */
+    position: fixed;
+    top: 0;
+    right: -350px;
+    height: 90%;
+    width: 300px;
+    background-color: var(--white);
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    z-index: 2000;
+    transition: right 0.3s ease-in-out;
+    display: flex;
     flex-direction: column;
-    min-width: 220px;
-    z-index: 1100;
-    border: 1px solid #ddd;
+    border-radius: 0;
+    border: none;
+    border-left: 1px solid #ddd;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.hamburger-dropdown.open {
+    right: 0;
+}
+
+.hamburger-close-btn {
+    align-self: flex-end;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+.hamburger-close-btn:hover {
+    color: var(--danger);
 }
 
 /* Hamburger Menu Items Styling */

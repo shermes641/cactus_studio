@@ -7,7 +7,6 @@ import {
   changeItemsPerPage,
   removeFromCart,
   identifyPlant,
-  updateShippingAddress,
   handleSearch,
   openProfileModal,
 } from "./actions.js";
@@ -145,6 +144,10 @@ export function updateCartUI() {
   const cartFooter = document.getElementById("cart-footer");
   const removeAllBtn = document.querySelector(".remove-all-btn") as HTMLElement;
 
+  const currentCurrency = (state as any).currency || (state.currentLang === 'en' ? 'USD' : 'CRC');
+  (state as any).currency = currentCurrency;
+  const currencySymbol = currentCurrency === 'USD' ? '$' : '₡';
+
   const paypalContainer = document.getElementById("paypal-button-container");
   if (paypalContainer) paypalContainer.innerHTML = "";
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLElement;
@@ -178,7 +181,7 @@ export function updateCartUI() {
                         <img src="${thumbnailUrl}" alt="${item.name}" class="cart-item-thumbnail" onclick="openImageModal(${item.id}, true)">
                         <div class="cart-item-info">
                             <strong>${item.name}</strong><br>
-                            $${itemPrice.toFixed(2)}
+                            ${currencySymbol}${itemPrice.toFixed(2)}
                         </div>
                         <button onclick="removeFromCart(${index})" class="cart-item-remove">${
           translations[state.currentLang].btnRemove
@@ -210,7 +213,7 @@ export function updateCartUI() {
         shippingSection.innerHTML = `
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="shipping-label">${labelText}</label>
-                <textarea id="cart-shipping-address" onblur="updateShippingAddress(this.value)" class="shipping-address-input" placeholder="${placeholderText}">${currentAddress}</textarea>
+                <textarea id="cart-shipping-address" class="shipping-address-input" placeholder="${placeholderText}">${currentAddress}</textarea>
             </div>
         `;
       } else {
@@ -218,13 +221,32 @@ export function updateCartUI() {
         shippingSection.innerHTML = '';
       }
 
+      // Currency section
+      let currencySection = document.getElementById("currency-section");
+      if (!currencySection) {
+        currencySection = document.createElement("div");
+        currencySection.id = "currency-section";
+        currencySection.className = "currency-section";
+        if (shippingSection && shippingSection.parentNode) {
+            shippingSection.insertAdjacentElement('afterend', currencySection);
+        }
+      }
+      currencySection.innerHTML = `
+        <div class="form-group" style="margin-bottom: 0; margin-top: 10px;">
+            <select onchange="updateCurrency(this.value)" style="font-size: 1rem;">
+                <option value="USD" ${currentCurrency === 'USD' ? 'selected' : ''}>USD ($)</option>
+                <option value="CRC" ${currentCurrency === 'CRC' ? 'selected' : ''}>CRC (₡)</option>
+            </select>
+        </div>
+      `;
+
       // Discount section (inserted after shipping)
       let discountSection = document.getElementById("discount-section");
       if (!discountSection) {
         discountSection = document.createElement("div");
         discountSection.id = "discount-section";
         discountSection.className = "discount-section";
-        shippingSection.insertAdjacentElement('afterend', discountSection);
+        currencySection.insertAdjacentElement('afterend', discountSection);
       }
 
       let finalTotal = total;
@@ -239,11 +261,11 @@ export function updateCartUI() {
                 </div>
                 <div class="subtotal-row">
                     <span>${translations[state.currentLang].subtotal}:</span>
-                    <span>$${total.toFixed(2)}</span>
+                    <span>${currencySymbol}${total.toFixed(2)}</span>
                 </div>
                 <div class="discount-value-row">
                     <span>${translations[state.currentLang].discount} (${state.activeDiscount.value}%):</span>
-                    <span>-$${discountAmount.toFixed(2)}</span>
+                    <span>-${currencySymbol}${discountAmount.toFixed(2)}</span>
                 </div>
             `;
         cartTotal.innerText = finalTotal.toFixed(2);
@@ -265,6 +287,12 @@ export function updateCartUI() {
                 `;
         }
         cartTotal.innerText = total.toFixed(2);
+      }
+
+      // Update total header symbol
+      const totalHeader = cartFooter.querySelector(".cart-total-header");
+      if (totalHeader) {
+          totalHeader.innerHTML = `<span data-i18n="cartTotal">${translations[state.currentLang].cartTotal}</span> ${currencySymbol}<span id="cart-total">${cartTotal.innerText}</span>`;
       }
 
       cartFooter.style.display = "block";

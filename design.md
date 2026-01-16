@@ -162,7 +162,10 @@ export async function handler(event) {
     // Apply discount logic here (reduce total)
   }
 
-  // 3. Create PayPal order (existing code)
+  // 3. Create Order record
+  const [order] = await sql`INSERT INTO orders (user_id, discount_code, status) VALUES (${userId}, ${discountCode}, 'pending') RETURNING id`;
+
+  // 4. Create PayPal order (existing code)
 }
 
 4.3 PayPal capture webhook
