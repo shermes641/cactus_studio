@@ -5,9 +5,10 @@
     "strict": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["dom", "es2015"],
+    "lib": ["DOM", "ES2021"],
     "noEmitOnError": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": [
     "main.ts",

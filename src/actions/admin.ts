@@ -20,8 +20,10 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
     return;
   }
 
-  const batchSize = 10;
-  let lastId = 0;            // 🔑 cursor
+  // 🔒 MUST match Netlify-safe limits
+  const batchSize = 3;
+
+  let lastId = 0;
   let totalUpdated = 0;
   let allFailures: any[] = [];
   let hasMore = true;
@@ -39,7 +41,8 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
           body: JSON.stringify({
             force,
             limit: batchSize,
-            lastId
+            lastId,
+            folder: "cactus" // ✅ ALWAYS SEND
           })
         }
       );
@@ -52,41 +55,46 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
         return;
       }
 
+      // 🛑 SAFETY: cursor must advance
+      if (data.lastId === lastId && data.hasMore) {
+        hideLoadingMask();
+        console.error("Cursor did not advance", data);
+        alert(
+          "Upload stopped to prevent an infinite loop.\nCheck server logs."
+        );
+        return;
+      }
+
       totalUpdated += data.updated || 0;
 
-      if (data.failures?.length) {
+      if (Array.isArray(data.failures) && data.failures.length > 0) {
         allFailures.push(...data.failures);
       }
 
-      hasMore = data.hasMore;
-      lastId = data.lastId ?? lastId;
+      lastId = data.lastId;
+      hasMore = Boolean(data.hasMore);
       batches++;
 
       showLoadingMask(
-        `Uploading images...\n` +
-        `Batches processed: ${batches}\n` +
-        `Uploaded: ${totalUpdated}`
+        `Uploading images...\n\n` +
+        `Batches: ${batches}\n` +
+        `Uploaded: ${totalUpdated}\n` +
+        `Last ID: ${lastId}`
       );
 
+      // 🧠 Gentle pacing (important on Netlify)
       if (hasMore) {
-        await new Promise((r) => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, 400));
       }
     }
 
     hideLoadingMask();
 
-    if (totalUpdated === 0 && allFailures.length > 0) {
-      alert(
-        `Upload failed for all images.\n` +
-        `First error: ${allFailures[0].error}`
-      );
-    } else {
-      alert(
-        `Image upload completed!\n\n` +
-        `Uploaded: ${totalUpdated}\n` +
-        `Failures: ${allFailures.length}`
-      );
-    }
+    alert(
+      `Image upload completed!\n\n` +
+      `Uploaded: ${totalUpdated}\n` +
+      `Failures: ${allFailures.length}`
+    );
 
     try {
       fetchDataAndLoad();

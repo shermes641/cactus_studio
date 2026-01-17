@@ -9,13 +9,21 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const cloudName = process.env.CLOUDINARY_CLOUD;
-    const uploadPreset = process.env.CLOUDINARY_PRESET_SIGNED;
-    const apiKey = process.env.CLOUDINARY_API_KEY;
-    const apiSecret = process.env.CLOUDINARY_API_SECRET;
-    const databaseUrl = process.env.DATABASE_URL;
+    const {
+      CLOUDINARY_CLOUD,
+      CLOUDINARY_PRESET_SIGNED,
+      CLOUDINARY_API_KEY,
+      CLOUDINARY_API_SECRET,
+      DATABASE_URL
+    } = process.env;
 
-    if (!cloudName || !uploadPreset || !apiKey || !apiSecret || !databaseUrl) {
+    if (
+      !CLOUDINARY_CLOUD ||
+      !CLOUDINARY_PRESET_SIGNED ||
+      !CLOUDINARY_API_KEY ||
+      !CLOUDINARY_API_SECRET ||
+      !DATABASE_URL
+    ) {
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Missing environment variables" })
@@ -23,14 +31,15 @@ export const handler: Handler = async (event) => {
     }
 
     const body = event.body ? JSON.parse(event.body) : {};
-    const limit = body.limit ?? 5;
-    const lastId = body.lastId ?? 0;
-    const force = body.force ?? false;
+    const lastId = Number(body.lastId ?? 0);
+    const force = Boolean(body.force ?? false);
     const folder = body.folder ?? "cactus";
 
-    const sql = neon(databaseUrl);
+    // HARD LIMIT for Netlify safety
+    const limit = Math.min(Number(body.limit ?? 3), 5);
 
-    // Fetch next batch using cursor
+    const sql = neon(DATABASE_URL);
+
     const products = await sql`
       SELECT id, name, image_url
       FROM products
@@ -47,7 +56,6 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         body: JSON.stringify({
-          message: "No more products",
           hasMore: false,
           lastId
         })
@@ -59,74 +67,87 @@ export const handler: Handler = async (event) => {
 
     for (const product of products) {
       try {
+        if (!force && product.image_url?.includes("res.cloudinary.com")) {
+          continue;
+        }
+
         const imageRes = await fetch(product.image_url, {
-          signal: AbortSignal.timeout(10000),
           headers: {
             "User-Agent": "Mozilla/5.0 (ImageMigrator)"
           }
         });
 
         if (!imageRes.ok) {
-          throw new Error("Failed to fetch image");
+          throw new Error(`Image fetch failed (${imageRes.status})`);
         }
 
         const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
 
         const optimized = await sharp(imageBuffer)
-          .resize(1200, null, { fit: "inside", withoutEnlargement: true })
+          .resize(1200, null, {
+            fit: "inside",
+            withoutEnlargement: true
+          })
           .webp({ quality: 85 })
           .toBuffer();
-
-        const base64Image = optimized.toString("base64");
 
         const publicId =
           `product_${product.id}_` +
           product.name.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 
-        const timestamp = Math.round(Date.now() / 1000);
+        const timestamp = Math.floor(Date.now() / 1000);
 
-        // Build signed params
-        const params = {
+        const paramsToSign = {
           folder,
           invalidate: true,
           public_id: publicId,
           timestamp,
-          upload_preset: uploadPreset
+          upload_preset: CLOUDINARY_PRESET_SIGNED
         };
-
-        const paramsStr = Object.keys(params)
-          .sort()
-          .map((k) => `${k}=${params[k as keyof typeof params]}`)
-          .join("&");
 
         const signature = crypto
           .createHash("sha1")
-          .update(paramsStr + apiSecret)
+          .update(
+            Object.keys(paramsToSign)
+              .sort()
+              .map(
+                (k) =>
+                  `${k}=${paramsToSign[k as keyof typeof paramsToSign]}`
+              )
+              .join("&") + CLOUDINARY_API_SECRET
+          )
           .digest("hex");
 
+        // ✅ Web-standard multipart upload
+        const blob = new Blob([new Uint8Array(optimized)], {
+          type: "image/webp"
+        });
+
+
+        const form = new FormData();
+        form.append("file", blob, `${publicId}.webp`);
+        form.append("api_key", CLOUDINARY_API_KEY);
+        form.append("timestamp", String(timestamp));
+        form.append("signature", signature);
+        form.append("upload_preset", CLOUDINARY_PRESET_SIGNED);
+        form.append("public_id", publicId);
+        form.append("folder", folder);
+        form.append("invalidate", "true");
+
         const uploadRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              file: `data:image/webp;base64,${base64Image}`,
-              api_key: apiKey,
-              timestamp,
-              signature,
-              upload_preset: uploadPreset,
-              public_id: publicId,
-              folder,
-              invalidate: true
-            }),
-            signal: AbortSignal.timeout(15000)
+            body: form
           }
         );
 
         const uploadData = await uploadRes.json();
 
         if (!uploadRes.ok) {
-          throw new Error(uploadData.error?.message || "Upload failed");
+          throw new Error(
+            uploadData?.error?.message || "Cloudinary upload failed"
+          );
         }
 
         await sql`
@@ -149,7 +170,6 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: `Batch complete: ${updated} uploaded`,
         updated,
         failures,
         lastId: newLastId,
