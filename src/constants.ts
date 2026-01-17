@@ -1,6 +1,6 @@
 import { Translations } from './types.js';
 
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.2.0';
 export const EXCHANGE_RATE = (window as any).env?.EXCHANGE_RATE || 525;
 export const DEFAULT_IMG_CACHE = 100;
 export const MAX_IMGS = 1000;

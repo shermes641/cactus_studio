@@ -11,73 +11,95 @@ import { fileToBase64, uploadFileToCloudinary } from './shared.js';
 declare const window: any;
 
 export async function uploadImagesToCloudinary(force: boolean = false) {
-  if (!force && !confirm('Upload all product images to Cloudinary and update database? This may take several minutes.')) return;
-  
-  const batchSize = 20; // Process 20 products per request
-  let offset = 0;
+  if (
+    !force &&
+    !confirm(
+      "Upload all product images to Cloudinary and update database?\nThis may take several minutes."
+    )
+  ) {
+    return;
+  }
+
+  const batchSize = 10;
+  let lastId = 0;            // 🔑 cursor
   let totalUpdated = 0;
-  let totalSkipped = 0;
   let allFailures: any[] = [];
   let hasMore = true;
-  
-  showLoadingMask('Starting upload...');
-  
+  let batches = 0;
+
+  showLoadingMask("Starting upload...");
+
   try {
     while (hasMore) {
-      const res = await fetch('/.netlify/functions/upload-images-to-cloudinary', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force, offset, limit: batchSize })
-      });
-      
+      const res = await fetch(
+        "/.netlify/functions/upload-images-to-cloudinary",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            force,
+            limit: batchSize,
+            lastId
+          })
+        }
+      );
+
       const data = await res.json().catch(() => null);
-      
-      if (!res.ok) {
+
+      if (!res.ok || !data) {
         hideLoadingMask();
-        const err = (data && data.error) ? data.error : res.statusText;
-        alert('Image upload failed: ' + err);
+        alert("Image upload failed: " + (data?.error || res.statusText));
         return;
       }
-      
+
       totalUpdated += data.updated || 0;
-      totalSkipped += data.skipped || 0;
-      if (data.failures && data.failures.length > 0) {
-        allFailures = allFailures.concat(data.failures);
+
+      if (data.failures?.length) {
+        allFailures.push(...data.failures);
       }
-      
+
       hasMore = data.hasMore;
-      offset = data.processed || (offset + batchSize);
-      
-      // Update progress
-      showLoadingMask(`Uploading images... ${data.processed || offset} / ${data.total || '?'} processed`);
-      
-      // Small delay to avoid overwhelming the server
+      lastId = data.lastId ?? lastId;
+      batches++;
+
+      showLoadingMask(
+        `Uploading images...\n` +
+        `Batches processed: ${batches}\n` +
+        `Uploaded: ${totalUpdated}`
+      );
+
       if (hasMore) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((r) => setTimeout(r, 500));
       }
     }
-    
+
     hideLoadingMask();
-    
+
     if (totalUpdated === 0 && allFailures.length > 0) {
-      alert(`Upload failed for all images.\nFirst error: ${allFailures[0].error}\n\nPlease check your Cloudinary Cloud Name and Upload Preset.`);
-    } else if (totalUpdated === 0 && totalSkipped > 0) {
-      if (confirm(`No images uploaded. ${totalSkipped} images were skipped because they already have Cloudinary URLs.\n\nDo you want to FORCE re-upload all images?`)) {
-        await uploadImagesToCloudinary(true);
-        return;
-      }
+      alert(
+        `Upload failed for all images.\n` +
+        `First error: ${allFailures[0].error}`
+      );
     } else {
-      alert(`Image upload completed!\nUpdated: ${totalUpdated} images\nSkipped: ${totalSkipped}\nFailures: ${allFailures.length}`);
+      alert(
+        `Image upload completed!\n\n` +
+        `Uploaded: ${totalUpdated}\n` +
+        `Failures: ${allFailures.length}`
+      );
     }
-    
-    // Refresh product data
-    try { fetchDataAndLoad(); } catch (e) { /* ignore */ }
+
+    try {
+      fetchDataAndLoad();
+    } catch {
+      /* ignore */
+    }
   } catch (e: any) {
     hideLoadingMask();
-    console.error('Image upload error', e);
-    alert('Image upload error: ' + (e && e.message ? e.message : String(e)));
+    console.error("Image upload error", e);
+    alert("Image upload error: " + (e?.message || String(e)));
   }
 }
+
 
 export async function addProduct() {
   const name = (document.getElementById("new-name") as HTMLInputElement).value;
