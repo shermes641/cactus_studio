@@ -45,11 +45,19 @@ export const handler: Handler = async (event: any) => {
   let cart: any[];
   let discountCode: string | null;
   let currency: string;
+  let receiptUrl: string | null;
+  let isManual: boolean;
+  let shippingAddress: string | null;
+  let userId: number | null;
   try {
       const body = JSON.parse(event.body || '{}');
       cart = body.cart;
       discountCode = body.discountCode;
       currency = body.currency || 'USD';
+      receiptUrl = body.receiptUrl;
+      isManual = body.isManual;
+      shippingAddress = body.shippingAddress;
+      userId = body.userId;
   } catch (e) {
       return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
@@ -88,6 +96,32 @@ export const handler: Handler = async (event: any) => {
                 totalCents = Math.round(totalCents * (1 - discount.value / 100));
             }
         }
+    }
+
+    if (isManual) {
+        const orderRes = await sql`
+            INSERT INTO orders (user_id, total_amount_cents, currency, status, discount_code, shipping_addr, receipt_url)
+            VALUES (${userId || null}, ${totalCents}, ${currency}, 'manual_verification', ${discountCode || null}, ${shippingAddress || null}, ${receiptUrl || null})
+            RETURNING id
+        `;
+        const orderId = orderRes[0].id;
+
+        await sql`
+            INSERT INTO payments (order_id, provider, provider_payment_id, amount_cents, currency, status)
+            VALUES (${orderId}, 'other', ${receiptUrl}, ${totalCents}, ${currency}, 'manual_verification')
+        `;
+
+        for (const item of cart) {
+            await sql`
+                INSERT INTO order_items (order_id, product_id, name, price_cents, quantity)
+                VALUES (${orderId}, ${item.id}, ${item.name}, ${item.price_cents}, 1)
+            `;
+            const sku = `BOT-${item.id}-STD`;
+            await sql`UPDATE inventory SET quantity = quantity - 1 WHERE sku = ${sku}`;
+            await sql`INSERT INTO inventory_events (sku, delta, reason) VALUES (${sku}, -1, 'manual_sale')`;
+        }
+
+        return { statusCode: 200, body: JSON.stringify({ id: orderId }) };
     }
 
     // 2. Create PayPal Order

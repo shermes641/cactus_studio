@@ -521,7 +521,7 @@ header {
 }
 
 .checkout-btn {
-    background-color: var(--accent);
+    background-color: var(--primary);
     color: var(--white);
     border: none;
     padding: 10px;

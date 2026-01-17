@@ -11,13 +11,13 @@ export const handler: Handler = async (event, context) => {
 
   try {
     const cloudName = process.env.CLOUDINARY_CLOUD;
-    const uploadPreset = process.env.CLOUDINARY_PRESET;
+    const uploadPreset = process.env.CLOUDINARY_PRESET_SIGNED;
 
     if (!cloudName || !uploadPreset) {
       return {
         statusCode: 500,
         body: JSON.stringify({ 
-          error: 'Cloudinary configuration missing. Please set CLOUDINARY_CLOUD and CLOUDINARY_PRESET environment variables.' 
+          error: 'Cloudinary configuration missing. Please set CLOUDINARY_CLOUD and CLOUDINARY_PRESET_SIGNED environment variables.' 
         })
       };
     }
