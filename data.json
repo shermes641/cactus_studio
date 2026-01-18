@@ -3,7 +3,7 @@
     "id": 1,
     "name": "Golden Barrel",
     "scientific": "Echinocactus grusonii",
-    "price_cents": 2500,
+    "price_cents": 250,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500",
     "class": "Opuntia",
     "notes": "abc"
@@ -21,7 +21,7 @@
     "id": 3,
     "name": "Saguaro Giant",
     "scientific": "Carnegiea gigantea",
-    "price_cents": 14500,
+    "price_cents": 1450,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Carnegiea_gigantea.jpg?width=500",
     "class": "Mammillaria",
     "notes": "abc"
@@ -30,7 +30,7 @@
     "id": 4,
     "name": "Old Man Cactus",
     "scientific": "Cephalocereus senilis",
-    "price_cents": 3500,
+    "price_cents": 350,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cephalocereus_senilis.jpg?width=500",
     "class": "Aizoaceae",
     "notes": "abc"
@@ -39,7 +39,7 @@
     "id": 6,
     "name": "Prickly Pear",
     "scientific": "Opuntia ficus-indica",
-    "price_cents": 2200,
+    "price_cents": 220,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Opuntia_ficus-indica.jpg?width=500",
     "class": "Aloe",
     "notes": "abc"
@@ -57,7 +57,7 @@
     "id": 8,
     "name": "Fairy Castle",
     "scientific": "Acanthocereus tetragonus",
-    "price_cents": 2900,
+    "price_cents": 290,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Acanthocereus_tetragonus.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -66,7 +66,7 @@
     "id": 9,
     "name": "Bishop's Cap",
     "scientific": "Astrophytum myriostigma",
-    "price_cents": 3400,
+    "price_cents": 340,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Astrophytum_myriostigma.jpg?width=500",
     "class": "Haworthia",
     "notes": "abc"
@@ -75,7 +75,7 @@
     "id": 10,
     "name": "Crown of Thorns",
     "scientific": "Euphorbia milii",
-    "price_cents": 2700,
+    "price_cents": 270,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Euphorbia_milii.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -84,7 +84,7 @@
     "id": 11,
     "name": "Rat Tail Cactus",
     "scientific": "Disocactus flagelliformis",
-    "price_cents": 1900,
+    "price_cents": 190,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Disocactus_flagelliformis.jpg?width=500",
     "class": "Sansevieria",
     "notes": "abc"
@@ -93,7 +93,7 @@
     "id": 13,
     "name": "Ladyfinger",
     "scientific": "Mammillaria elongata",
-    "price_cents": 2200,
+    "price_cents": 220,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mammillaria_elongata.jpg?width=500",
     "class": "Sedum",
     "notes": "abc"
@@ -102,7 +102,7 @@
     "id": 14,
     "name": "Sand Dollar",
     "scientific": "Astrophytum asterias",
-    "price_cents": 4000,
+    "price_cents": 400,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Astrophytum_asterias.jpg?width=500",
     "class": "Sempervivum",
     "notes": "abc"
@@ -129,7 +129,7 @@
     "id": 17,
     "name": "Silver Torch",
     "scientific": "Cleistocactus strausii",
-    "price_cents": 4800,
+    "price_cents": 480,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cleistocactus_strausii.jpg?width=500",
     "class": "Mammillaria",
     "notes": "abc"
@@ -138,7 +138,7 @@
     "id": 18,
     "name": "Mexican Fence Post",
     "scientific": "Pachycereus marginatus",
-    "price_cents": 6000,
+    "price_cents": 600,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pachycereus_marginatus.jpg?width=500",
     "class": "Aizoaceae",
     "notes": "abc"
@@ -147,7 +147,7 @@
     "id": 19,
     "name": "Snowball Cactus",
     "scientific": "Mammillaria candida",
-    "price_cents": 3000,
+    "price_cents": 300,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mammillaria_candida.jpg?width=500",
     "class": "Aloe",
     "notes": "abc"
@@ -156,7 +156,7 @@
     "id": 20,
     "name": "Balloon Cactus",
     "scientific": "Parodia magnifica",
-    "price_cents": 3700,
+    "price_cents": 370,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Parodia_magnifica.jpg?width=500",
     "class": "Crassula",
     "notes": "abc"
@@ -174,7 +174,7 @@
     "id": 24,
     "name": "Devil's Tongue",
     "scientific": "Ferocactus latispinus",
-    "price_cents": 3300,
+    "price_cents": 330,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ferocactus_latispinus.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -183,7 +183,7 @@
     "id": 25,
     "name": "Beavertail",
     "scientific": "Opuntia basilaris",
-    "price_cents": 2800,
+    "price_cents": 280,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Opuntia_basilaris.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -192,7 +192,7 @@
     "id": 26,
     "name": "Easter Cactus",
     "scientific": "Hatiora gaertneri",
-    "price_cents": 2100,
+    "price_cents": 210,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Hatiora_gaertneri.jpg?width=500",
     "class": "Haworthia",
     "notes": "abc"
@@ -201,7 +201,7 @@
     "id": 27,
     "name": "Mistletoe Cactus",
     "scientific": "Rhipsalis baccifera",
-    "price_cents": 3500,
+    "price_cents": 350,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rhipsalis_baccifera.jpg?width=500",
     "class": "Sedum",
     "notes": "abc"
@@ -210,7 +210,7 @@
     "id": 28,
     "name": "Tiger Jaws",
     "scientific": "Faucaria tigrina",
-    "price_cents": 1600,
+    "price_cents": 160,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Faucaria_tigrina.jpg?width=500",
     "class": "Sempervivum",
     "notes": "abc"
@@ -219,7 +219,7 @@
     "id": 29,
     "name": "Moon Cactus",
     "scientific": "Gymnocalycium mihanovichii",
-    "price_cents": 1500,
+    "price_cents": 150,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Gymnocalycium_mihanovichii.jpg?width=500",
     "class": "Opuntia",
     "notes": "abc"
@@ -228,7 +228,7 @@
     "id": 30,
     "name": "Apple Cactus",
     "scientific": "Cereus repandus",
-    "price_cents": 4500,
+    "price_cents": 450,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cereus_repandus.jpg?width=500",
     "class": "Euphorbia",
     "notes": "abc"
@@ -237,7 +237,7 @@
     "id": 31,
     "name": "Aloe Vera",
     "scientific": "Aloe vera",
-    "price_cents": 1500,
+    "price_cents": 150,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aloe_vera.jpg?width=500",
     "class": "Mammillaria",
     "notes": "abc"
@@ -246,7 +246,7 @@
     "id": 32,
     "name": "Jade Plant",
     "scientific": "Crassula ovata",
-    "price_cents": 2400,
+    "price_cents": 240,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Crassula_ovata.jpg?width=500",
     "class": "Aizoaceae",
     "notes": "abc"
@@ -264,7 +264,7 @@
     "id": 34,
     "name": "Zebra Haworthia",
     "scientific": "Haworthia fasciata",
-    "price_cents": 1400,
+    "price_cents": 140,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Haworthia_fasciata.jpg?width=500",
     "class": "Haworthia",
     "notes": "abc"
@@ -273,7 +273,7 @@
     "id": 35,
     "name": "String of Pearls",
     "scientific": "Senecio rowleyanus",
-    "price_cents": 3000,
+    "price_cents": 300,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Senecio_rowleyanus.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -282,7 +282,7 @@
     "id": 36,
     "name": "Pencil Cactus",
     "scientific": "Euphorbia tirucalli",
-    "price_cents": 2800,
+    "price_cents": 280,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Euphorbia_tirucalli.jpg?width=500",
     "class": "Haworthia",
     "notes": "abc"
@@ -291,7 +291,7 @@
     "id": 37,
     "name": "Ghost Plant",
     "scientific": "Graptopetalum paraguayense",
-    "price_cents": 1400,
+    "price_cents": 140,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Graptopetalum_paraguayense.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -300,7 +300,7 @@
     "id": 39,
     "name": "Snake Plant",
     "scientific": "Sansevieria trifasciata",
-    "price_cents": 3800,
+    "price_cents": 380,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sansevieria_trifasciata.jpg?width=500",
     "class": "Sansevieria",
     "notes": "abc"
@@ -309,7 +309,7 @@
     "id": 40,
     "name": "Burro's Tail",
     "scientific": "Sedum morganianum",
-    "price_cents": 2300,
+    "price_cents": 230,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sedum_morganianum.jpg?width=500",
     "class": "Sedum",
     "notes": "abc"
@@ -327,7 +327,7 @@
     "id": 43,
     "name": "Pink Lady",
     "scientific": "Callisia repens",
-    "price_cents": 1300,
+    "price_cents": 130,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Callisia_repens.jpg?width=500",
     "class": "Opuntia",
     "notes": "abc"
@@ -336,7 +336,7 @@
     "id": 44,
     "name": "Hens and Chicks",
     "scientific": "Sempervivum tectorum",
-    "price_cents": 1100,
+    "price_cents": 110,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sempervivum_tectorum.jpg?width=500",
     "class": "Euphorbia",
     "notes": "abc"
@@ -345,7 +345,7 @@
     "id": 45,
     "name": "Blue Chalksticks",
     "scientific": "Senecio serpens",
-    "price_cents": 2100,
+    "price_cents": 210,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Senecio_serpens.jpg?width=500",
     "class": "Mammillaria",
     "notes": "abc"
@@ -354,7 +354,7 @@
     "id": 46,
     "name": "Coral Cactus",
     "scientific": "Euphorbia lactea",
-    "price_cents": 4500,
+    "price_cents": 450,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Euphorbia_lactea.jpg?width=500",
     "class": "Aizoaceae",
     "notes": "abc"
@@ -363,7 +363,7 @@
     "id": 47,
     "name": "Jelly Bean",
     "scientific": "Sedum rubrotinctum",
-    "price_cents": 1200,
+    "price_cents": 120,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sedum_rubrotinctum.jpg?width=500",
     "class": "Aloe",
     "notes": "abc"
@@ -372,7 +372,7 @@
     "id": 49,
     "name": "Lipstick Echeveria",
     "scientific": "Echeveria agavoides",
-    "price_cents": 1500,
+    "price_cents": 150,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Echeveria_agavoides.jpg?width=500",
     "class": "Echeveria",
     "notes": "abc"
@@ -381,7 +381,7 @@
     "id": 50,
     "name": "Tree Houseleek",
     "scientific": "Aeonium arboreum",
-    "price_cents": 3200,
+    "price_cents": 320,
     "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aeonium_arboreum.jpg?width=500",
     "class": "Echeveria"
   }

@@ -3,6 +3,9 @@ import { translations } from '../constants.js';
 
 declare const window: any;
 
+export const USE_CLOUDINARY = true;
+
+
 export function toggleLanguage() {
     const nextLang = state.currentLang === 'en' ? 'es' : 'en';
     const msg = translations[state.currentLang].alertLangChange;
@@ -35,4 +38,19 @@ export async function uploadFileToCloudinary(file: string, folder?: string): Pro
     if (!res.ok) throw new Error("Upload failed");
     const data = await res.json();
     return data.secure_url;
+}
+
+export async function uploadFileToGoogleDrive(file: File, folder?: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folderType', folder || 'cactus');
+
+  const res = await fetch("/.netlify/functions/upload-to-google-drive", {
+    method: "POST",
+    body: formData
+  });
+  
+  if (!res.ok) throw new Error("Upload failed");
+  const data = await res.json();
+  return data.webViewLink;
 }

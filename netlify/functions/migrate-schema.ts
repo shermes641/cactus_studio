@@ -38,6 +38,8 @@ export const handler: Handler = async (event: any, context: any) => {
     out.push('ensured users.reset_token');
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ`;
     out.push('ensured users.reset_token_expires');
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS session_token TEXT`;
+    out.push('ensured users.session_token');
     
     await sql`DROP TABLE IF EXISTS user_discounts`;
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS discount_code TEXT REFERENCES discounts(code)`;
@@ -54,7 +56,8 @@ export const handler: Handler = async (event: any, context: any) => {
     out.push('ensured orders.receipt_url column');
 
     // 4) Populate statuses with common values + any existing order.status values
-    const defaults = ['pending','processing','completed','cancelled','refunded', 'manual_verification'];
+    const defaults = ['cancelled', 'manual_verification', 'pending', 'processing', 'refunded', 'shipped'];
+
     for (const s of defaults) {
       await sql`INSERT INTO statuses (code, description) VALUES (${s}, ${s}) ON CONFLICT (code) DO NOTHING`;
     }

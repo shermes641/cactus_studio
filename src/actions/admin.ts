@@ -3,10 +3,10 @@
 import { state } from '../state.js';
 import { translations } from '../constants.js';
 import { showLoadingMask, hideLoadingMask, getStorageKey } from '../utils.js';
-import { toggleAdminModal, ensureAdminFieldsExist, setupDropZone } from '../ui.js';
+import { toggleAdminModal, ensureAdminFieldsExist, setupDropZone, toggleOrdersModal, closeReceiptModal, refreshOrdersModal } from '../ui.js';
 import { Product } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary } from './shared.js';
+import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY } from './shared.js';
 
 declare const window: any;
 
@@ -21,7 +21,8 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
   }
 
   // 🔒 MUST match Netlify-safe limits
-  const batchSize = 3;
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const batchSize = isLocal ? 10 : 2;
 
   let lastId = 0;
   let totalUpdated = 0;
@@ -29,7 +30,7 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
   let hasMore = true;
   let batches = 0;
 
-  showLoadingMask("Starting upload...");
+  showLoadingMask(`Starting upload... batch: ${batchSize}`);
 
   try {
     while (hasMore) {
@@ -69,6 +70,7 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
 
       if (Array.isArray(data.failures) && data.failures.length > 0) {
         allFailures.push(...data.failures);
+        console.error("Batch failures:", data.failures);
       }
 
       lastId = data.lastId;
@@ -84,22 +86,27 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
 
       // 🧠 Gentle pacing (important on Netlify)
       if (hasMore) {
-        await new Promise((r) => setTimeout(r, 400));
+        await new Promise((r) => setTimeout(r, 2000));
       }
     }
 
     hideLoadingMask();
 
-    alert(
-      `Image upload completed!\n\n` +
-      `Uploaded: ${totalUpdated}\n` +
-      `Failures: ${allFailures.length}`
-    );
+    let msg = `Image upload completed!\n\nUploaded: ${totalUpdated}\nFailures: ${allFailures.length}`;
+
+    if (allFailures.length > 0) {
+      console.error("All Upload Failures:", allFailures);
+      const details = allFailures.map((f: any) => `• ${f.name || f.id}: ${f.error}`).join('\n');
+      msg += `\n\nErrors:\n${details.substring(0, 500)}`;
+      if (details.length > 500) msg += "\n... (check console for full list)";
+    }
+
+    alert(msg);
 
     try {
       fetchDataAndLoad();
-    } catch {
-      /* ignore */
+    } catch(e) {
+      console.error("fetchDataAndLoad Failed to refresh page", e);
     }
   } catch (e: any) {
     hideLoadingMask();
@@ -119,21 +126,26 @@ export async function addProduct() {
   const notes = (document.getElementById("new-notes") as HTMLTextAreaElement)?.value || "";
 
   if (state.pendingUploadFile) {
-      showLoadingMask("Uploading image...");
-      try {
-        const b64 = await fileToBase64(state.pendingUploadFile);
+    showLoadingMask("Uploading file...");
+    try {
+      const b64 = await fileToBase64(state.pendingUploadFile);
+      const filename = state.pendingUploadFile.name;
+      const mimeType = state.pendingUploadFile.type;
+      console.dir(state.pendingUploadFile);
+      if (USE_CLOUDINARY) {
         image = await uploadFileToCloudinary(b64, 'cactus');
-        // Preserve public_id logic if needed, but for new uploads it's fresh
-        if (image && image.includes('cloudinary.com')) {
-             // Logic to keep public_id if replacing existing image could be added here
-        }
-      } catch (e: any) {
-          hideLoadingMask();
-          alert("Image upload failed: "  + e.message);
-          return;
+      } else {
+        image = await uploadFileToGoogleDrive(state.pendingUploadFile, 'cactus');
       }
-      hideLoadingMask();
-  }
+      // image will be the webViewLink from Google Drive or Cloudinary url
+
+    } catch (e: any) {
+        hideLoadingMask();
+        alert("File upload failed: "  + e.message);
+        return;
+    }
+    hideLoadingMask();
+}
 
   if (name && price && image) {
     if (state.editingProductId) {
@@ -320,4 +332,98 @@ export async function runMigration() {
     console.error('Migration error', e);
     alert('Migration error: ' + (e && e.message ? e.message : String(e)));
   }
+}
+
+export async function fetchPendingOrders(status: string = 'active') {
+  const res = await fetch(`/.netlify/functions/get-pending-orders?status=${status}`);
+  if (!res.ok) throw new Error("Failed to fetch orders");
+  return await res.json();
+}
+
+export async function verifyOrder(orderId: number) {
+  showLoadingMask("Verifying order...");
+  try {
+      const res = await fetch('/.netlify/functions/update-order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderIds: [orderId], status: 'processing' })
+      });
+      
+      if (!res.ok) throw new Error("Update failed");
+      
+      alert(translations[state.currentLang].alertOrderVerified);
+      closeReceiptModal();
+      refreshOrdersModal();
+  } catch (e: any) {
+      alert("Error: " + e.message);
+  } finally {
+      hideLoadingMask();
+  }
+}
+
+export async function unverifyOrder(orderId: number) {
+  showLoadingMask("Unverifying order...");
+  try {
+      const res = await fetch('/.netlify/functions/update-order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderIds: [orderId], status: 'manual_verification' })
+      });
+      
+      if (!res.ok) throw new Error("Update failed");
+      
+      alert(translations[state.currentLang].alertOrderUnverified);
+      closeReceiptModal();
+      refreshOrdersModal();
+  } catch (e: any) {
+      alert("Error: " + e.message);
+  } finally {
+      hideLoadingMask();
+  }
+}
+
+export async function shipOrder(orderId: number) {
+  if (!confirm(translations[state.currentLang].confirmShip)) return;
+  showLoadingMask("Updating...");
+  try {
+      const res = await fetch('/.netlify/functions/update-order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderIds: [orderId], status: 'shipped' })
+      });
+      if (!res.ok) throw new Error("Update failed");
+      alert(translations[state.currentLang].alertOrderShipped);
+      closeReceiptModal();
+      refreshOrdersModal();
+  } catch (e: any) {
+      alert("Error: " + e.message);
+  } finally {
+      hideLoadingMask();
+  }
+}
+
+export async function cancelOrder(orderId: number) {
+  if (!confirm(translations[state.currentLang].confirmCancelOrder)) return;
+  showLoadingMask("Cancelling...");
+  try {
+      const res = await fetch('/.netlify/functions/update-order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderIds: [orderId], status: 'cancelled' })
+      });
+      if (!res.ok) throw new Error("Update failed");
+      alert(translations[state.currentLang].alertOrderCancelled);
+      closeReceiptModal();
+      refreshOrdersModal();
+  } catch (e: any) {
+      alert("Error: " + e.message);
+  } finally {
+      hideLoadingMask();
+  }
+}
+
+export async function fetchOrderItems(orderId: number) {
+  const res = await fetch(`/.netlify/functions/get-order-items?orderId=${orderId}`);
+  if (!res.ok) throw new Error("Failed to fetch order items");
+  return await res.json();
 }

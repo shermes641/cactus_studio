@@ -6,6 +6,8 @@
     "@netlify/functions": "^5.1.2",
     "@netlify/neon": "^0.1.0",
     "bcryptjs": "^2.4.3",
+    "busboy": "^1.6.0",
+    "googleapis": "^170.1.0",
     "netlify-cli": "^23.13.3",
     "nodemailer": "^7.0.12",
     "puter": "^1.0.0",
@@ -13,6 +15,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/busboy": "^1.5.4",
     "@types/nodemailer": "^7.0.5",
     "typescript": "^5.0.0"
   },

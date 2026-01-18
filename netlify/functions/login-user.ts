@@ -1,6 +1,8 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { Buffer } from 'buffer';
 
 export const handler: Handler = async (event: any, context: any) => {
   if (event.httpMethod !== 'POST') {
@@ -48,10 +50,24 @@ export const handler: Handler = async (event: any, context: any) => {
       };
     }
 
+    // Generate Session Token
+    const secret = process.env.JWT_SECRET || 'default_secret_change_me';
+    const payload = Buffer.from(JSON.stringify({ 
+      userId: user.id, 
+      email: user.email,
+      iat: Date.now() // Add timestamp to make token unique
+    })).toString('base64');
+    const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    const token = `${payload}.${signature}`;
+
+    // Save token to DB
+    await sql('UPDATE users SET session_token = $1 WHERE id = $2', [token, user.id]);
+
     return {
       statusCode: 200,
       body: JSON.stringify({
         message: 'Login successful',
+        token,
         user: {
           id: user.id,
           email: user.email,

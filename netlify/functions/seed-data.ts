@@ -126,7 +126,9 @@ export const handler: Handler = async (event: any, context: any) => {
       await sql`DELETE FROM inventory`;
       
       for (const item of data) {
-        const sku = `BOT-${item.id}-STD`;
+        const cleanClass = (item.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+        const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+        const sku = `${cleanClass}-${item.id}-${cleanName}`;
         await sql`INSERT INTO inventory (sku, image_id, quantity) VALUES (${sku}, ${item.id}, 1)`;
       }
       messages.push("Inventory reset to quantity 1.");

@@ -34,7 +34,6 @@ export const handler: Handler = async (event: any) => {
         return { statusCode: 404, body: JSON.stringify({ error: "No plants identified" }) };
     }
 
-    console.log('SSSS', JSON.stringify(suggestions, null, 2));
     const suggestion = suggestions[0];
     const scientific = suggestion.name;
     const plantClass = suggestion.details?.taxonomy?.class || scientific.split(' ')[0] || "Unknown";

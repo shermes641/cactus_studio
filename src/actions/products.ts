@@ -6,6 +6,7 @@ import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from
 import { updatePaginationControls, renderFilterControls, injectLogoutButton, ensureAdminFieldsExist, setupDropZone, toggleAdminModal } from '../ui.js';
 import { Product } from '../types.js';
 import { addToCart } from '../actions/cart.js';
+import { USE_CLOUDINARY } from './shared.js';
 
 declare const window: any;
 
@@ -16,6 +17,17 @@ export async function fetchDataAndLoad() {
   // Actually, let's import it to be safe.
   const { groupSidebarElements } = await import('../ui.js');
   groupSidebarElements();
+
+  // Try to restore session if not logged in
+  if (!state.currentUser) {
+      console.log("fetchDataAndLoad: Checking for session...");
+      try {
+        const { restoreSession } = await import('./auth.js');
+        await restoreSession();
+      } catch (e) {
+        console.error("Error importing auth or restoring session:", e);
+      }
+  }
 
   const savedPage = parseInt(localStorage.getItem('cactusPage') || '1') || 1;
   const savedLimit = parseInt(localStorage.getItem('cactusLimit') || '20') || 20;
@@ -169,7 +181,9 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         const q = state.searchQuery.toLowerCase();
         visibleProducts = visibleProducts.filter(p => {
             const price = (p.price_cents / 100).toFixed(2);
-            const sku = `BOT-${p.id}-STD`.toLowerCase();
+            const cleanClass = (p.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+            const cleanName = (p.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+            const sku = `${cleanClass}-${p.id}-${cleanName}`.toLowerCase();
             return p.name.toLowerCase().includes(q) || 
                    price.includes(q) ||
                    sku.includes(q);
@@ -248,7 +262,9 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         const price = (Number(product.price_cents) / 100).toFixed(2);
         if (price.includes(q)) matches.push(t.labelMatchPrice);
         
-        const genSku = `BOT-${product.id}-STD`.toLowerCase();
+        const cleanClass = (product.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+        const cleanName = (product.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+        const genSku = `${cleanClass}-${product.id}-${cleanName}`.toLowerCase();
         if ((product.sku && product.sku.toLowerCase().includes(q)) || genSku.includes(q)) matches.push(t.labelMatchSku);
 
         if (matches.length > 0) {
@@ -284,31 +300,51 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
 
       const priceUSD = Number(product.price_cents) / 100;
       const priceCRC = priceUSD * EXCHANGE_RATE;
-
+      
+      if (!displayImage.includes('?export=download&id=XXXXXXXXXXXX')){
+        grid.innerHTML += `
+            <div class="product-card">
+                <picture>
+                    <source media="(max-width: 600px)" srcset="${displayImage}?w=300,q=auto,f_webp" type="image/webp">
+                    <source media="(max-width: 900px)" srcset="${displayImage}?w_400,q_auto,f_webp" type="image/webp">
+                    <img src="${displayImage}?w=500,q_auto" 
+                        srcset="${displayImage}?w=300,q_auto 300w, ${displayImage}?w=400,q_auto 400w, ${displayImage}?w=500,q_auto 500w"
+                        sizes="(max-width: 600px) 300px, (max-width: 900px) 400px, 500px"
+                        class="product-image product-image-zoom" 
+                        alt="${product.name}" 
+                        loading="lazy"
+                        onclick="openImageModal(${product.id})">
+                </picture>
+                <div class="product-info">
+                    <div class="product-name">${product.name}</div>
+                    ${metaRow}
+                    ${detailsRow}
+                    ${stockDisplay}
+                    <div class="product-price">$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</div>
+                    <button class="add-btn ${btnClass}" ${btnAttrs}>${btnText}</button>
+                </div>
+            </div>`;
+    } else {
+      const di = `https://lh3.googleusercontent.com/d/${displayImage.split("?export=download&id=")[1]}=w500`;
+      console.log('DIIIIII', displayImage);
       grid.innerHTML += `
-          <div class="product-card">
-              <picture>
-                <source media="(max-width: 600px)" srcset="${displayImage}?w=300,q=auto,f_webp" type="image/webp">
-                <source media="(max-width: 900px)" srcset="${displayImage}?w_400,q_auto,f_webp" type="image/webp">
-                <img src="${displayImage}?w=500,q_auto" 
-                     srcset="${displayImage}?w=300,q_auto 300w, ${displayImage}?w=400,q_auto 400w, ${displayImage}?w=500,q_auto 500w"
-                     sizes="(max-width: 600px) 300px, (max-width: 900px) 400px, 500px"
-                     class="product-image product-image-zoom" 
-                     alt="${product.name}" 
-                     loading="lazy"
-                     onclick="openImageModal(${product.id})">
-              </picture>
-              <div class="product-info">
-                  <div class="product-name">${product.name}</div>
-                  ${metaRow}
-                  ${detailsRow}
-                  ${stockDisplay}
-                  <div class="product-price">$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</div>
-                  <button class="add-btn ${btnClass}" ${btnAttrs}>${btnText}</button>
-              </div>
-          </div>
-      `;
-    });
+        <div class="product-card">
+            <img src="${di}" 
+                class="product-image product-image-zoom" 
+                alt="${product.name}" 
+                loading="lazy"
+                onclick="openImageModal(${product.id})">
+            <div class="product-info">
+                <div class="product-name">${product.name}</div>
+                ${metaRow}
+                ${detailsRow}
+                ${stockDisplay}
+                <div class="product-price">$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</div>
+                <button class="add-btn ${btnClass}" ${btnAttrs}>${btnText}</button>
+            </div>
+        </div>`;
+    }
+   });
     setTimeout(() => grid.classList.remove('fade-out'), 50);
   }
 
@@ -347,7 +383,7 @@ export async function openImageModal(id: number, fromCart: boolean = false) {
   }
   if (!product) return;
 
-  if (state.isAdmin) {
+  if (state.isAdmin && !fromCart) {
     toggleAdminModal();
     ensureAdminFieldsExist();
     (document.getElementById("new-name") as HTMLInputElement).value = product.name;

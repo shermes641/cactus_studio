@@ -1,6 +1,6 @@
 import { state } from "../state.js";
-import { translations } from "../constants.js";
-import { identifyPlant, openProfileModal } from "../actions.js";
+import { translations, EXCHANGE_RATE } from "../constants.js";
+import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems } from "../actions.js";
 
 export function handleFileSelect(file: File) {
   if (!file.type.startsWith("image/")) return;
@@ -259,6 +259,12 @@ export async function injectAdminButtons() {
       "uploadImagesToCloudinary()",
       "add-btn hamburger-menu-item bg-orange"
     ),
+    createBtn(
+      "orders-btn",
+      "btnOrders",
+      "toggleOrdersModal()",
+      "hamburger-menu-item bg-blue"
+    ),
   ];
 
   btns.forEach((btn) => {
@@ -309,9 +315,274 @@ export async function injectAdminButtons() {
 }
 
 export function removeAdminButtons() {
-  const ids = ["admin-btn", "sync-btn", "run-migrate-btn", "upload-images-btn", "admin-user-select-container"];
+  const ids = ["admin-btn", "sync-btn", "run-migrate-btn", "upload-images-btn", "orders-btn", "admin-user-select-container"];
   ids.forEach((id) => {
     const btn = document.getElementById(id);
     if (btn) btn.remove();
   });
+}
+
+export async function refreshOrdersModal() {
+    const list = document.getElementById("orders-list");
+    if (!list) return;
+
+    const filterSelect = document.getElementById("orders-filter") as HTMLSelectElement;
+    const filter = filterSelect ? filterSelect.value : 'active';
+    const t = translations[state.currentLang];
+
+    const titleEl = document.getElementById("orders-modal-title");
+    if (titleEl) {
+        const titles: {[key: string]: string} = {
+            'active': t.statusActive,
+            'all': t.statusAll,
+            'shipped': t.statusShipped,
+            'cancelled': t.statusCancelled,
+            'refunded': t.statusRefunded,
+            'pending': t.statusPending,
+            'manual_verification': t.statusManual
+        };
+        titleEl.innerText = titles[filter] || t.ordersTitle;
+    }
+    
+    list.innerHTML = "<p>Loading...</p>";
+    
+    try {
+        const { fetchPendingOrders } = await import("../actions.js");
+        const orders = await fetchPendingOrders(filter);
+        renderOrdersList(orders);
+    } catch (e) {
+        if (list) list.innerText = "Error loading orders.";
+    }
+}
+
+export async function toggleOrdersModal() {
+  let modal = document.getElementById("orders-modal");
+  if (!modal) {
+    // Create modal structure
+    modal = document.createElement("div");
+    modal.id = "orders-modal";
+    modal.className = "modal";
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 800px; width: 95%; max-height: 70vh; display: flex; flex-direction: column;">
+        <span class="close-btn" onclick="toggleOrdersModal()">&times;</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; flex-shrink: 0;">
+            <h2 id="orders-modal-title" style="margin: 0;">${translations[state.currentLang].statusActive}</h2>
+            <select id="orders-filter" onchange="refreshOrdersModal()" style="padding: 5px; font-size: 1rem; border-radius: 4px; border: 1px solid #ccc;">
+                <option value="active" selected>${translations[state.currentLang].statusActive}</option>
+                <option value="all">${translations[state.currentLang].statusAll}</option>
+                <option value="manual_verification">${translations[state.currentLang].statusManual}</option>
+                <option value="shipped">${translations[state.currentLang].statusShipped}</option>
+                <option value="cancelled">${translations[state.currentLang].statusCancelled}</option>
+                <option value="refunded">${translations[state.currentLang].statusRefunded}</option>
+                <option value="pending">${translations[state.currentLang].statusPending}</option>
+            </select>
+        </div>
+        <div id="orders-list" style="overflow-y: auto; margin-bottom: 20px; flex-grow: 1;"></div>
+        <div class="manual-payment-actions" style="flex-shrink: 0;">
+           <button class="add-btn cancel-btn" style="width: auto;" onclick="toggleOrdersModal()" data-i18n="btnCancel">${translations[state.currentLang].btnCancel}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Close on outside click
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) toggleOrdersModal();
+    });
+  }
+
+  const isHidden = modal.style.display !== "flex";
+  
+  if (isHidden) {
+      modal.style.display = "flex";
+      const filterSelect = document.getElementById("orders-filter") as HTMLSelectElement;
+      if (filterSelect) {
+          filterSelect.value = 'active';
+      }
+      refreshOrdersModal();
+  } else {
+      modal.style.display = "none";
+  }
+}
+
+function renderOrdersList(orders: any[]) {
+    const list = document.getElementById("orders-list");
+    if (!list) return;
+    
+    const t = translations[state.currentLang];
+    
+    if (!orders || orders.length === 0) {
+        const filterSelect = document.getElementById("orders-filter") as HTMLSelectElement;
+        const filter = filterSelect ? filterSelect.value : 'active';
+        
+        const titles: {[key: string]: string} = {
+            'active': t.statusActive,
+            'all': t.statusAll,
+            'shipped': t.statusShipped,
+            'cancelled': t.statusCancelled,
+            'refunded': t.statusRefunded,
+            'pending': t.statusPending,
+            'manual_verification': t.statusManual
+        };
+        const currentTitle = titles[filter] || t.ordersTitle;
+        list.innerHTML = `<p>${t.noOrdersFound.replace('{0}', currentTitle)}</p>`;
+        return;
+    }
+    
+    let html = `<table class="orders-table"><thead><tr>
+        <th>${t.headerOrder}</th>
+        <th>${t.labelUser}</th>
+        <th>${t.labelPayPal}</th>
+        <th>${t.labelShipping}</th>
+        <th>${t.headerTotal}</th>
+        <th>${t.headerStatus}</th>
+        <th>Action</th>
+    </tr></thead><tbody>`;
+        
+    orders.forEach(o => {
+        const total = (o.total_amount_cents / 100).toFixed(2);
+        const date = new Date(o.created_at).toLocaleDateString();
+        
+        let buttonsHtml = `<div style="display: flex; flex-direction: column; gap: 5px;">`;
+        
+        if (o.receipt_url) {
+             buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); openReceiptModal(${o.id}, '${o.receipt_url}')">${t.viewReceipt}</button>`;
+        }
+
+        if (o.status === 'manual_verification') {
+            buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); verifyOrder(${o.id})">${t.btnVerify}</button>`;
+        } else if (o.status === 'processing' && o.receipt_url) {
+            buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); unverifyOrder(${o.id})">${t.btnUnverify}</button>`;
+        }
+
+        if (o.status !== 'cancelled' && o.status !== 'shipped') {
+             buttonsHtml += `<button class="add-btn" style="background-color: var(--info); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); shipOrder(${o.id})">${t.btnShip}</button>`;
+             buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); cancelOrder(${o.id})">${t.btnCancelOrder}</button>`;
+        }
+        
+        buttonsHtml += `</div>`;
+        
+        html += `<tr onclick="openOrderDetailsModal(${o.id})" style="cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+            <td>#${o.id}<br><small>${date}</small></td>
+            <td>${o.user_name || '-'}<br><small>${o.user_email || '-'}</small></td>
+            <td>${o.customer_name || '-'}<br><small>${o.customer_email || '-'}</small><br><small>ID: ${o.paypal_order_id || '-'}</small></td>
+            <td><div style="max-width: 200px; font-size: 0.9em;">${o.shipping_addr || '-'}</div></td>
+            <td>${total} ${o.currency}</td>
+            <td>${o.status}</td>
+            <td>${buttonsHtml}</td>
+        </tr>`;
+    });
+    
+    html += `</tbody></table>`;
+    list.innerHTML = html;
+}
+
+export function openReceiptModal(orderId: number, url: string) {
+    let modal = document.getElementById("receipt-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "receipt-modal";
+        modal.className = "modal";
+        document.body.appendChild(modal);
+    }
+    
+    const t = translations[state.currentLang];
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-btn" onclick="closeReceiptModal()">&times;</span>
+            <h3>${t.receiptModalTitle} #${orderId}</h3>
+            <img src="${url}" style="max-width: 100%; max-height: 60vh; margin: 10px 0; border: 1px solid #ddd;">
+            <div class="manual-payment-actions" style="justify-content: center;">
+                <button class="add-btn cancel-btn" onclick="closeReceiptModal()">${t.btnCancel}</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = "flex";
+}
+
+export function closeReceiptModal() {
+    const modal = document.getElementById("receipt-modal");
+    if (modal) modal.style.display = "none";
+}
+
+export async function openOrderDetailsModal(orderId: number) {
+    let modal = document.getElementById("order-details-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "order-details-modal";
+        modal.className = "modal";
+        document.body.appendChild(modal);
+
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeOrderDetailsModal();
+        });
+    }
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px; width: 95%;">
+            <span class="close-btn" onclick="closeOrderDetailsModal()">&times;</span>
+            <h3>Order #${orderId} Items</h3>
+            <div id="order-items-content" style="max-height: 60vh; overflow-y: auto;">
+                <p>Loading items...</p>
+            </div>
+            <div class="manual-payment-actions" style="justify-content: flex-end; margin-top: 15px;">
+                <button class="add-btn" onclick="closeOrderDetailsModal()">Close</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = "flex";
+    
+    try {
+        const items = await fetchOrderItems(orderId);
+        const container = document.getElementById("order-items-content");
+        if (!container) return;
+        
+        if (!items || items.length === 0) {
+            container.innerHTML = "<p>No items found for this order.</p>";
+            return;
+        }
+        
+        let html = "";
+        items.forEach((item: any) => {
+             const priceUSD = Number(item.price_cents) / 100;
+             const priceCRC = priceUSD * EXCHANGE_RATE;
+             
+             const cleanClass = (item.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+             const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+             const sku = `${cleanClass}-${item.product_id}-${cleanName}`;
+
+             let imgHtml = "";
+             if (item.image_url) {
+                 const thumbnailUrl = item.image_url.includes('cloudinary.com')
+                  ? item.image_url.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/')
+                  : item.image_url;
+                 imgHtml =  `<img src="${thumbnailUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; cursor: pointer;" onclick="openImageModal(${item.product_id}, true)">`;
+             }
+             
+             html += `
+                <div style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; padding: 10px 0;">
+                    ${imgHtml}
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: bold;">${item.name}</div>
+                        <div style="font-size: 0.85em; color: #666;">${item.scientific || ''}</div>
+                        <div style="font-size: 0.8em; color: #888;">ID: ${item.product_id} | SKU: ${sku}</div>
+                        <div style="color: #666; font-size: 0.9em;">$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</div>
+                    </div>
+                    <div style="font-weight: bold;">x${item.quantity}</div>
+                </div>
+             `;
+        });
+        
+        container.innerHTML = html;
+        
+    } catch (e) {
+        const container = document.getElementById("order-items-content");
+        if (container) container.innerHTML = `<p style="color: red;">Error loading items.</p>`;
+    }
+}
+
+export function closeOrderDetailsModal() {
+    const modal = document.getElementById("order-details-modal");
+    if (modal) modal.style.display = "none";
 }

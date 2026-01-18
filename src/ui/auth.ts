@@ -14,7 +14,32 @@ export function injectLoginUI() {
     );
   }
   const modal = document.getElementById("login-modal");
-  if (modal) modal.style.display = "block";
+  if (modal) {
+    modal.style.display = "block";
+
+    // Inject recovery migration button
+    const content = modal.querySelector(".modal-content") || modal;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    console.log("injectLoginUI: isLocal check", isLocal, window.location.hostname);
+
+    if (isLocal && content && !document.getElementById("recovery-migrate-btn")) {
+        const btn = document.createElement("button");
+        btn.id = "recovery-migrate-btn";
+        btn.type = "button";
+        btn.innerText = "Run DB Migration (Recovery)";
+        btn.className = "add-btn";
+        btn.style.marginTop = "15px";
+        btn.style.backgroundColor = "#607d8b";
+        btn.style.width = "100%";
+        btn.onclick = (e) => {
+            e.preventDefault();
+            if ((window as any).runMigration) {
+                (window as any).runMigration();
+            }
+        };
+        content.appendChild(btn);
+    }
+  }
   const registerForm = document.getElementById("register-modal");
   if (registerForm) registerForm.style.display = "none";
   const input = document.getElementById("login-email");

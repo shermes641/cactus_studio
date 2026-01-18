@@ -1,8 +1,8 @@
 
 import { state } from './src/state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './src/utils.js';
-import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal, initManualPaymentUI } from './src/ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment } from './src/actions.js';
+import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal, initManualPaymentUI, toggleOrdersModal, openReceiptModal, closeReceiptModal, refreshOrdersModal, openOrderDetailsModal, closeOrderDetailsModal } from './src/ui.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession } from './src/actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -41,6 +41,16 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
 (window as any).updateShippingAddress = updateShippingAddress;
 (window as any).toggleOtherPaymentModal = toggleOtherPaymentModal;
 (window as any).submitManualPayment = submitManualPayment;
+(window as any).toggleOrdersModal = toggleOrdersModal;
+(window as any).refreshOrdersModal = refreshOrdersModal;
+(window as any).verifyOrder = verifyOrder;
+(window as any).unverifyOrder = unverifyOrder;
+(window as any).shipOrder = shipOrder;
+(window as any).cancelOrder = cancelOrder;
+(window as any).openReceiptModal = openReceiptModal;
+(window as any).closeReceiptModal = closeReceiptModal;
+(window as any).openOrderDetailsModal = openOrderDetailsModal;
+(window as any).closeOrderDetailsModal = closeOrderDetailsModal;
 
 (window as any).togglePasswordVisibility = togglePasswordVisibility;
 
@@ -64,8 +74,33 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
    initManualPaymentUI();
  
    // Check for persisted login and restore session if user is logged in
+   console.log("main.ts: Checking session...");
+   const authToken = localStorage.getItem("authToken");
    const persistedEmail = localStorage.getItem("currentUserEmail");
-   if (persistedEmail) {
+
+   if (authToken) {
+     console.log("main.ts: Found authToken, attempting restore...");
+     restoreSession().then(() => {
+       if (state.currentUser) {
+         console.log("main.ts: Session restored for", state.currentUser);
+         const authContainer = document.getElementById("auth-container");
+         if (authContainer) authContainer.style.display = "none";
+         
+         const profileBtn = document.getElementById("profile-btn");
+         if (profileBtn) {
+           profileBtn.style.display = "block";
+           profileBtn.classList.remove("hidden");
+         }
+
+         fetchDataAndLoad().then(() => hideLoadingMask());
+       } else {
+         console.log("main.ts: Restore failed, showing login.");
+         hideLoadingMask();
+         injectLoginUI();
+       }
+     });
+   } else if (persistedEmail) {
+     console.log("main.ts: Found legacy email, restoring...");
      // Restore user email and data
      state.currentUser = persistedEmail;
      const userData = localStorage.getItem("currentUserData");
@@ -89,7 +124,6 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
      // Show admin buttons if user is admin
      if (state.isAdmin) {
        injectAdminButtons();
-       localStorage.setItem("adminSession", "true");
      }
      
      updateHamburgerUserInfo(state.currentUser, state.isAdmin);
@@ -105,6 +139,7 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, loginUser, logo
        hideLoadingMask();
      });
    } else {
+     console.log("main.ts: No session, showing login.");
      // No user logged in, show the login page
      hideLoadingMask();
      injectLoginUI();

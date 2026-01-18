@@ -8,6 +8,60 @@ import { fetchDataAndLoad } from './products.js';
 
 declare const window: any;
 
+export async function restoreSession() {
+  console.log("restoreSession: Starting...");
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+      console.log("restoreSession: No auth token found.");
+      return;
+  }
+
+  console.log("restoreSession: Attempting to restore session with token...");
+
+  try {
+    const res = await fetch('/.netlify/functions/get-user-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.user) {
+          state.currentUser = data.user.email;
+          state.currentUserData = data.user;
+          state.isAdmin = !!data.user.is_admin;
+          
+          updateHamburgerUserInfo(state.currentUser, state.isAdmin);
+          updateCartUI();
+          
+          // Force hide login UI if it was shown
+          const authContainer = document.getElementById("auth-container");
+          if (authContainer) authContainer.style.display = "none";
+
+          const profileBtn = document.getElementById("profile-btn");
+          if (profileBtn) {
+            profileBtn.style.display = "block";
+            profileBtn.classList.remove("hidden");
+          }
+          
+          if (state.isAdmin) {
+            injectAdminButtons();
+          }
+          console.log("restoreSession: Session restored for:", state.currentUser);
+      }
+    } else {
+      console.warn("Session restore failed:", res.status, await res.text());
+      // Only remove token if it's definitely invalid (4xx), keep it for server errors (5xx)
+      if (res.status === 400 || res.status === 401 || res.status === 403) {
+          localStorage.removeItem('authToken');
+      }
+    }
+  } catch (e) {
+    console.error("Failed to restore session (network/error):", e);
+  }
+}
+
 export async function loginUserEmail() {
   const emailInput = document.getElementById("login-email") as HTMLInputElement;
   const passwordInput = document.getElementById("login-password") as HTMLInputElement;
@@ -77,14 +131,11 @@ export async function loginUserEmail() {
     state.currentUserData = data.user;
     // set admin flag from server
     state.isAdmin = !!(data.user && data.user.is_admin);
-    localStorage.setItem("currentUserEmail", email);
-    localStorage.setItem("currentUserData", JSON.stringify(data.user));
     
-    // Persist admin session if admin
-    if (state.isAdmin) {
-      localStorage.setItem("adminSession", "true");
+    if (data.token) {
+        localStorage.setItem('authToken', data.token);
     }
-
+    
     updateHamburgerUserInfo(state.currentUser, state.isAdmin);
 
     const authContainer = document.getElementById("auth-container");
@@ -160,18 +211,20 @@ export async function loginUserEmail() {
 export async function registerUser() {
   const nameInput = document.getElementById("register-name") as HTMLInputElement;
   const emailInput = document.getElementById("register-email") as HTMLInputElement;
+  const phoneInput = document.getElementById("register-phone") as HTMLInputElement;
   const passwordInput = document.getElementById("register-password") as HTMLInputElement;
   const confirmInput = document.getElementById("register-password-confirm") as HTMLInputElement;
   const addressInput = document.getElementById("register-address") as HTMLInputElement;
 
   const name = nameInput.value.trim();
   const email = emailInput.value.trim();
+  const phone = phoneInput ? phoneInput.value.trim() : "";
   const password = passwordInput.value.trim();
   const passwordConfirm = confirmInput.value.trim();
   const shipping_addr = addressInput.value.trim();
 
-  if (!email || !password) {
-    alert(translations[state.currentLang].alertEmailPasswordRequired);
+  if (!email || !password || !phone || !shipping_addr) {
+    alert(translations[state.currentLang].alertRegisterRequired);
     return;
   }
 
@@ -192,7 +245,7 @@ export async function registerUser() {
     const res = await fetch("/.netlify/functions/register-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, name: name || null, shipping_addr: shipping_addr || null })
+      body: JSON.stringify({ email, password, name: name || null, shipping_addr, phone })
     });
 
     const data = await res.json();
@@ -216,6 +269,7 @@ export async function registerUser() {
     // Clear form
     nameInput.value = "";
     emailInput.value = "";
+    if (phoneInput) phoneInput.value = "";
     passwordInput.value = "";
     confirmInput.value = "";
     addressInput.value = "";
@@ -260,6 +314,7 @@ export function loginUser() {
 export function logoutUser() {
   const wasAdmin = state.isAdmin;
   const { currentUser, currentUserData } = state;
+  const token = localStorage.getItem("authToken");
   state.currentUser = null;
   state.cart = [];
   state.pageCache = {};
@@ -285,9 +340,19 @@ export function logoutUser() {
   if(resetBtn) resetBtn.style.display = "none";
   
   // Clear admin session from localStorage
-  localStorage.removeItem("adminSession");
-  localStorage.removeItem("currentUserEmail");
-  localStorage.removeItem("currentUserData");
+  localStorage.removeItem("authToken");
+
+  // Invalidate session on server (best-effort)
+  if (token) {
+    try {
+      fetch('/.netlify/functions/logout-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+        keepalive: true // Ensure request completes even if page unloads
+      }).catch(e => console.warn("Server logout failed", e));
+    } catch (e) { console.warn("Logout request failed", e); }
+  }
   
   // Persist current cart and shipping to server (best-effort)
   try {
@@ -316,11 +381,13 @@ export function logoutUser() {
   const regPass = document.getElementById("register-password") as HTMLInputElement;
   const regConfirm = document.getElementById("register-password-confirm") as HTMLInputElement;
   const regAddr = document.getElementById("register-address") as HTMLInputElement;
+  const regPhone = document.getElementById("register-phone") as HTMLInputElement;
   if (nameInput) nameInput.value = "";
   if (regEmail) regEmail.value = "";
   if (regPass) regPass.value = "";
   if (regConfirm) regConfirm.value = "";
   if (regAddr) regAddr.value = "";
+  if (regPhone) regPhone.value = "";
 
   if (wasAdmin) {
     window.location.href = window.location.pathname;
@@ -416,7 +483,6 @@ export async function saveProfile() {
     
     if (email === state.currentUser) {
         state.currentUserData = data.user;
-        localStorage.setItem("currentUserData", JSON.stringify(data.user));
     }
     
     alert(translations[state.currentLang].alertProfileUpdated);

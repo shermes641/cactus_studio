@@ -3,6 +3,8 @@ import { neon } from "@neondatabase/serverless";
 import sharp from "sharp";
 import crypto from "crypto";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method not allowed" };
@@ -36,7 +38,7 @@ export const handler: Handler = async (event) => {
     const folder = body.folder ?? "cactus";
 
     // HARD LIMIT for Netlify safety
-    const limit = Math.min(Number(body.limit ?? 3), 5);
+    const limit = Math.min(Number(body.limit ?? 3), 10);
 
     const sql = neon(DATABASE_URL);
 
@@ -63,19 +65,31 @@ export const handler: Handler = async (event) => {
     }
 
     let updated = 0;
-    const failures: Array<{ id: number; error: string }> = [];
+    const failures: Array<{ id: number; name: string; error: string }> = [];
 
-    for (const product of products) {
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
       try {
         if (!force && product.image_url?.includes("res.cloudinary.com")) {
           continue;
         }
 
-        const imageRes = await fetch(product.image_url, {
+        // Rate limit protection: pause between items
+        if (i > 0) await sleep(1000);
+
+        let imageRes = await fetch(product.image_url, {
           headers: {
             "User-Agent": "Mozilla/5.0 (ImageMigrator)"
           }
         });
+
+        if (imageRes.status === 429) {
+          console.warn(`429 Rate Limit for ${product.name}. Pausing 5s...`);
+          await sleep(5000);
+          imageRes = await fetch(product.image_url, {
+            headers: { "User-Agent": "Mozilla/5.0 (ImageMigrator)" }
+          });
+        }
 
         if (!imageRes.ok) {
           throw new Error(`Image fetch failed (${imageRes.status})`);
@@ -158,8 +172,10 @@ export const handler: Handler = async (event) => {
 
         updated++;
       } catch (err) {
+        console.error(`Upload failed for product ${product.id} (${product.name}):`, err);
         failures.push({
           id: product.id,
+          name: product.name,
           error: err instanceof Error ? err.message : String(err)
         });
       }

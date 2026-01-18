@@ -14,6 +14,14 @@ export const handler: Handler = async (event: any) => {
         SET name = ${name}, price_cents = ${price_cents}, image_url = ${image_url}, scientific = ${scientific || name}, class = ${productClass}, notes = ${notes}
         WHERE id = ${id}
       `;
+
+      // Update inventory SKU to match new name/class
+      const cleanClass = (productClass || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+      const cleanName = (name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+      const newSku = `${cleanClass}-${id}-${cleanName}`;
+      
+      await sql`UPDATE inventory SET sku = ${newSku} WHERE image_id = ${id}`;
+
       return { statusCode: 200, body: JSON.stringify({ message: 'Product updated' }) };
     } else {
       // Default scientific to name if missing to satisfy NOT NULL constraint
@@ -37,7 +45,9 @@ export const handler: Handler = async (event: any) => {
       const newId = rows[0].id;
 
       // Insert into inventory with default quantity 1
-      const sku = `BOT-${newId}-STD`;
+      const cleanClass = (productClass || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+      const cleanName = (name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+      const sku = `${cleanClass}-${newId}-${cleanName}`;
       await sql`
         INSERT INTO inventory (sku, image_id, quantity) 
         VALUES (${sku}, ${newId}, 1)

@@ -1612,3 +1612,15 @@ header {
     justify-content: flex-end;
     margin-top: 20px;
 }
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.orders-table th, .orders-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+}

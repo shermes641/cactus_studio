@@ -6,7 +6,7 @@ import { getStorageKey, showLoadingMask, hideLoadingMask } from '../utils.js';
 import { updateCartUI, toggleCart, toggleOtherPaymentModal, updateReceiptDropZonePreview } from '../ui.js';
 import { Discount } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary } from './shared.js';
+import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY } from './shared.js';
 
 declare const paypal: any;
 declare const window: any;
@@ -139,7 +139,6 @@ export async function updateShippingAddress(newAddress: string) {
         state.currentUserData = {};
     }
     state.currentUserData.shipping_addr = newAddress;
-    localStorage.setItem('currentUserData', JSON.stringify(state.currentUserData));
 
     // Persist to server (best-effort)
     try {
@@ -184,7 +183,12 @@ export async function submitManualPayment() {
     let receiptUrl = "";
     try {
       const b64 = await fileToBase64(pendingReceiptFile);
-      receiptUrl = await uploadFileToCloudinary(b64, 'receipts');
+      console.dir(pendingReceiptFile);
+      if (USE_CLOUDINARY) {
+        receiptUrl = await uploadFileToCloudinary(b64, 'receipts');
+      } else {
+        receiptUrl = await uploadFileToGoogleDrive(pendingReceiptFile, 'receipts');
+      }
     } catch (e: any) {
         hideLoadingMask();
         alert("Receipt upload failed: " + e.message);
@@ -209,11 +213,13 @@ export async function submitManualPayment() {
         });
         
         state.cart = [];
+        state.hiddenProductIds.clear();
         localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
         updateCartUI();
         toggleOtherPaymentModal();
         pendingReceiptFile = null;
         alert(translations[state.currentLang].alertManualOrderSuccess);
+        await fetchDataAndLoad();
     } catch (e: any) {
         console.error("Manual order error:", e);
         alert("Failed to place order: " + e.message);
@@ -338,6 +344,7 @@ export async function checkout() {
     }
     
     let orderCreated = false;
+    let internalOrderId: number | null = null;
 
     paypal.Buttons({
       createOrder: async function(data: any, actions: any) {
@@ -394,6 +401,7 @@ export async function checkout() {
         })
         .then(data => {
           orderCreated = true;
+          internalOrderId = data.internalId;
           return data.id;
         });
       },
@@ -403,6 +411,7 @@ export async function checkout() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              internalId: internalOrderId,
               orderId: data.orderID,
               details: details,
               cart: state.cart,
@@ -413,13 +422,14 @@ export async function checkout() {
             })
           }).then(() => {
             state.cart = [];
+            state.hiddenProductIds.clear();
             localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
             updateCartUI();
             // Since toggleCart is in UI, and we import UI, we can call it directly.
             toggleCart();
             setTimeout(function() {
               alert(translations[state.currentLang].alertTransactionSuccess.replace('{name}', details.payer.name.given_name));
-              window.location.reload();
+              fetchDataAndLoad();
             }, 500);
           }).catch(err => {
             console.error("Error recording order:", err);
@@ -439,12 +449,14 @@ export async function checkout() {
         }
 
         console.error('PayPal Error:', err);
-        if (orderCreated) {
+        if (orderCreated && internalOrderId) {
             fetch('/.netlify/functions/cancel-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cart: state.cart })
+              body: JSON.stringify({ internalId: internalOrderId })
             }).then(() => handlePaymentReset());
+        } else {
+            fetchDataAndLoad();
         }
         
         alert(translations[state.currentLang].paymentError);
@@ -452,12 +464,14 @@ export async function checkout() {
         paypalContainer.innerHTML = "";
       },
       onCancel: function(data: any) {
-        if (orderCreated) {
+        if (orderCreated && internalOrderId) {
             fetch('/.netlify/functions/cancel-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ cart: state.cart })
+              body: JSON.stringify({ internalId: internalOrderId, orderId: data.orderID })
             }).then(() => handlePaymentReset());
+        } else {
+            fetchDataAndLoad();
         }
 
         alert(translations[state.currentLang].paymentCancel);

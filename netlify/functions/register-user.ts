@@ -10,11 +10,11 @@ export const handler: Handler = async (event: any, context: any) => {
 
   try {
     const body = JSON.parse(event.body);
-    const { email, password, name, shipping_addr } = body;
+    const { email, password, name, shipping_addr, phone } = body;
 
     // Validate input
-    if (!email || !password) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Email and password are required' }) };
+    if (!email || !password || !phone || !shipping_addr) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Email, Password, Phone, and Shipping Address are required' }) };
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
@@ -43,8 +43,8 @@ export const handler: Handler = async (event: any, context: any) => {
 
     // Insert new user
     const result = await sql(
-      'INSERT INTO users (email, password_hash, name, shipping_addr, cart, verification_token, verification_token_expires, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, email, name, shipping_addr, cart',
-      [email, hashed, name || null, shipping_addr || null, JSON.stringify([]), verificationToken, expiry.toISOString(), false]
+      'INSERT INTO users (email, password_hash, name, shipping_addr, phone, cart, verification_token, verification_token_expires, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, email, name, shipping_addr, phone, cart',
+      [email, hashed, name || null, shipping_addr, phone, JSON.stringify([]), verificationToken, expiry.toISOString(), false]
     );
 
     // Trigger verification email
