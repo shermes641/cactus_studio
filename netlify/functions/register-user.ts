@@ -13,8 +13,14 @@ export const handler: Handler = async (event: any, context: any) => {
     const { email, password, name, shipping_addr, phone } = body;
 
     // Validate input
-    if (!email || !password || !phone || !shipping_addr) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Email, Password, Phone, and Shipping Address are required' }) };
+    const missing: string[] = [];
+    if (!email) missing.push('Email');
+    if (!password) missing.push('Password');
+    if (!phone) missing.push('Phone');
+    if (!shipping_addr) missing.push('Shipping Address');
+
+    if (missing.length > 0) {
+      return { statusCode: 400, body: JSON.stringify({ error: `Missing required fields: ${missing.join(', ')}` }) };
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;

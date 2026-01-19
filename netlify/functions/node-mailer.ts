@@ -1,41 +1,7 @@
-/*
-  Netlify Function: node-mailer.ts
-  This function is used to send emails to users.
-  It supports sending verification and password reset emails using Gmail API with a service account.
-    replyTo?: string
-    fromName?: string
-    attachments?: {
-      filename: string
-      mimeType: string
-      contentBase64: string
-    }[]
-
-await fetch("/.netlify/functions/node-mailer", {
-  method: "POST",
-  body: JSON.stringify({
-    email,
-    token,
-    type: "verify",
-    attachments: [
-      {
-        filename: "terms.pdf",
-        mimeType: "application/pdf",
-        contentBase64: pdfBase64
-      }
-    ]
-  })
-});
-
-{
-  replyTo: "support@cactusstudio.shop",
-  fromName: "Cactus Support"
-}
-
-*/
-
 import { Handler } from "@netlify/functions";
 import { google } from "googleapis";
 import { neon } from '@netlify/neon';
+import { logAudit } from "../../src/lib/audit-log";
 
 const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
@@ -260,49 +226,5 @@ function button(href: string, text: string, color = "#4CAF50") {
        background:${color};color:#fff;text-decoration:none;border-radius:6px">
       ${text}
     </a>
-  `;
-}
-
-type AuditLog = {
-  userId?: string;
-  email?: string;
-  action: string;
-  entityType?: string;
-  entityId?: string;
-  success?: boolean;
-  message?: string;
-  ip?: string;
-  ua?: string;
-  metadata?: Record<string, any>;
-};
-
-async function logAudit(
-  sql: any,
-  data: AuditLog
-) {
-  await sql`
-    INSERT INTO audit_logs (
-      user_id,
-      user_email,
-      action,
-      entity_type,
-      entity_id,
-      success,
-      message,
-      ip_address,
-      user_agent,
-      metadata
-    ) VALUES (
-      ${data.userId ?? null},
-      ${data.email ?? null},
-      ${data.action},
-      ${data.entityType ?? null},
-      ${data.entityId ?? null},
-      ${data.success ?? true},
-      ${data.message ?? null},
-      ${data.ip ?? null},
-      ${data.ua ?? null},
-      ${JSON.stringify(data.metadata ?? {})}::jsonb
-    )
   `;
 }
