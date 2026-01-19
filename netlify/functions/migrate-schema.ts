@@ -55,8 +55,11 @@ export const handler: Handler = async (event: any, context: any) => {
     await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS receipt_url TEXT`;
     out.push('ensured orders.receipt_url column');
 
+    await sql`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS sku TEXT`;
+    out.push('ensured order_items.sku column');
+
     // 4) Populate statuses with common values + any existing order.status values
-    const defaults = ['cancelled', 'manual_verification', 'pending', 'processing', 'refunded', 'shipped'];
+    const defaults = ['cancelled', 'manual_verification', 'pending', 'processing', 'refunded', 'shipped', 'pre_order'];
 
     for (const s of defaults) {
       await sql`INSERT INTO statuses (code, description) VALUES (${s}, ${s}) ON CONFLICT (code) DO NOTHING`;
@@ -105,6 +108,25 @@ export const handler: Handler = async (event: any, context: any) => {
       `;
       out.push('seeded plant_classes');
     }
+
+    // 8) Ensure email_logs table
+    await sql`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id       BIGINT NULL REFERENCES users(id) ON DELETE SET NULL,
+        user_email    TEXT NULL,
+        action        TEXT NOT NULL,
+        entity_type   TEXT NULL,
+        entity_id     TEXT NULL,
+        success       BOOLEAN NOT NULL DEFAULT true,
+        message       TEXT NULL,
+        ip_address    INET NULL,
+        user_agent    TEXT NULL,
+        metadata      JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `;
+    out.push('ensured email_logs table');
 
     return { statusCode: 200, body: JSON.stringify({ ok: true, actions: out }) };
   } catch (error: any) {

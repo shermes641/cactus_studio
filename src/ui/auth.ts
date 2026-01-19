@@ -1,5 +1,6 @@
 import { state } from "../state.js";
 import { translations } from "../constants.js";
+import { isLocal } from "../actions/shared.js";
 
 export function injectLoginUI() {
   console.log("injectLoginUI() called");
@@ -18,11 +19,11 @@ export function injectLoginUI() {
     modal.style.display = "block";
 
     // Inject recovery migration button
+    const is_local = isLocal();
     const content = modal.querySelector(".modal-content") || modal;
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    console.log("injectLoginUI: isLocal check", isLocal, window.location.hostname);
+    console.log("injectLoginUI: isLocal check", is_local, window.location.hostname);
 
-    if (isLocal && content && !document.getElementById("recovery-migrate-btn")) {
+    if (is_local && content && !document.getElementById("recovery-migrate-btn")) {
         const btn = document.createElement("button");
         btn.id = "recovery-migrate-btn";
         btn.type = "button";

@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { translations, EXCHANGE_RATE } from "../constants.js";
-import { handleReceiptFileSelect } from "../actions.js";
+import { handleReceiptFileSelect, submitManualPayment } from "../actions.js";
 
 export function updateCartUI() {
   const cartItemsDiv = document.getElementById("cart-items");
@@ -172,7 +172,7 @@ export function toggleCart() {
   }
 }
 
-export function toggleOtherPaymentModal() {
+export async function toggleOtherPaymentModal(start_payment: boolean = false) {
     const modal = document.getElementById("other-payment-modal");
     if (!modal) return;
     
@@ -180,6 +180,9 @@ export function toggleOtherPaymentModal() {
     modal.style.display = isHidden ? "flex" : "none";
     
     if (isHidden) {
+        if (start_payment) {
+          submitManualPayment(start_payment, start_payment);
+        }
         // Render summary
         const summaryDiv = document.getElementById("manual-order-summary");
         if (summaryDiv) {
@@ -217,6 +220,26 @@ export function toggleOtherPaymentModal() {
         if (checkoutBtn) checkoutBtn.style.display = "";
         const paypalContainer = document.getElementById("paypal-button-container");
         if (paypalContainer) paypalContainer.innerHTML = "";
+
+          const email = state.currentUser;
+          const userId = state.currentUserData?.id;
+
+          // Restore any pending pre-orders
+          if (email || userId) {
+            const res = await fetch('/.netlify/functions/restore-preorder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, email })
+            });
+
+            if (!res.ok) {
+                console.error("Failed to restore pre-orders");
+            } else {
+                console.log("Pre-orders restored");
+            }
+          } else {
+            console.warn("No user info available for restoring pre-orders");
+          }
     }
 }
 

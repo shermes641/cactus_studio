@@ -1,6 +1,21 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 
+/**
+ * Netlify Function: cancel-order
+ *
+ * This serverless function cancels an order by setting its status to 'cancelled'.
+ * If the order is in the 'pending' state, it also reverts the inventory reservation.
+ *
+ * Request Body:
+ * - orderId: The PayPal order ID to cancel.
+ * - internalId: The internal order ID to cancel.
+ *
+ * Response:
+ * - { statusCode: 200, body: { message: 'Order cancelled' } }
+ * - { statusCode: 500, body: { error: 'Internal Server Error' } }
+ */
+
 export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
   
@@ -18,13 +33,12 @@ export const handler: Handler = async (event: any) => {
     if (targetId) {
          const currentOrder = await sql`SELECT status FROM orders WHERE id = ${targetId}`;
          if (currentOrder.length > 0 && currentOrder[0].status === 'pending') {
-             const items = await sql`SELECT product_id, name, p.class FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE order_id = ${targetId}`;
+             const items = await sql`SELECT sku, quantity FROM order_items WHERE order_id = ${targetId}`;
              for (const item of items) {
-                 const cleanClass = (item.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-                 const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-                 const sku = `${cleanClass}-${item.product_id}-${cleanName}`;
-                 await sql`UPDATE inventory SET quantity = quantity + 1 WHERE sku = ${sku}`;
-                 await sql`INSERT INTO inventory_events (sku, delta, reason) VALUES (${sku}, 1, 'reservation_cancelled')`;
+                if (item.sku) {
+                    await sql`UPDATE inventory SET quantity = quantity + ${item.quantity || 1} WHERE sku = ${item.sku}`;
+                    await sql`INSERT INTO inventory_events (sku, delta, reason) VALUES (${item.sku}, ${item.quantity || 1}, 'reservation_cancelled')`;
+                }
              }
              await sql`UPDATE orders SET status = 'cancelled' WHERE id = ${targetId}`;
          }

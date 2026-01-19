@@ -6,7 +6,7 @@ import { showLoadingMask, hideLoadingMask, getStorageKey } from '../utils.js';
 import { toggleAdminModal, ensureAdminFieldsExist, setupDropZone, toggleOrdersModal, closeReceiptModal, refreshOrdersModal } from '../ui.js';
 import { Product } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY } from './shared.js';
+import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal } from './shared.js';
 
 declare const window: any;
 
@@ -21,8 +21,7 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
   }
 
   // 🔒 MUST match Netlify-safe limits
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const batchSize = isLocal ? 10 : 2;
+  const batchSize = isLocal() ? 10 : 2;
 
   let lastId = 0;
   let totalUpdated = 0;

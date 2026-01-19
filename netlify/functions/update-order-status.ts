@@ -17,18 +17,12 @@ export const handler: Handler = async (event: any) => {
         if (status === 'cancelled') {
              const currentOrder = await sql`SELECT status FROM orders WHERE id = ${id}`;
              if (currentOrder.length > 0 && currentOrder[0].status !== 'cancelled') {
-                 const items = await sql`
-                    SELECT oi.product_id, oi.quantity, p.class, p.name 
-                    FROM order_items oi
-                    LEFT JOIN products p ON oi.product_id = p.id
-                    WHERE oi.order_id = ${id}
-                 `;
+                 const items = await sql`SELECT sku, quantity FROM order_items WHERE order_id = ${id}`;
                  for (const item of items) {
-                     const cleanClass = (item.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-                     const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-                     const sku = `${cleanClass}-${item.product_id}-${cleanName}`;
-                     await sql`UPDATE inventory SET quantity = quantity + ${item.quantity} WHERE sku = ${sku}`;
-                     await sql`INSERT INTO inventory_events (sku, delta, reason) VALUES (${sku}, ${item.quantity}, 'order_cancelled')`;
+                    if (item.sku) {
+                        await sql`UPDATE inventory SET quantity = quantity + ${item.quantity || 1} WHERE sku = ${item.sku}`;
+                        await sql`INSERT INTO inventory_events (sku, delta, reason) VALUES (${item.sku}, ${item.quantity || 1}, 'order_cancelled')`;
+                    }
                  }
              }
         }

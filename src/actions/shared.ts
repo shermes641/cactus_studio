@@ -5,6 +5,9 @@ declare const window: any;
 
 export const USE_CLOUDINARY = true;
 
+export function isLocal() {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
 
 export function toggleLanguage() {
     const nextLang = state.currentLang === 'en' ? 'es' : 'en';

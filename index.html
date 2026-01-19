@@ -189,8 +189,8 @@
                 </div>
             </div>
             <div class="manual-payment-actions">
-                <button class="cancel-btn add-btn" onclick="toggleOtherPaymentModal()" data-i18n="btnCancel">Cancel</button>
-                <button class="add-btn" onclick="submitManualPayment()" data-i18n="btnConfirmPurchase">Confirm Purchase</button>
+                <button class="cancel-btn add-btn" onclick="toggleOtherPaymentModal(true)" data-i18n="btnCancel">Cancel</button>
+                <button class="add-btn" onclick="submitManualPayment(false, false)" data-i18n="btnConfirmPurchase">Confirm Purchase</button>
             </div>
         </div>
     </div>
@@ -284,7 +284,7 @@
         <h3 class="cart-total-header">
           <span data-i18n="cartTotal">Total:</span> $<span id="cart-total">0.00</span>
         </h3>
-        <button id="other-payment-btn" onclick="toggleOtherPaymentModal()" data-i18n="btnOtherPayment" style="display: none;">Other Payment</button>
+        <button id="other-payment-btn" onclick="toggleOtherPaymentModal(true)" data-i18n="btnOtherPayment" style="display: none;">Other Payment</button>
         <div id="paypal-button-container" class="paypal-wrapper"></div>
       </div>
     </div>

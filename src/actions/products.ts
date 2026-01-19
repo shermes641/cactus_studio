@@ -10,11 +10,16 @@ import { USE_CLOUDINARY } from './shared.js';
 
 declare const window: any;
 
+/**
+ * fetchDataAndLoad
+ * Fetches data from the database or data.json depending on
+ * state.useDB and populates state.products and state.pageCache.
+ * If state.useDB is true, it fetches data from the database.
+ * If state.useDB is false, it fetches data from data.json.
+ * It also loads user data if not logged in and injects the logout button.
+ * @returns {void}
+ */
 export async function fetchDataAndLoad() {
-  // groupSidebarElements(); // Note: This was in original but imported from UI. Assuming it's handled or we import it if needed. 
-  // It seems groupSidebarElements is in ui.ts but was called here. We should probably import it if we want to keep exact behavior.
-  // For now, let's assume it's fine or import it if strictness is required. 
-  // Actually, let's import it to be safe.
   const { groupSidebarElements } = await import('../ui.js');
   groupSidebarElements();
 

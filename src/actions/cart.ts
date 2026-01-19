@@ -6,12 +6,13 @@ import { getStorageKey, showLoadingMask, hideLoadingMask } from '../utils.js';
 import { updateCartUI, toggleCart, toggleOtherPaymentModal, updateReceiptDropZonePreview } from '../ui.js';
 import { Discount } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY } from './shared.js';
+import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal } from './shared.js';
 
 declare const paypal: any;
 declare const window: any;
 
 let pendingReceiptFile: File | null = null;
+let checkoutTimer: any = null;
 
 export async function addToCart(id: number) {
   if (state.hiddenProductIds.has(id)) return;
@@ -165,8 +166,8 @@ export function handleReceiptFileSelect(file: File) {
     reader.readAsDataURL(file);
 }
 
-export async function submitManualPayment() {
-    if (!pendingReceiptFile) {
+export async function submitManualPayment(allow_no_reciept: boolean, preOrder: boolean = false) {
+    if (!pendingReceiptFile && !allow_no_reciept) {
         alert(translations[state.currentLang].alertReceiptRequired);
         return;
     }
@@ -179,15 +180,19 @@ export async function submitManualPayment() {
         return;
     }
 
-    showLoadingMask("Uploading receipt...");
+    let msg = allow_no_reciept ? "...": "Uploading receipt...";
+    showLoadingMask(msg);
     let receiptUrl = "";
     try {
-      const b64 = await fileToBase64(pendingReceiptFile);
-      console.dir(pendingReceiptFile);
+      const fileToUse = allow_no_reciept
+        ? new File([await (await fetch('/logo.png')).blob()], "logo.png", { type: "image/png" })
+        : pendingReceiptFile!;
+      const b64 = await fileToBase64(fileToUse);
+      console.dir(fileToUse);
       if (USE_CLOUDINARY) {
         receiptUrl = await uploadFileToCloudinary(b64, 'receipts');
       } else {
-        receiptUrl = await uploadFileToGoogleDrive(pendingReceiptFile, 'receipts');
+        receiptUrl = await uploadFileToGoogleDrive(fileToUse, 'receipts');
       }
     } catch (e: any) {
         hideLoadingMask();
@@ -195,7 +200,8 @@ export async function submitManualPayment() {
         return;
     }
 
-    showLoadingMask("Placing order...");
+    msg = allow_no_reciept ? "Reserving order...": "Placing order...";
+    showLoadingMask(msg);
     try {
         // Using create-order endpoint but passing receiptUrl to indicate manual payment
         const res = await fetch('/.netlify/functions/create-order', {
@@ -206,20 +212,27 @@ export async function submitManualPayment() {
                 discountCode: state.activeDiscount ? state.activeDiscount.code : null,
                 shippingAddress: shippingAddress,
                 currency: (state as any).currency || 'USD',
-                receiptUrl: receiptUrl,
                 isManual: true,
+                preOrder: preOrder,
                 userId: state.currentUserData ? state.currentUserData.id : null
             })
         });
         
-        state.cart = [];
-        state.hiddenProductIds.clear();
-        localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
-        updateCartUI();
-        toggleOtherPaymentModal();
-        pendingReceiptFile = null;
-        alert(translations[state.currentLang].alertManualOrderSuccess);
-        await fetchDataAndLoad();
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Order creation failed");
+        }
+
+        if (!allow_no_reciept) {
+          state.cart = [];
+          state.hiddenProductIds.clear();
+          localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
+          updateCartUI();
+          toggleOtherPaymentModal();
+          pendingReceiptFile = null;
+          alert(translations[state.currentLang].alertManualOrderSuccess);
+          await fetchDataAndLoad();
+        }
     } catch (e: any) {
         console.error("Manual order error:", e);
         alert("Failed to place order: " + e.message);
@@ -228,15 +241,30 @@ export async function submitManualPayment() {
     }
 }
 
+/**
+ * Initiates the checkout process for the current cart.
+ * 
+ * This function performs several critical steps:
+ * 1. Validates and updates the user's shipping address.
+ * 2. Performs a pre-checkout stock check against the database to ensure availability.
+ *    - If items are out of stock, they are removed, and the user is alerted.
+ * 3. Loads the PayPal SDK dynamically if not already loaded.
+ * 4. Renders PayPal buttons with handlers for creating orders, approving transactions, and handling errors/cancellations.
+ * 
+ * @async
+ * @returns {Promise<void>}
+ */
 export async function checkout() {
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
 
+  // Retrieve shipping address from input or state
   const shippingInput = document.getElementById("cart-shipping-address") as HTMLTextAreaElement;
   const inputAddr = shippingInput ? shippingInput.value.trim() : "";
   const storedAddr = (state.currentUserData?.shipping_addr || "").trim();
   
   let finalShippingAddr = "";
 
+  // Determine final address and update server if changed
   if (inputAddr) {
       finalShippingAddr = inputAddr;
       if (!storedAddr && state.currentUser) {
@@ -246,11 +274,13 @@ export async function checkout() {
       finalShippingAddr = storedAddr;
   }
 
+  // Validate address requirement for logged-in users
   if (state.currentUser && !finalShippingAddr) {
     alert(translations[state.currentLang].alertShippingAddressRequired);
     return;
   }
 
+  // Perform initial stock check if using database
   if (state.useDB && state.cart.length > 0) {
     if (checkoutBtn) {
       checkoutBtn.innerText = translations[state.currentLang].checkingStock;
@@ -261,6 +291,7 @@ export async function checkout() {
     let outOfStockIds = new Set<number>();
     let hasChanges = false;
 
+    // Verify quantity for each item in cart
     await Promise.all(state.cart.map(async (item) => {
       try {
         const res = await fetch(`/.netlify/functions/get-products?id=${item.id}`);
@@ -283,6 +314,7 @@ export async function checkout() {
       }
     }));
 
+    // If items are out of stock, remove them and halt checkout
     if (hasChanges) {
       state.cart = state.cart.filter(item => !outOfStockIds.has(item.id));
       localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
@@ -296,22 +328,26 @@ export async function checkout() {
       return;
     }
     
+    // Re-enable button if stock check passed (though we hide it shortly after)
     if (checkoutBtn) {
         checkoutBtn.innerText = translations[state.currentLang].btnCheckout;
         checkoutBtn.disabled = false;
     }
   }
 
+  // Hide checkout button to show payment options
   if (checkoutBtn) checkoutBtn.style.display = "none";
 
   const paypalContainer = document.getElementById("paypal-button-container");
   if (!paypalContainer) return;
 
+  // Show manual payment option
   const otherBtn = document.getElementById("other-payment-btn");
   if (otherBtn) otherBtn.style.display = "block";
 
   showLoadingMask("Loading Payment Options...");
 
+  // Fetch PayPal Client ID from server
   let CLIENT_ID;
   try {
     const res = await fetch('/.netlify/functions/get-paypal-client-id');
@@ -323,6 +359,7 @@ export async function checkout() {
     console.error("Error fetching PayPal Client ID:", e);
   }
 
+  // Fallback to env variable if fetch failed (usually for local dev)
   if (!CLIENT_ID && (window as any).env) CLIENT_ID = (window as any).env.PAYPAL_SANDBOX_CLIENT_ID;
 
   const locale = state.currentLang === 'es' ? 'es_ES' : 'en_US';
@@ -333,6 +370,7 @@ export async function checkout() {
   // PayPal does not support CRC, so we use USD for the transaction
   const paymentCurrency = currency === 'CRC' ? 'USD' : currency;
 
+  // Function to render PayPal buttons
   const render = () => {
     paypalContainer.innerHTML = "";
     // Loading mask is hidden when buttons render or on error
@@ -347,11 +385,14 @@ export async function checkout() {
     let internalOrderId: number | null = null;
 
     paypal.Buttons({
+      // Create Order: Called when user clicks PayPal button
       createOrder: async function(data: any, actions: any) {
+        if (checkoutTimer) clearTimeout(checkoutTimer);
         orderCreated = false;
         let outOfStockList: string[] = [];
         let outOfStockIds = new Set<number>();
         
+        // Final stock check before creating order
         try {
           await Promise.all(state.cart.map(async (item) => {
             const res = await fetch(`/.netlify/functions/get-products?id=${item.id}`);
@@ -368,6 +409,7 @@ export async function checkout() {
           }));
         } catch (e) { console.error("Stock check error", e); }
 
+        // Handle OOS items found during creation
         if (outOfStockList.length > 0) {
           state.cart = state.cart.filter(item => !outOfStockIds.has(item.id));
           localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
@@ -377,6 +419,7 @@ export async function checkout() {
           throw new Error("PRE_CHECKOUT_OOS");
         }
 
+        // Call server to create order (reserves stock)
         return fetch('/.netlify/functions/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -402,11 +445,13 @@ export async function checkout() {
         .then(data => {
           orderCreated = true;
           internalOrderId = data.internalId;
-          return data.id;
+          return data.id; // Return PayPal Order ID
         });
       },
+      // On Approve: Called when user authorizes payment
       onApprove: function(data: any, actions: any) {
         return actions.order.capture().then(function(details: any) {
+          // Record capture on server
           return fetch('/.netlify/functions/capture-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -420,7 +465,11 @@ export async function checkout() {
               currency: paymentCurrency,
               userId: state.currentUserData ? state.currentUserData.id : null
             })
-          }).then(() => {
+          }).then(async (res) => {
+            if (!res.ok) {
+                throw new Error("Capture failed");
+            }
+            // Clear cart and update UI on success
             state.cart = [];
             state.hiddenProductIds.clear();
             localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
@@ -437,7 +486,10 @@ export async function checkout() {
           });
         });
       },
+      // On Error: Called when PayPal encounters an error
       onError: function(err: any) {
+        if (checkoutTimer) clearTimeout(checkoutTimer);
+        // Handle custom OOS error
         if (String(err).includes("PRE_CHECKOUT_OOS")) {
             if (checkoutBtn) {
                 checkoutBtn.style.display = "";
@@ -449,6 +501,7 @@ export async function checkout() {
         }
 
         console.error('PayPal Error:', err);
+        // Cancel internal order if it was created
         if (orderCreated && internalOrderId) {
             fetch('/.netlify/functions/cancel-order', {
               method: 'POST',
@@ -463,7 +516,9 @@ export async function checkout() {
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
       },
+      // On Cancel: Called when user cancels the popup
       onCancel: function(data: any) {
+        if (checkoutTimer) clearTimeout(checkoutTimer);
         if (orderCreated && internalOrderId) {
             fetch('/.netlify/functions/cancel-order', {
               method: 'POST',
@@ -480,9 +535,28 @@ export async function checkout() {
       }
     }).render('#paypal-button-container').then(() => {
         hideLoadingMask();
+
+        if (checkoutTimer) clearTimeout(checkoutTimer);
+        const timeoutMs = isLocal() ? 10000 : 60000;
+
+        checkoutTimer = setTimeout(() => {
+            const manualModal = document.getElementById("other-payment-modal");
+            if (manualModal && manualModal.style.display === "flex") return;
+
+            if (checkoutBtn) {
+                checkoutBtn.style.display = "";
+                checkoutBtn.innerText = translations[state.currentLang].btnCheckout;
+                checkoutBtn.disabled = false;
+            }
+            if (paypalContainer) paypalContainer.innerHTML = "";
+            if (otherBtn) otherBtn.style.display = "none";
+            
+            alert(translations[state.currentLang].paymentCancel || "Checkout timed out");
+        }, timeoutMs);
     });
   };
 
+  // Load script if not present, otherwise render
   if (!script) {
     if (!CLIENT_ID) {
       alert("Payment configuration missing (Client ID).");
@@ -503,4 +577,37 @@ export async function checkout() {
   } else {
     render();
   }
+  
+}
+
+export async function restorePreOrder() {
+    if (!state.currentUser) return;
+
+    try {
+        const res = await fetch('/.netlify/functions/restore-preorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email: state.currentUser,
+                userId: state.currentUserData?.id 
+            })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            if (data.items && data.items.length > 0) {
+                // 5. Place items back in cart using existing functions
+                for (const item of data.items) {
+                    await addToCart(item.id);
+                }
+                
+                // Alert if localhost and > 1 order
+                if (isLocal() && data.orderCount > 1) {
+                    alert(`Localhost: Found ${data.orderCount} pre-orders.`);
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Failed to restore pre-orders", e);
+    }
 }
