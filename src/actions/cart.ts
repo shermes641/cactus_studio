@@ -6,7 +6,7 @@ import { getStorageKey, showLoadingMask, hideLoadingMask } from '../utils.js';
 import { updateCartUI, toggleCart, toggleOtherPaymentModal, updateReceiptDropZonePreview } from '../ui.js';
 import { Discount } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal, clearTimer } from './shared.js';
+import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal, clearTimer, disableCartButtonsTemporary } from './shared.js';
 
 declare const paypal: any;
 declare const window: any;
@@ -175,6 +175,7 @@ export function handleReceiptFileSelect(file: File) {
 }
 
 export async function submitManualPayment(allow_no_reciept: boolean, preOrder: boolean = false) {
+    disableCartButtonsTemporary();
     internalOrderId = null;
     isManualPaymentSubmitting = true;
     checkoutTimer = clearTimer(checkoutTimer);
@@ -270,13 +271,13 @@ export function monitorManualPayment(isOpen: boolean) {
         const modal = document.getElementById("other-payment-modal");
         if (modal && modal.style.display === "flex") {
              toggleOtherPaymentModal();
-             cancelCheckout();
+             cancelCheckout('monitorManualPayment');
         }
     }, OTHER_PAYMENT_TIMEOUT_MS);
   }
 }
 
-export function cancelCheckout() {
+export function cancelCheckout(msg: string) {
     checkoutTimer = clearTimer(checkoutTimer);
 
     const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
@@ -299,7 +300,7 @@ export function cancelCheckout() {
     } else {
         fetchDataAndLoad();
     }
-    alert((translations[state.currentLang].paymentCancel || "Checkout cancelled")) + "!!!!!!!";
+    alert((translations[state.currentLang].paymentCancel || "Checkout cancelled")) + " (msg)";
 }
 
 /**
@@ -316,6 +317,7 @@ export function cancelCheckout() {
  * @returns {Promise<void>}
  */
 export async function checkout() {
+  disableCartButtonsTemporary(2000);
   const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
 
   // Retrieve shipping address from input or state
@@ -454,11 +456,12 @@ export async function checkout() {
     paypal.Buttons({
       onClick: function(data: any, actions: any) {
         console.log("PayPal button clicked");
+        disableCartButtonsTemporary();
         checkoutTimer = clearTimer(checkoutTimer);
         
         // Start a 5-minute safety timer in case the user abandons the popup
         checkoutTimer = setTimeout(() => {
-            cancelCheckout();
+            cancelCheckout('PayPal timeout');
         }, PAYPAL_TIMEOUT_MS);
       },
       // Create Order: Called when user clicks PayPal button
@@ -615,7 +618,7 @@ export async function checkout() {
             fetchDataAndLoad();
         }
 
-        alert(translations[state.currentLang].paymentCancel + "######");
+        alert(translations[state.currentLang].paymentCancel +  " (PayPal popup closed)");
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
         if (otherBtn) otherBtn.style.display = "none";
@@ -639,7 +642,7 @@ export async function checkout() {
             if (otherBtn) otherBtn.style.display = "none";
             if (cancelBtn) cancelBtn.style.display = "none";
 
-            alert((translations[state.currentLang].paymentCancel || "Checkout timed out") + "%%%%%");
+            alert((translations[state.currentLang].paymentCancel || "Checkout timed out") + " (checkoutTimer)");
         }, CHECKOUT_TIMEOUT_MS);
     });
   };

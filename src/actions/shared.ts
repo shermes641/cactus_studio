@@ -64,3 +64,32 @@ export async function uploadFileToGoogleDrive(file: File, folder?: string): Prom
   const data = await res.json();
   return data.webViewLink;
 }
+
+export function disableCartButtonsTemporary(duration: number = 5000) {
+    const elements = document.querySelectorAll<HTMLElement>(
+        '.cart-item-remove, .remove-all-btn, .checkout-btn, #other-payment-btn, #cancel-checkout-btn, #paypal-button-container'
+    );
+    elements.forEach(el => {
+        if (el.style.visibility !== 'hidden') {
+            el.dataset.prevVisibility = el.style.visibility;
+            el.style.visibility = 'hidden';
+            if (el instanceof HTMLButtonElement) {
+                el.disabled = true;
+            }
+            el.dataset.tempDisabled = "true";
+        }
+    });
+
+    setTimeout(() => {
+        elements.forEach(el => {
+            if (el.dataset.tempDisabled === "true") {
+                el.style.visibility = el.dataset.prevVisibility || '';
+                if (el instanceof HTMLButtonElement) {
+                    el.disabled = false;
+                }
+                delete el.dataset.tempDisabled;
+                delete el.dataset.prevVisibility;
+            }
+        });
+    }, duration);
+}
