@@ -7,6 +7,7 @@ import { toggleAdminModal, ensureAdminFieldsExist, setupDropZone, toggleOrdersMo
 import { Product } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
 import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal } from './shared.js';
+import { handlePaymentReset } from './cart.js';
 
 declare const window: any;
 
@@ -411,6 +412,11 @@ export async function cancelOrder(orderId: number) {
           body: JSON.stringify({ orderIds: [orderId], status: 'cancelled' })
       });
       if (!res.ok) throw new Error("Update failed");
+      fetch('/.netlify/functions/cancel-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ internalId: orderId })
+      }).then(() => handlePaymentReset());
       alert(translations[state.currentLang].alertOrderCancelled);
       closeReceiptModal();
       refreshOrdersModal();

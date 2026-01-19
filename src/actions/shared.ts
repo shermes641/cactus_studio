@@ -9,6 +9,13 @@ export function isLocal() {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 }
 
+export function clearTimer(timerId: NodeJS.Timeout | null): NodeJS.Timeout | null {
+  if (timerId) clearTimeout(timerId);
+  timerId = null
+  return timerId;
+}
+
+
 export function toggleLanguage() {
     const nextLang = state.currentLang === 'en' ? 'es' : 'en';
     const msg = translations[state.currentLang].alertLangChange;

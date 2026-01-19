@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { translations, EXCHANGE_RATE } from "../constants.js";
-import { handleReceiptFileSelect, submitManualPayment } from "../actions.js";
+import { handleReceiptFileSelect, submitManualPayment, monitorManualPayment, fetchDataAndLoad, internalOrderId, restorePreOrder } from "../actions.js";
 
 export function updateCartUI() {
   const cartItemsDiv = document.getElementById("cart-items");
@@ -180,6 +180,7 @@ export async function toggleOtherPaymentModal(start_payment: boolean = false) {
     modal.style.display = isHidden ? "flex" : "none";
     
     if (isHidden) {
+        monitorManualPayment(true);
         if (start_payment) {
           submitManualPayment(start_payment, start_payment);
         }
@@ -214,6 +215,7 @@ export async function toggleOtherPaymentModal(start_payment: boolean = false) {
         }
         updateReceiptDropZonePreview("");
     } else {
+        monitorManualPayment(false);
         const otherBtn = document.getElementById("other-payment-btn");
         if (otherBtn) otherBtn.style.display = "none";
         const checkoutBtn = document.querySelector(".checkout-btn") as HTMLElement;
@@ -221,25 +223,12 @@ export async function toggleOtherPaymentModal(start_payment: boolean = false) {
         const paypalContainer = document.getElementById("paypal-button-container");
         if (paypalContainer) paypalContainer.innerHTML = "";
 
-          const email = state.currentUser;
-          const userId = state.currentUserData?.id;
-
-          // Restore any pending pre-orders
-          if (email || userId) {
-            const res = await fetch('/.netlify/functions/restore-preorder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, email })
-            });
-
-            if (!res.ok) {
-                console.error("Failed to restore pre-orders");
-            } else {
-                console.log("Pre-orders restored");
-            }
-          } else {
-            console.warn("No user info available for restoring pre-orders");
-          }
+        if (internalOrderId) {
+             restorePreOrder(internalOrderId).then(() => {
+                 console.log("Pre-orders restored");
+                 fetchDataAndLoad();
+             });
+        }
     }
 }
 
@@ -270,6 +259,18 @@ export function updateReceiptDropZonePreview(src: string) {
 
 export function initManualPaymentUI() {
     setupReceiptDropZone();
+    
+    // Reset the timeout timer whenever the user interacts with the modal
+    const modal = document.getElementById("other-payment-modal");
+    if (modal) {
+        const resetTimer = () => {
+            if (modal.style.display === "flex") monitorManualPayment(true);
+        };
+        modal.addEventListener('click', resetTimer);
+        modal.addEventListener('keyup', resetTimer);
+        modal.addEventListener('change', resetTimer);
+    }
+
     document.addEventListener('paste', (e: ClipboardEvent) => {
         const modal = document.getElementById("other-payment-modal");
         if (modal && modal.style.display === "flex" && e.clipboardData && e.clipboardData.files.length > 0) {

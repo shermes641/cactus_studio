@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { translations, EXCHANGE_RATE } from "../constants.js";
-import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems } from "../actions.js";
+import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems, restorePreOrder } from "../actions.js";
 
 export function handleFileSelect(file: File) {
   if (!file.type.startsWith("image/")) return;
@@ -322,6 +322,13 @@ export function removeAdminButtons() {
   });
 }
 
+/**
+ * Refreshes the orders list modal with the given filter
+ * @param {string} [filter='active'] - The filter to apply to the orders list
+ * @returns {Promise<void>} - A promise that resolves when the orders list has been refreshed
+ * @example
+ * refreshOrdersModal('all')
+ */
 export async function refreshOrdersModal() {
     const list = document.getElementById("orders-list");
     if (!list) return;
@@ -460,6 +467,8 @@ function renderOrdersList(orders: any[]) {
              buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); cancelOrder(${o.id})">${t.btnCancelOrder}</button>`;
         }
         
+        buttonsHtml += `<button class="add-btn" style="background-color: var(--warning); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); restorePreOrder(${o.id}).then(refreshOrdersModal)">Restore PreOrder</button>`;
+
         buttonsHtml += `</div>`;
         
         html += `<tr onclick="openOrderDetailsModal(${o.id})" style="cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.05)'" onmouseout="this.style.backgroundColor='transparent'">

@@ -5,7 +5,7 @@ import { neon } from '@netlify/neon';
  * Netlify Function: cancel-order
  *
  * This serverless function cancels an order by setting its status to 'cancelled'.
- * If the order is in the 'pending' state, it also reverts the inventory reservation.
+ * If the order is in the 'shipped' or 'canceled' state, it also reverts the inventory reservation.
  *
  * Request Body:
  * - orderId: The PayPal order ID to cancel.
@@ -32,7 +32,7 @@ export const handler: Handler = async (event: any) => {
 
     if (targetId) {
          const currentOrder = await sql`SELECT status FROM orders WHERE id = ${targetId}`;
-         if (currentOrder.length > 0 && currentOrder[0].status === 'pending') {
+         if (currentOrder.length > 0 && currentOrder[0].status !== 'shipped' && currentOrder[0].status !== 'cancelled') {
              const items = await sql`SELECT sku, quantity FROM order_items WHERE order_id = ${targetId}`;
              for (const item of items) {
                 if (item.sku) {
@@ -41,6 +41,7 @@ export const handler: Handler = async (event: any) => {
                 }
              }
              await sql`UPDATE orders SET status = 'cancelled' WHERE id = ${targetId}`;
+             await sql`UPDATE payments SET status = 'cancelled' WHERE order_id = ${targetId}`;
          }
     }
     

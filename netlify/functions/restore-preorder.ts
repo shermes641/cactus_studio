@@ -35,17 +35,26 @@ export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
   try {
-    const { userId, email } = JSON.parse(event.body || '{}');
-    if (!userId && !email) return { statusCode: 400, body: JSON.stringify({ error: "Missing user identifier" }) };
+    const { orderId, userId, email } = JSON.parse(event.body || '{}');
+    if (!orderId && !userId && !email) return { statusCode: 400, body: JSON.stringify({ error: "Missing order identifier" }) };
 
     const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
     // 1. Find orders with status 'pre_order'
-    let orders;
-    if (userId) {
-        orders = await sql`SELECT id FROM orders WHERE user_id = ${userId} AND status = 'pre_order'`;
+    let orders: any[] = [];
+    
+    if (orderId) {
+        orders = await sql`SELECT id FROM orders WHERE id = ${orderId} AND status IN ('pre_order', 'pending')`;
     } else {
-        orders = await sql`SELECT id FROM orders WHERE customer_email = ${email} AND status = 'pre_order'`;
+        let uid = userId;
+        if (!uid && email) {
+             const u = await sql`SELECT id FROM users WHERE email = ${email}`;
+             if (u.length > 0) uid = u[0].id;
+        }
+        
+        if (uid) {
+            orders = await sql`SELECT id FROM orders WHERE user_id = ${uid} AND status IN ('pre_order', 'pending')`;
+        }
     }
 
     if (orders.length === 0) {

@@ -6,13 +6,21 @@ import { getStorageKey, showLoadingMask, hideLoadingMask } from '../utils.js';
 import { updateCartUI, toggleCart, toggleOtherPaymentModal, updateReceiptDropZonePreview } from '../ui.js';
 import { Discount } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal } from './shared.js';
+import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal, clearTimer } from './shared.js';
 
 declare const paypal: any;
 declare const window: any;
 
+const PAYPAL_TIMEOUT_MS = isLocal() ? 30000 : 300000; // 10 seconds for local dev, 5 minutes for production
+const CHECKOUT_TIMEOUT_MS = isLocal() ? 30000 : 300000; // 10 seconds for local dev, 10 minutes for production
+const OTHER_PAYMENT_TIMEOUT_MS = isLocal() ? 30000 : 300000; // 10 seconds for local dev, 5 minutes for production
+
+let orderCreated = false;
+export let internalOrderId: number | null = null;
+let isManualPaymentSubmitting = false;
+
 let pendingReceiptFile: File | null = null;
-let checkoutTimer: any = null;
+let checkoutTimer: NodeJS.Timeout | null = null;
 
 export async function addToCart(id: number) {
   if (state.hiddenProductIds.has(id)) return;
@@ -167,7 +175,12 @@ export function handleReceiptFileSelect(file: File) {
 }
 
 export async function submitManualPayment(allow_no_reciept: boolean, preOrder: boolean = false) {
+    internalOrderId = null;
+    isManualPaymentSubmitting = true;
+    checkoutTimer = clearTimer(checkoutTimer);
+
     if (!pendingReceiptFile && !allow_no_reciept) {
+        isManualPaymentSubmitting = false;
         alert(translations[state.currentLang].alertReceiptRequired);
         return;
     }
@@ -176,6 +189,7 @@ export async function submitManualPayment(allow_no_reciept: boolean, preOrder: b
     const shippingAddress = shippingInput ? shippingInput.value.trim() : (state.currentUserData?.shipping_addr || "");
 
     if (!shippingAddress) {
+        isManualPaymentSubmitting = false;
         alert(translations[state.currentLang].alertShippingAddressRequired);
         return;
     }
@@ -195,6 +209,7 @@ export async function submitManualPayment(allow_no_reciept: boolean, preOrder: b
         receiptUrl = await uploadFileToGoogleDrive(fileToUse, 'receipts');
       }
     } catch (e: any) {
+        isManualPaymentSubmitting = false;
         hideLoadingMask();
         alert("Receipt upload failed: " + e.message);
         return;
@@ -218,16 +233,22 @@ export async function submitManualPayment(allow_no_reciept: boolean, preOrder: b
             })
         });
         
+        const data = await res.json();
+        
         if (!res.ok) {
-            const data = await res.json();
             throw new Error(data.error || "Order creation failed");
         }
+        if (data.id) internalOrderId = data.id;
 
         if (!allow_no_reciept) {
           state.cart = [];
           state.hiddenProductIds.clear();
           localStorage.setItem(getStorageKey('cactusCart', state.currentUser), JSON.stringify(state.cart));
           updateCartUI();
+          
+          // Clear the ID so closing the modal doesn't trigger a restore/cancel
+          internalOrderId = null;
+          
           toggleOtherPaymentModal();
           pendingReceiptFile = null;
           alert(translations[state.currentLang].alertManualOrderSuccess);
@@ -237,8 +258,48 @@ export async function submitManualPayment(allow_no_reciept: boolean, preOrder: b
         console.error("Manual order error:", e);
         alert("Failed to place order: " + e.message);
     } finally {
+        isManualPaymentSubmitting = false;
         hideLoadingMask();
     }
+}
+
+export function monitorManualPayment(isOpen: boolean) {
+  checkoutTimer = clearTimer(checkoutTimer);
+  if (isOpen && !isManualPaymentSubmitting) {
+    checkoutTimer = setTimeout(() => {
+        const modal = document.getElementById("other-payment-modal");
+        if (modal && modal.style.display === "flex") {
+             toggleOtherPaymentModal();
+             cancelCheckout();
+        }
+    }, OTHER_PAYMENT_TIMEOUT_MS);
+  }
+}
+
+export function cancelCheckout() {
+    checkoutTimer = clearTimer(checkoutTimer);
+
+    const checkoutBtn = document.querySelector(".checkout-btn") as HTMLButtonElement;
+    const paypalContainer = document.getElementById("paypal-button-container");
+    const otherBtn = document.getElementById("other-payment-btn");
+    const cancelBtn = document.getElementById("cancel-checkout-btn");
+
+    if (checkoutBtn) {
+        checkoutBtn.style.display = "";
+        checkoutBtn.innerText = translations[state.currentLang].btnCheckout;
+        checkoutBtn.disabled = false;
+    }
+    if (paypalContainer) paypalContainer.innerHTML = "";
+    if (otherBtn) otherBtn.style.display = "none";
+    if (cancelBtn) cancelBtn.style.display = "none";
+    if (orderCreated && internalOrderId) {
+        restorePreOrder(internalOrderId)
+        orderCreated = false
+        internalOrderId = null
+    } else {
+        fetchDataAndLoad();
+    }
+    alert((translations[state.currentLang].paymentCancel || "Checkout cancelled")) + "!!!!!!!";
 }
 
 /**
@@ -345,6 +406,10 @@ export async function checkout() {
   const otherBtn = document.getElementById("other-payment-btn");
   if (otherBtn) otherBtn.style.display = "block";
 
+  // Show cancel button
+  const cancelBtn = document.getElementById("cancel-checkout-btn");
+  if (cancelBtn) cancelBtn.style.display = "block";
+
   showLoadingMask("Loading Payment Options...");
 
   // Fetch PayPal Client ID from server
@@ -380,14 +445,24 @@ export async function checkout() {
         if (checkoutBtn) checkoutBtn.style.display = "";
         return;
     }
-    
-    let orderCreated = false;
-    let internalOrderId: number | null = null;
+    orderCreated = false;
+    internalOrderId = null;
 
+    checkoutTimer = clearTimer(checkoutTimer);
+    console.log("Rendering PayPal buttons... TTTTT", checkoutTimer);
+    showLoadingMask('Accessing Paypal')
     paypal.Buttons({
+      onClick: function(data: any, actions: any) {
+        console.log("PayPal button clicked");
+        checkoutTimer = clearTimer(checkoutTimer);
+        
+        // Start a 5-minute safety timer in case the user abandons the popup
+        checkoutTimer = setTimeout(() => {
+            cancelCheckout();
+        }, PAYPAL_TIMEOUT_MS);
+      },
       // Create Order: Called when user clicks PayPal button
       createOrder: async function(data: any, actions: any) {
-        if (checkoutTimer) clearTimeout(checkoutTimer);
         orderCreated = false;
         let outOfStockList: string[] = [];
         let outOfStockIds = new Set<number>();
@@ -427,6 +502,7 @@ export async function checkout() {
             cart: state.cart,
             discountCode: state.activeDiscount ? state.activeDiscount.code : null,
             shippingAddress: finalShippingAddr,
+            preOrder: true,
             currency: paymentCurrency
           })
         })
@@ -450,6 +526,7 @@ export async function checkout() {
       },
       // On Approve: Called when user authorizes payment
       onApprove: function(data: any, actions: any) {
+        checkoutTimer = clearTimer(checkoutTimer);
         return actions.order.capture().then(function(details: any) {
           // Record capture on server
           return fetch('/.netlify/functions/capture-order', {
@@ -488,7 +565,7 @@ export async function checkout() {
       },
       // On Error: Called when PayPal encounters an error
       onError: function(err: any) {
-        if (checkoutTimer) clearTimeout(checkoutTimer);
+        checkoutTimer = clearTimer(checkoutTimer);
         // Handle custom OOS error
         if (String(err).includes("PRE_CHECKOUT_OOS")) {
             if (checkoutBtn) {
@@ -497,17 +574,22 @@ export async function checkout() {
                 checkoutBtn.disabled = false;
             }
             paypalContainer.innerHTML = "";
+            if (otherBtn) otherBtn.style.display = "none";
+            if (cancelBtn) cancelBtn.style.display = "none";
             return;
         }
 
         console.error('PayPal Error:', err);
         // Cancel internal order if it was created
+        checkoutTimer = clearTimer(checkoutTimer);
         if (orderCreated && internalOrderId) {
-            fetch('/.netlify/functions/cancel-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ internalId: internalOrderId })
-            }).then(() => handlePaymentReset());
+          restorePreOrder(internalOrderId)
+        // if (orderCreated && internalOrderId) {
+        //     fetch('/.netlify/functions/cancel-order', {
+        //       method: 'POST',
+        //       headers: { 'Content-Type': 'application/json' },
+        //       body: JSON.stringify({ internalId: internalOrderId })
+        //     }).then(() => handlePaymentReset());
         } else {
             fetchDataAndLoad();
         }
@@ -515,29 +597,34 @@ export async function checkout() {
         alert(translations[state.currentLang].paymentError);
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
+        if (otherBtn) otherBtn.style.display = "none";
+        if (cancelBtn) cancelBtn.style.display = "none";
       },
       // On Cancel: Called when user cancels the popup
       onCancel: function(data: any) {
         if (checkoutTimer) clearTimeout(checkoutTimer);
         if (orderCreated && internalOrderId) {
-            fetch('/.netlify/functions/cancel-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ internalId: internalOrderId, orderId: data.orderID })
-            }).then(() => handlePaymentReset());
+          restorePreOrder(internalOrderId)
+        // if (orderCreated && internalOrderId) {
+        //     fetch('/.netlify/functions/cancel-order', {
+        //       method: 'POST',
+        //       headers: { 'Content-Type': 'application/json' },
+        //       body: JSON.stringify({ internalId: internalOrderId })
+        //     }).then(() => handlePaymentReset());
         } else {
             fetchDataAndLoad();
         }
 
-        alert(translations[state.currentLang].paymentCancel);
+        alert(translations[state.currentLang].paymentCancel + "######");
         if (checkoutBtn) checkoutBtn.style.display = "";
         paypalContainer.innerHTML = "";
+        if (otherBtn) otherBtn.style.display = "none";
+        if (cancelBtn) cancelBtn.style.display = "none";
       }
     }).render('#paypal-button-container').then(() => {
         hideLoadingMask();
 
         if (checkoutTimer) clearTimeout(checkoutTimer);
-        const timeoutMs = isLocal() ? 10000 : 60000;
 
         checkoutTimer = setTimeout(() => {
             const manualModal = document.getElementById("other-payment-modal");
@@ -550,9 +637,10 @@ export async function checkout() {
             }
             if (paypalContainer) paypalContainer.innerHTML = "";
             if (otherBtn) otherBtn.style.display = "none";
-            
-            alert(translations[state.currentLang].paymentCancel || "Checkout timed out");
-        }, timeoutMs);
+            if (cancelBtn) cancelBtn.style.display = "none";
+
+            alert((translations[state.currentLang].paymentCancel || "Checkout timed out") + "%%%%%");
+        }, CHECKOUT_TIMEOUT_MS);
     });
   };
 
@@ -580,16 +668,16 @@ export async function checkout() {
   
 }
 
-export async function restorePreOrder() {
+export async function restorePreOrder(order_id: number) {
     if (!state.currentUser) return;
 
     try {
+        console.log("restorePreOrder... TTTTT", order_id);
         const res = await fetch('/.netlify/functions/restore-preorder', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                email: state.currentUser,
-                userId: state.currentUserData?.id 
+                orderId: order_id
             })
         });
 

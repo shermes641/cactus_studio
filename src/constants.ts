@@ -150,7 +150,7 @@ export const translations: Translations = {
         checkingStock: "Checking Stock...",
         outOfStockRemoved: "The following items are out of stock and have been removed from your cart:",
         paymentError: "An error occurred during payment.",
-        paymentCancel: "Payment Cancelled",
+        paymentCancel: "Checkout Cancelled",
         alertShippingAddressRequired: "Please provide a shipping address before checking out.",
         alertNoActiveDiscounts: "You have no active discounts.",
         alertDiscountNotAssigned: "Discount code not found in your account.",
