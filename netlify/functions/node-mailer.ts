@@ -19,9 +19,10 @@ export const handler: Handler = async (event) => {
       test,
       replyTo,
       fromName,
-      attachments = []
+      attachments = [],
+      link: providedLink
     } = JSON.parse(event.body || "{}");
-
+    console.log("Email request:", JSON.parse(event.body || "{}"));
     if (!email || !token || !type) {
       return {
         statusCode: 400,
@@ -39,10 +40,11 @@ export const handler: Handler = async (event) => {
     const baseUrl = process.env.URL || "http://localhost:8888";
     let subject = "";
     let html = "";
-    let link = "";
+    let link = providedLink || "";
 
     if (type === "verify") {
-      link = `${baseUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`;
+      if (!link) link = `${baseUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`;
+      console.log("Verification link:", link);
       subject = "Verify your email - Cactus Studio";
       html = baseTemplate(`
         <h3>Welcome ${name || "Cactus Lover"}!</h3>
@@ -54,7 +56,7 @@ export const handler: Handler = async (event) => {
         </p>
       `);
     } else if (type === "reset") {
-      link = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+      if (!link) link = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
       subject = "Password Reset - Cactus Studio";
       html = baseTemplate(`
         <h3>Password Reset</h3>
@@ -71,6 +73,7 @@ export const handler: Handler = async (event) => {
       };
     }
 
+    console.log("Prepared email:", { subject, html });
     const sender = "cactus@cactusstudio.shop";
 
     await logAudit(sql, {
@@ -129,7 +132,7 @@ export const handler: Handler = async (event) => {
       "Content-Type: text/html; charset=utf-8",
       "",
       html
-    ].filter(Boolean);
+    ].filter((l) => typeof l === "string");
 
     for (const att of attachments) {
       mime.push(

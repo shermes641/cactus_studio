@@ -55,6 +55,7 @@ export const handler: Handler = async (event: any, context: any) => {
 
     // Trigger verification email
     const siteUrl = process.env.URL || 'http://localhost:8888';
+    const link = `${siteUrl}/verify?token=${verificationToken}&email=${encodeURIComponent(email)}`;
     let verificationLink;
     let emailBody;
 
@@ -66,6 +67,7 @@ export const handler: Handler = async (event: any, context: any) => {
           token: verificationToken,
           type: 'verify',
           name: name || 'Cactus Lover',
+          link,
           test: process.env.EMAIL_TEST_MODE === 'true'
         })
       });
