@@ -477,7 +477,8 @@ function renderOrdersList(orders: any[]) {
         let buttonsHtml = `<div style="display: flex; flex-direction: column; gap: 5px;">`;
         
         if (o.receipt_url) {
-             buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); openReceiptModal(${o.id}, '${o.receipt_url}')">${t.viewReceipt}</button>`;
+             const action = state.isAdmin ? `openReceiptModal(${o.id}, '${o.receipt_url}')` : `openReceiptImageModal('${o.receipt_url}')`;
+             buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); ${action}">${t.viewReceipt}</button>`;
         }
 
         if (state.isAdmin) {
@@ -551,6 +552,25 @@ export function closeReceiptModal() {
     if (modal) modal.style.display = "none";
 }
 
+export function openReceiptImageModal(url: string) {
+    const modal = document.getElementById("image-modal");
+    const img = document.getElementById("modal-img") as HTMLImageElement;
+    const btn = document.getElementById("modal-add-btn") as HTMLButtonElement;
+
+    if (!modal || !img) return;
+
+    let src = url;
+    if (src.includes('cloudinary.com')) {
+        src = src
+        .replace('/upload/', '/upload/f_auto,q_auto,w_800,c_limit/')
+        .replace('http://', 'https://');
+    }
+
+    img.src = src;
+    if (btn) btn.style.display = "none";
+    modal.style.display = "flex";
+}
+
 export async function openOrderDetailsModal(orderId: number) {
     let modal = document.getElementById("order-details-modal");
     if (!modal) {
@@ -606,7 +626,7 @@ export async function openOrderDetailsModal(orderId: number) {
                     <div style="margin-bottom: 5px;"><strong>Customer:</strong> ${order.customer_name || order.user_name || 'N/A'} (${order.customer_email || order.user_email || 'N/A'})</div>
                     <div style="margin-bottom: 5px;"><strong>Shipping:</strong> ${order.shipping_addr || 'N/A'}</div>
                     ${order.paypal_order_id ? `<div><strong>PayPal ID:</strong> ${order.paypal_order_id}</div>` : ''}
-                    ${order.receipt_url ? `<div style="margin-top: 5px;"><button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="openReceiptModal(${order.id}, '${order.receipt_url}')">${t.viewReceipt}</button></div>` : ''}
+                    ${order.receipt_url ? `<div style="margin-top: 5px;"><button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="openReceiptImageModal('${order.receipt_url}')">${t.viewReceipt}</button></div>` : ''}
                 </div>
              `;
         }
