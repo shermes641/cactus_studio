@@ -7,6 +7,7 @@ export const handler: Handler = async (event: any) => {
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL!);
     const status = event.queryStringParameters?.status || 'active';
+    const userId = event.queryStringParameters?.userId;
 
     let query;
     const baseQuery = `
@@ -27,12 +28,20 @@ export const handler: Handler = async (event: any) => {
         LEFT JOIN users u ON o.user_id = u.id
     `;
 
+    let whereClause = "";
+    const args = [];
+
+    if (userId) {
+        whereClause = ` WHERE o.user_id = $${args.length + 1}`;
+        args.push(userId);
+    }
+
     if (status === 'active') {
-        query = sql(baseQuery + ` WHERE o.status IN ('processing', 'manual_verification') ORDER BY o.created_at DESC`);
+        query = sql(baseQuery + (whereClause ? whereClause + " AND" : " WHERE") + ` o.status IN ('processing', 'manual_verification') ORDER BY o.created_at DESC`, args);
     } else if (status === 'all') {
-        query = sql(baseQuery + ` ORDER BY o.created_at DESC`);
+        query = sql(baseQuery + whereClause + ` ORDER BY o.created_at DESC`, args);
     } else {
-        query = sql(baseQuery + ` WHERE o.status = $1 ORDER BY o.created_at DESC`, [status]);
+        query = sql(baseQuery + (whereClause ? whereClause + " AND" : " WHERE") + ` o.status = $${args.length + 1} ORDER BY o.created_at DESC`, [...args, status]);
     }
 
     const orders = await query;

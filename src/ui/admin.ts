@@ -208,6 +208,25 @@ export function toggleAdminModal() {
   }
 }
 
+export function injectOrdersButton() {
+  const dropdown = document.getElementById("hamburger-dropdown");
+  if (!dropdown || document.getElementById("orders-btn")) return;
+
+  const footer = dropdown.querySelector(".hamburger-footer");
+  const t = translations[state.currentLang];
+
+  const btn = document.createElement("button");
+  btn.id = "orders-btn";
+  btn.className = "hamburger-menu-item bg-blue";
+  btn.setAttribute("onclick", "toggleOrdersModal()");
+  btn.setAttribute("data-i18n", "btnOrders");
+  btn.innerText = t["btnOrders"] || "Orders";
+  btn.style.borderRadius = "20px";
+
+  if (footer) dropdown.insertBefore(btn, footer);
+  else dropdown.appendChild(btn);
+}
+
 export async function injectAdminButtons() {
   const dropdown = document.getElementById("hamburger-dropdown");
   if (!dropdown) return;
@@ -258,12 +277,6 @@ export async function injectAdminButtons() {
       "btnUploadImages",
       "uploadImagesToCloudinary()",
       "add-btn hamburger-menu-item bg-orange"
-    ),
-    createBtn(
-      "orders-btn",
-      "btnOrders",
-      "toggleOrdersModal()",
-      "hamburger-menu-item bg-blue"
     ),
   ];
 
@@ -334,7 +347,7 @@ export async function refreshOrdersModal() {
     if (!list) return;
 
     const filterSelect = document.getElementById("orders-filter") as HTMLSelectElement;
-    const filter = filterSelect ? filterSelect.value : 'active';
+    const filter = state.isAdmin ? (filterSelect ? filterSelect.value : 'active') : 'all';
     const t = translations[state.currentLang];
 
     const titleEl = document.getElementById("orders-modal-title");
@@ -348,14 +361,15 @@ export async function refreshOrdersModal() {
             'pending': t.statusPending,
             'manual_verification': t.statusManual
         };
-        titleEl.innerText = titles[filter] || t.ordersTitle;
+        titleEl.innerText = state.isAdmin ? (titles[filter] || t.ordersTitle) : t.statusAll;
     }
     
     list.innerHTML = "<p>Loading...</p>";
     
     try {
         const { fetchPendingOrders } = await import("../actions.js");
-        const orders = await fetchPendingOrders(filter);
+        const userId = state.isAdmin ? undefined : state.currentUserData?.id;
+        const orders = await fetchPendingOrders(filter, userId);
         renderOrdersList(orders);
     } catch (e) {
         if (list) list.innerText = "Error loading orders.";
@@ -404,7 +418,12 @@ export async function toggleOrdersModal() {
       modal.style.display = "flex";
       const filterSelect = document.getElementById("orders-filter") as HTMLSelectElement;
       if (filterSelect) {
-          filterSelect.value = 'active';
+          if (state.isAdmin) {
+              filterSelect.style.display = 'block';
+              filterSelect.value = 'active';
+          } else {
+              filterSelect.style.display = 'none';
+          }
       }
       refreshOrdersModal();
   } else {
@@ -419,8 +438,13 @@ function renderOrdersList(orders: any[]) {
     const t = translations[state.currentLang];
     
     if (!orders || orders.length === 0) {
+        if (!state.isAdmin) {
+             list.innerHTML = `<p>${t.noOrders}</p>`;
+             return;
+        }
+
         const filterSelect = document.getElementById("orders-filter") as HTMLSelectElement;
-        const filter = filterSelect ? filterSelect.value : 'active';
+        const filter = state.isAdmin ? (filterSelect ? filterSelect.value : 'active') : 'all';
         
         const titles: {[key: string]: string} = {
             'active': t.statusActive,
@@ -456,18 +480,20 @@ function renderOrdersList(orders: any[]) {
              buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); openReceiptModal(${o.id}, '${o.receipt_url}')">${t.viewReceipt}</button>`;
         }
 
-        if (o.status === 'manual_verification') {
-            buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); verifyOrder(${o.id})">${t.btnVerify}</button>`;
-        } else if (o.status === 'processing' && o.receipt_url) {
-            buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); unverifyOrder(${o.id})">${t.btnUnverify}</button>`;
-        }
+        if (state.isAdmin) {
+            if (o.status === 'manual_verification') {
+                buttonsHtml += `<button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); openReceiptModal(${o.id}, '${o.receipt_url || ''}', true)">${t.btnVerify}</button>`;
+            } else if (o.status === 'processing' && o.receipt_url) {
+                buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); unverifyOrder(${o.id})">${t.btnUnverify}</button>`;
+            }
 
-        if (o.status !== 'cancelled' && o.status !== 'shipped') {
-             buttonsHtml += `<button class="add-btn" style="background-color: var(--info); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); shipOrder(${o.id})">${t.btnShip}</button>`;
-             buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); cancelOrder(${o.id})">${t.btnCancelOrder}</button>`;
+            if (o.status !== 'cancelled' && o.status !== 'shipped') {
+                 buttonsHtml += `<button class="add-btn" style="background-color: var(--info); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); shipOrder(${o.id})">${t.btnShip}</button>`;
+                 buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); cancelOrder(${o.id})">${t.btnCancelOrder}</button>`;
+            }
+            
+            buttonsHtml += `<button class="add-btn" style="background-color: var(--warning); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); restorePreOrder(${o.id}).then(refreshOrdersModal)">Restore PreOrder</button>`;
         }
-        
-        buttonsHtml += `<button class="add-btn" style="background-color: var(--warning); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); restorePreOrder(${o.id}).then(refreshOrdersModal)">Restore PreOrder</button>`;
 
         buttonsHtml += `</div>`;
         
@@ -486,7 +512,7 @@ function renderOrdersList(orders: any[]) {
     list.innerHTML = html;
 }
 
-export function openReceiptModal(orderId: number, url: string) {
+export function openReceiptModal(orderId: number, url: string, showVerify: boolean = false) {
     let modal = document.getElementById("receipt-modal");
     if (!modal) {
         modal = document.createElement("div");
@@ -497,13 +523,23 @@ export function openReceiptModal(orderId: number, url: string) {
     
     const t = translations[state.currentLang];
     
+    let buttons = `<button class="add-btn cancel-btn" onclick="closeReceiptModal()">${t.btnCancel}</button>`;
+    if (showVerify) {
+        buttons = `
+            <button class="add-btn" onclick="verifyOrder(${orderId})">${t.btnVerify}</button>
+            ${buttons}
+        `;
+    }
+
+    const imgHtml = url ? `<img src="${url}" style="max-width: 100%; max-height: 60vh; margin: 10px 0; border: 1px solid #ddd;">` : `<p>No receipt image available.</p>`;
+
     modal.innerHTML = `
         <div class="modal-content" style="text-align: center;">
             <span class="close-btn" onclick="closeReceiptModal()">&times;</span>
             <h3>${t.receiptModalTitle} #${orderId}</h3>
-            <img src="${url}" style="max-width: 100%; max-height: 60vh; margin: 10px 0; border: 1px solid #ddd;">
-            <div class="manual-payment-actions" style="justify-content: center;">
-                <button class="add-btn cancel-btn" onclick="closeReceiptModal()">${t.btnCancel}</button>
+            ${imgHtml}
+            <div class="manual-payment-actions" style="justify-content: center; gap: 10px;">
+                ${buttons}
             </div>
         </div>
     `;
@@ -532,6 +568,7 @@ export async function openOrderDetailsModal(orderId: number) {
         <div class="modal-content" style="max-width: 600px; width: 95%;">
             <span class="close-btn" onclick="closeOrderDetailsModal()">&times;</span>
             <h3>Order #${orderId} Items</h3>
+            <div id="order-details-header"></div>
             <div id="order-items-content" style="max-height: 60vh; overflow-y: auto;">
                 <p>Loading items...</p>
             </div>
@@ -543,7 +580,37 @@ export async function openOrderDetailsModal(orderId: number) {
     modal.style.display = "flex";
     
     try {
-        const items = await fetchOrderItems(orderId);
+        const data = await fetchOrderItems(orderId);
+        let items = [];
+        let order = null;
+
+        if (Array.isArray(data)) {
+            items = data;
+        } else {
+            items = data.items;
+            order = data.order;
+        }
+
+        const header = document.getElementById("order-details-header");
+        if (header && order) {
+             const total = (order.total_amount_cents / 100).toFixed(2);
+             const date = new Date(order.created_at).toLocaleString();
+             const t = translations[state.currentLang];
+             header.innerHTML = `
+                <div style="background: #f5f5f5; padding: 10px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9em;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span><strong>Status:</strong> ${order.status}</span>
+                        <span><strong>Total:</strong> ${total} ${order.currency}</span>
+                    </div>
+                    <div style="margin-bottom: 5px;"><strong>Date:</strong> ${date}</div>
+                    <div style="margin-bottom: 5px;"><strong>Customer:</strong> ${order.customer_name || order.user_name || 'N/A'} (${order.customer_email || order.user_email || 'N/A'})</div>
+                    <div style="margin-bottom: 5px;"><strong>Shipping:</strong> ${order.shipping_addr || 'N/A'}</div>
+                    ${order.paypal_order_id ? `<div><strong>PayPal ID:</strong> ${order.paypal_order_id}</div>` : ''}
+                    ${order.receipt_url ? `<div style="margin-top: 5px;"><button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="openReceiptModal(${order.id}, '${order.receipt_url}')">${t.viewReceipt}</button></div>` : ''}
+                </div>
+             `;
+        }
+
         const container = document.getElementById("order-items-content");
         if (!container) return;
         

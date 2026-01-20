@@ -334,8 +334,10 @@ export async function runMigration() {
   }
 }
 
-export async function fetchPendingOrders(status: string = 'active') {
-  const res = await fetch(`/.netlify/functions/get-pending-orders?status=${status}`);
+export async function fetchPendingOrders(status: string = 'active', userId?: number) {
+  let url = `/.netlify/functions/get-pending-orders?status=${status}`;
+  if (userId) url += `&userId=${userId}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch orders");
   return await res.json();
 }

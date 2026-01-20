@@ -16,8 +16,15 @@ export const handler: Handler = async (event: any) => {
         LEFT JOIN products p ON oi.product_id = p.id
         WHERE oi.order_id = ${orderId}
     `;
+
+    const orders = await sql`
+        SELECT o.*, u.name as user_name, u.email as user_email 
+        FROM orders o 
+        LEFT JOIN users u ON o.user_id = u.id 
+        WHERE o.id = ${orderId}
+    `;
     
-    return { statusCode: 200, body: JSON.stringify(items) };
+    return { statusCode: 200, body: JSON.stringify({ items, order: orders[0] }) };
   } catch (e: any) {
     return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
   }

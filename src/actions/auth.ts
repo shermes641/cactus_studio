@@ -3,7 +3,7 @@
 import { state } from '../state.js';
 import { translations } from '../constants.js';
 import { showLoadingMask, hideLoadingMask, showPromptModal, getStorageKey } from '../utils.js';
-import { updateHamburgerUserInfo, injectAdminButtons, removeAdminButtons, toggleProfileModal, injectLoginUI, setupPasswordStrengthMeter, updateCartUI } from '../ui.js';
+import { updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, toggleProfileModal, injectLoginUI, setupPasswordStrengthMeter, updateCartUI } from '../ui.js';
 import { fetchDataAndLoad } from './products.js';
 
 declare const window: any;
@@ -48,6 +48,7 @@ export async function restoreSession() {
           if (state.isAdmin) {
             injectAdminButtons();
           }
+          injectOrdersButton();
           console.log("restoreSession: Session restored for:", state.currentUser);
       }
     } else {
@@ -199,6 +200,7 @@ export async function loginUserEmail() {
     if (state.isAdmin) {
       injectAdminButtons();
     }
+    injectOrdersButton();
     
     hideLoadingMask();
   } catch (e) {

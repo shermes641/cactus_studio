@@ -98,6 +98,7 @@ export const handler: Handler = async (event: any) => {
       return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
 
+  console.log('!!!!!!! MANUAL', isManual, '\nCreate Order Request:', { cart, discountCode, currency, receiptUrl, isManual, preOrder, shippingAddress, userId });
   // Validate cart contents.
   if (!cart || !Array.isArray(cart) || cart.length === 0) {
       return { statusCode: 400, body: JSON.stringify({ error: "Cart is empty" }) };
@@ -169,10 +170,10 @@ export const handler: Handler = async (event: any) => {
     // 3. Create Internal Order & Reserve Stock (for both Manual and PayPal)
     let status = isManual ? 'manual_verification' : 'pending';
     status = isManual && receiptUrl == null ? 'pre_order' : status;
-    
+    console.log('!!!!!! Creating order with status:', status, isManual, receiptUrl, preOrder);
     // Create a new record in the 'orders' table.
     if (preOrder) {
-    const orderRes = await sql`
+      const orderRes = await sql`
         INSERT INTO orders (user_id, total_amount_cents, currency, status, discount_code, shipping_addr, receipt_url)
         VALUES (${userId || null}, ${totalCents}, ${currency}, ${status}, ${discountCode || null}, ${shippingAddress || null}, ${receiptUrl || null})
         RETURNING id`;
@@ -220,7 +221,7 @@ export const handler: Handler = async (event: any) => {
         }
     }
 
-    // 4. Handle preOrder Order
+    // 4. Handle manual Order
     if (isManual) {
         if (preOrder) {
             await sql`UPDATE orders SET status = 'pre_order' WHERE id = ${internalId}`;
@@ -229,7 +230,7 @@ export const handler: Handler = async (event: any) => {
                 INSERT INTO payments (order_id, provider, provider_payment_id, amount_cents, currency, status)
                 VALUES (${internalId}, 'other', ${receiptUrl}, ${totalCents}, ${currency}, 'manual_verification')
             `;
-            await sql`UPDATE orders SET status = 'manual_verification' WHERE id = ${internalId}`;
+            await sql`UPDATE orders SET status = 'manual_verification', receipt_url = ${receiptUrl} WHERE id = ${internalId}`;
         }
         return { statusCode: 200, body: JSON.stringify({ id: internalId }) };
     }

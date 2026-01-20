@@ -272,27 +272,28 @@ export async function submitManualPayment(
   let msg = allow_no_reciept ? "..." : "Uploading receipt...";
   showLoadingMask(msg);
   let receiptUrl = "";
-  try {
-    const fileToUse = allow_no_reciept
-      ? new File([await (await fetch("/logo.png")).blob()], "logo.png", {
-          type: "image/png",
-        })
-      : pendingReceiptFile!;
-    const b64 = await fileToBase64(fileToUse);
-    console.dir(fileToUse);
-    if (USE_CLOUDINARY) {
-      receiptUrl = await uploadFileToCloudinary(b64, "receipts");
-    } else {
-      receiptUrl = await uploadFileToGoogleDrive(fileToUse, "receipts");
+  if (!preOrder) {
+    try {
+      if (!pendingReceiptFile) {
+        throw new Error("Receipt file is missing.");
+      }
+      const b64 = await fileToBase64(pendingReceiptFile);
+      console.dir(pendingReceiptFile);
+      if (USE_CLOUDINARY) {
+        receiptUrl = await uploadFileToCloudinary(b64, "receipts");
+      } else {
+        receiptUrl = await uploadFileToGoogleDrive(pendingReceiptFile, "receipts");
+      }
+    } catch (e: any) {
+      isManualPaymentSubmitting = false;
+      hideLoadingMask();
+      alert("Receipt upload failed: " + e.message);
+      return;
     }
-  } catch (e: any) {
-    isManualPaymentSubmitting = false;
-    hideLoadingMask();
-    alert("Receipt upload failed: " + e.message);
-    return;
   }
 
-  msg = allow_no_reciept ? "Reserving order..." : "Placing order...";
+  msg = preOrder ? "Reserving order..." : "Placing order...";
+  console.log('!!!!!!!!!!!',msg, allow_no_reciept, receiptUrl);
   showLoadingMask(msg);
   try {
     // Using create-order endpoint but passing receiptUrl to indicate manual payment
@@ -306,6 +307,7 @@ export async function submitManualPayment(
         currency: (state as any).currency || "USD",
         isManual: true,
         preOrder: preOrder,
+        receiptUrl: receiptUrl,
         userId: state.currentUserData ? state.currentUserData.id : null,
       }),
     });
@@ -628,6 +630,7 @@ export async function checkout() {
               shippingAddress: finalShippingAddr,
               preOrder: true,
               currency: paymentCurrency,
+              userId: state.currentUserData ? state.currentUserData.id : null,
             }),
           })
             .then(async (res) => {
