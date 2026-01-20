@@ -1,6 +1,10 @@
 import { state } from '../state.js';
 import { translations } from '../constants.js';
 
+export const PAYPAL_TIMEOUT_MS = isLocal() ? 60000 : 300000; // 60 seconds for local dev, 5 minutes for production
+export const CHECKOUT_TIMEOUT_MS = isLocal() ? 60000 : 300000; // 60 seconds for local dev, 10 minutes for production
+export const OTHER_PAYMENT_TIMEOUT_MS = isLocal() ? 60000 : 300000; // 60 seconds for local dev, 5 minutes for production
+
 declare const window: any;
 
 export const USE_CLOUDINARY = true;

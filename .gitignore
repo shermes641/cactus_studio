@@ -9,3 +9,4 @@ src/*.js
 .vscode/
 CLOUDINARY_SETUP.md
 cloudinary-upload.ps1
+.config.txt

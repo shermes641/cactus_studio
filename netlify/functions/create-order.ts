@@ -5,6 +5,8 @@ const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
   ? 'https://api-m.paypal.com' 
   : 'https://api-m.sandbox.paypal.com';
 
+console.log("PayPal API Endpoint:", PAYPAL_API, 'live: ',process.env.PAYPAL_MODE === 'live');
+
 /**
  * Retrieves an OAuth2 access token from the PayPal API.
  * @async
@@ -19,8 +21,13 @@ async function getAccessToken() {
   : process.env.PAYPAL_SANDBOX_CLIENT_ID;
   //const secret = process.env.PAYPAL_SECRET || process.env.PAYPAL_SANDBOX_SECRET || process.env.PAYPAL_SANDBOX_CLIENT_SECRET;
   const secret = process.env.PAYPAL_MODE === 'live'
-  ? process.env.PAYPAL_SECRET
+  ? process.env.PAYPAL_CLIENT_SECRET
   : process.env.PAYPAL_SANDBOX_CLIENT_SECRET;
+
+// console.log("Using PayPal Credentials:", {
+//   clientId: clientId,
+//   secret: secret
+// });
 
   // Ensure credentials are set in environment variables.
   if (!clientId || !secret) {
