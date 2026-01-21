@@ -1,7 +1,7 @@
 // e:\_A_CACTUS\src\actions\cart.ts
 
 import { state } from "../state.js";
-import { translations, EXCHANGE_RATE } from "../constants.js";
+import { SHIPPING_COST, translations, EXCHANGE_RATE, MIN_CART_SUBTOTAL_CENTS } from "../constants.js";
 import { getStorageKey, showLoadingMask, hideLoadingMask } from "../utils.js";
 import {
   updateCartUI,
@@ -60,6 +60,68 @@ let isManualPaymentSubmitting = false;
 let pendingReceiptFile: File | null = null;
 let checkoutTimer: NodeJS.Timeout | null = null;
 
+async function consumeUserDiscount() {
+  if (!state.currentUser || !state.currentUserData) return;
+  
+  if (state.activeDiscount && state.currentUserData.discount_code === state.activeDiscount.code) {
+      try {
+          await fetch('/.netlify/functions/update-user-profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  email: state.currentUser,
+                  name: state.currentUserData.name,
+                  phone: state.currentUserData.phone,
+                  shipping_addr: state.currentUserData.shipping_addr,
+                  discount_code: null
+              })
+          });
+          state.currentUserData.discount_code = null;
+      } catch (e) {
+          console.error("Failed to consume discount", e);
+      }
+  }
+}
+
+export async function autoApplyUserDiscount() {
+    if (!state.currentUser) return;
+
+    try {
+        const res = await fetch('/.netlify/functions/get-user-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: state.currentUser })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.user) {
+                state.currentUserData = data.user;
+            }
+        }
+    } catch (e) { console.error("Sync discount error", e); }
+
+    if (state.currentUserData && state.currentUserData.discount_code) {
+        const code = state.currentUserData.discount_code;
+        if (!state.activeDiscount || state.activeDiscount.code !== code) {
+            try {
+                const emailParam = `&email=${encodeURIComponent(state.currentUser)}`;
+                const res = await fetch(`/.netlify/functions/validate-discount?code=${code}${emailParam}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    state.activeDiscount = data.discount;
+                    updateCartUI();
+                } else {
+                    state.activeDiscount = null;
+                    updateCartUI();
+                }
+            } catch(e) { console.error("Auto-apply discount failed", e); }
+        }
+    } else if (state.activeDiscount) {
+        state.activeDiscount = null;
+        updateCartUI();
+    }
+}
+
 export async function addToCart(id: number) {
   if (state.hiddenProductIds.has(id)) return;
   let product = state.products.find((p) => p.id == id);
@@ -101,6 +163,8 @@ export async function addToCart(id: number) {
   );
   updateCartUI();
 
+  autoApplyUserDiscount();
+
   state.hiddenProductIds.add(product.id);
   renderPage(state.currentPage);
 }
@@ -117,6 +181,7 @@ export function removeFromCart(index: number) {
     JSON.stringify(state.cart),
   );
   updateCartUI();
+  autoApplyUserDiscount();
   renderPage(state.currentPage);
 }
 
@@ -150,53 +215,6 @@ export async function handlePaymentReset() {
 export function updateCurrency(currency: string) {
   (state as any).currency = currency;
   updateCartUI();
-}
-
-export async function applyDiscountCode() {
-  const input = document.getElementById(
-    "discount-code-input",
-  ) as HTMLInputElement;
-  if (!input) return;
-  const code = input.value.trim().toUpperCase();
-  if (!code) return;
-
-  try {
-    const emailParam = state.currentUser
-      ? `&email=${encodeURIComponent(state.currentUser)}`
-      : "";
-    const res = await fetch(
-      `/.netlify/functions/validate-discount?code=${code}${emailParam}`,
-    );
-    const data = await res.json();
-
-    if (!res.ok) {
-      let msg = data.error;
-      const t = translations[state.currentLang];
-      if (msg === "You have no active discounts")
-        msg = t.alertNoActiveDiscounts;
-      else if (msg === "Discount code not found in your account")
-        msg = t.alertDiscountNotAssigned;
-      else if (msg === "Discount code is not active")
-        msg = t.alertDiscountNotActive;
-      else if (msg === "Discount code not found") msg = t.alertDiscountInvalid;
-
-      alert(msg || t.alertDiscountInvalid);
-      input.value = "";
-      state.activeDiscount = null;
-    } else {
-      state.activeDiscount = data.discount as Discount;
-      alert(
-        translations[state.currentLang].alertDiscountApplied ||
-          "Discount applied!",
-      );
-    }
-    updateCartUI();
-  } catch (e) {
-    console.error("Discount validation error:", e);
-    alert(translations[state.currentLang].errorValidatingDiscount);
-    state.activeDiscount = null;
-    updateCartUI();
-  }
 }
 
 export function removeDiscount(e?: Event) {
@@ -291,7 +309,6 @@ export async function submitManualPayment(
   }
 
   msg = preOrder ? "Reserving order..." : "Placing order...";
-  console.log('!!!!!!!!!!!',msg, allow_no_reciept, receiptUrl);
   showLoadingMask(msg);
   try {
     // Using create-order endpoint but passing receiptUrl to indicate manual payment
@@ -307,6 +324,7 @@ export async function submitManualPayment(
         preOrder: preOrder,
         receiptUrl: receiptUrl,
         userId: state.currentUserData ? state.currentUserData.id : null,
+        shippingCents: SHIPPING_COST || 777,
       }),
     });
 
@@ -318,6 +336,7 @@ export async function submitManualPayment(
     if (data.id) internalOrderId = data.id;
 
     if (!allow_no_reciept) {
+      await consumeUserDiscount();
       state.cart = [];
       state.hiddenProductIds.clear();
       localStorage.setItem(
@@ -399,6 +418,18 @@ export function cancelCheckout(msg: string) {
  * @returns {Promise<void>}
  */
 export async function checkout() {
+  let subtotal = 0;
+  state.cart.forEach((item) => {
+    if (item) subtotal += Number(item.price_cents) / 100;
+  });
+
+  const minUSD = (Number(MIN_CART_SUBTOTAL_CENTS) / 100);
+  if (subtotal < minUSD) {
+    const minCRC = (minUSD * EXCHANGE_RATE).toLocaleString();
+    alert(translations[state.currentLang].alertMinSubtotal.replace("{usd}", minUSD.toFixed(2)).replace("{crc}", minCRC));
+    return;
+  }
+
   disableCartButtonsTemporary(2000);
   const checkoutBtn = document.querySelector(
     ".checkout-btn",
@@ -615,7 +646,6 @@ export async function checkout() {
             );
             throw new Error("PRE_CHECKOUT_OOS");
           }
-
           // Call server to create order (reserves stock)
           return fetch("/.netlify/functions/create-order", {
             method: "POST",
@@ -629,6 +659,7 @@ export async function checkout() {
               preOrder: true,
               currency: paymentCurrency,
               userId: state.currentUserData ? state.currentUserData.id : null,
+              shippingCents: SHIPPING_COST || 777,
             }),
           })
             .then(async (res) => {
@@ -676,6 +707,7 @@ export async function checkout() {
                 if (!res.ok) {
                   throw new Error("Capture failed");
                 }
+                await consumeUserDiscount();
                 // Clear cart and update UI on success
                 state.cart = [];
                 state.hiddenProductIds.clear();

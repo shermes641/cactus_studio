@@ -14,7 +14,6 @@ console.log("PayPal API Endpoint:", PAYPAL_API, 'live: ',process.env.PAYPAL_MODE
  * @throws {Error} If PayPal credentials are not configured or if the API call fails.
  */
 async function getAccessToken() {
-  //const clientId = process.env.PAYPAL_CLIENT_ID || process.env.PAYPAL_SANDBOX_CLIENT_ID;
   // Select credentials based on the current mode (live or sandbox).
   const clientId = process.env.PAYPAL_MODE === 'live'
   ? process.env.PAYPAL_CLIENT_ID
@@ -84,6 +83,7 @@ export const handler: Handler = async (event: any) => {
   let preOrder: boolean | null;
   let shippingAddress: string | null;
   let userId: number | null;
+  let shipping_cents = 0
   try {
       const body = JSON.parse(event.body || '{}');
       cart = body.cart;
@@ -94,6 +94,7 @@ export const handler: Handler = async (event: any) => {
       preOrder = body.preOrder;
       shippingAddress = body.shippingAddress;
       userId = body.userId;
+      shipping_cents = body.shippingCents;
   } catch (e) {
       return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
@@ -155,7 +156,7 @@ export const handler: Handler = async (event: any) => {
             throw new Error(`Out of stock for item: ${sku} (Requested: ${count}, Available: ${available})`);
         }
     }
-    
+
     // Apply discount if a valid code is provided.
     if (discountCode) {
         const discounts = await sql`SELECT type, value FROM discounts WHERE code = ${discountCode} AND active = true`;
@@ -166,6 +167,11 @@ export const handler: Handler = async (event: any) => {
             }
         }
     }
+
+    console.log('Calculated shipping (cents):', shipping_cents);
+
+    // Add Shipping Cost AFTER discount
+    totalCents += shipping_cents;
 
     // 3. Create Internal Order & Reserve Stock (for both Manual and PayPal)
     let status = isManual ? 'manual_verification' : 'pending';

@@ -5,7 +5,7 @@ import { translations, EXCHANGE_RATE } from '../constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from '../utils.js';
 import { updatePaginationControls, renderFilterControls, injectLogoutButton, ensureAdminFieldsExist, setupDropZone, toggleAdminModal } from '../ui.js';
 import { Product } from '../types.js';
-import { addToCart } from '../actions/cart.js';
+import { addToCart, autoApplyUserDiscount } from '../actions/cart.js';
 import { genSku,} from './shared.js';
 
 declare const window: any;
@@ -97,6 +97,7 @@ export function loadUserData(render = true) {
           
           state.hiddenProductIds.clear();
           state.cart.forEach(item => state.hiddenProductIds.add(item.id));
+          autoApplyUserDiscount();
           if (render) renderPage(1);
       });
   } else {
@@ -104,6 +105,7 @@ export function loadUserData(render = true) {
         state.cart = [];
         updateCartUI();
         state.hiddenProductIds.clear();
+        autoApplyUserDiscount();
         if (render) renderPage(1);
       });
   }

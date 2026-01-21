@@ -10,10 +10,12 @@ interface Window {
   env: {
     PAYPAL_SANDBOX_CLIENT_ID: string;
     EXCHANGE_RATE?: number;
+    SHIPPING_COST_CENTS?: number;
   };
 }
 
 window.env = {
   PAYPAL_SANDBOX_CLIENT_ID:"AcmJhypFC4vPsDliPw-dFyklgWTFiPCvMGeyn6vvnfH0-pogwbS92nPbLQCbIiy5JUgW2q3LQZhc8cM7",
   EXCHANGE_RATE: 525,
+  SHIPPING_COST_CENTS: 667,
 };

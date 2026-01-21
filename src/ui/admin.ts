@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { translations, EXCHANGE_RATE } from "../constants.js";
+import { translations, EXCHANGE_RATE, SHIPPING_COST } from "../constants.js";
 import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems, restorePreOrder } from "../actions.js";
 import { genSku } from "../actions/shared.js";
 
@@ -573,6 +573,8 @@ export function openReceiptImageModal(url: string) {
 }
 
 export async function openOrderDetailsModal(orderId: number) {
+    const t = translations[state.currentLang];
+
     let modal = document.getElementById("order-details-modal");
     if (!modal) {
         modal = document.createElement("div");
@@ -588,13 +590,13 @@ export async function openOrderDetailsModal(orderId: number) {
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 600px; width: 95%;">
             <span class="close-btn" onclick="closeOrderDetailsModal()">&times;</span>
-            <h3>Order #${orderId} Items</h3>
+            <h3>${t.headerOrder} #${orderId} ${t.labelItems}</h3>
             <div id="order-details-header"></div>
             <div id="order-items-content" style="max-height: 60vh; overflow-y: auto;">
-                <p>Loading items...</p>
+                <p>${t.loadingItems}</p>
             </div>
             <div class="manual-payment-actions" style="justify-content: flex-end; margin-top: 15px;">
-                <button class="add-btn" onclick="closeOrderDetailsModal()">Close</button>
+                <button class="add-btn" onclick="closeOrderDetailsModal()">${t.btnClose}</button>
             </div>
         </div>
     `;
@@ -616,17 +618,34 @@ export async function openOrderDetailsModal(orderId: number) {
         if (header && order) {
              const total = (order.total_amount_cents / 100).toFixed(2);
              const date = new Date(order.created_at).toLocaleString();
-             const t = translations[state.currentLang];
+
+             let discountHtml = '';
+             if (order.discount_code) {
+                 let itemsSubtotalCents = 0;
+                 items.forEach((item: any) => {
+                     itemsSubtotalCents += (item.price_cents * (item.quantity || 1));
+                 });
+                 
+                 const discountCents = itemsSubtotalCents + SHIPPING_COST - order.total_amount_cents;
+                 if (discountCents > 0) {
+                    const discountVal = (discountCents / 100).toFixed(2);
+                    discountHtml = `<div style="margin-bottom: 5px; color: black;"><strong>${t.discount} (${order.discount_code}):</strong> -$${discountVal}</div>`;
+                 } else {
+                    discountHtml = `<div style="margin-bottom: 5px; color: var(--success);"><strong>${t.discountCode}:</strong> ${order.discount_code}</div>`;
+                 }
+             }
+
              header.innerHTML = `
                 <div style="background: #f5f5f5; padding: 10px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9em;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>Status:</strong> ${order.status}</span>
-                        <span><strong>Total:</strong> ${total} ${order.currency}</span>
+                        <span><strong>${t.headerStatus}:</strong> ${order.status}</span>
+                        <span><strong>${t.labelTotal}:</strong> ${total} ${order.currency}</span>
                     </div>
-                    <div style="margin-bottom: 5px;"><strong>Date:</strong> ${date}</div>
-                    <div style="margin-bottom: 5px;"><strong>Customer:</strong> ${order.customer_name || order.user_name || 'N/A'} (${order.customer_email || order.user_email || 'N/A'})</div>
-                    <div style="margin-bottom: 5px;"><strong>Shipping:</strong> ${order.shipping_addr || 'N/A'}</div>
-                    ${order.paypal_order_id ? `<div><strong>PayPal ID:</strong> ${order.paypal_order_id}</div>` : ''}
+                    <div style="margin-bottom: 5px;"><strong>${t.labelDate}:</strong> ${date}</div>
+                    <div style="margin-bottom: 5px;"><strong>${t.headerCustomer}:</strong> ${order.customer_name || order.user_name || 'N/A'} (${order.customer_email || order.user_email || 'N/A'})</div>
+                    <div style="margin-bottom: 5px;"><strong>${t.labelShipping}:</strong> ${order.shipping_addr || 'N/A'}</div>
+                    ${discountHtml}
+                    ${order.paypal_order_id ? `<div><strong>${t.labelPayPalId}:</strong> ${order.paypal_order_id}</div>` : ''}
                     ${order.receipt_url ? `<div style="margin-top: 5px;"><button class="add-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="openReceiptImageModal('${order.receipt_url}')">${t.viewReceipt}</button></div>` : ''}
                 </div>
              `;
@@ -636,7 +655,7 @@ export async function openOrderDetailsModal(orderId: number) {
         if (!container) return;
         
         if (!items || items.length === 0) {
-            container.innerHTML = "<p>No items found for this order.</p>";
+            container.innerHTML = `<p>${t.noItemsInOrder}</p>`;
             return;
         }
         
@@ -673,7 +692,7 @@ export async function openOrderDetailsModal(orderId: number) {
         
     } catch (e) {
         const container = document.getElementById("order-items-content");
-        if (container) container.innerHTML = `<p style="color: red;">Error loading items.</p>`;
+        if (container) container.innerHTML = `<p style="color: red;">${t.errorLoadingItems}</p>`;
     }
 }
 

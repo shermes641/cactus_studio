@@ -1,7 +1,9 @@
 import { state } from "../state.js";
-import { translations, EXCHANGE_RATE } from "../constants.js";
-import { handleReceiptFileSelect, submitManualPayment, monitorManualPayment, fetchDataAndLoad, internalOrderId, restorePreOrder } from "../actions.js";
+import { translations, EXCHANGE_RATE, SHIPPING_COST } from "../constants.js";
+import { handleReceiptFileSelect, submitManualPayment, monitorManualPayment, fetchDataAndLoad, internalOrderId, restorePreOrder, autoApplyUserDiscount } from "../actions.js";
 
+const SHIPPING_COST_DOLLARS = (SHIPPING_COST || 1000) / 100;
+console.log('XXXXXXXXXXXXXXXXXXXXXXXXUsing SHIPPING_COST_DOLLARS:', SHIPPING_COST_DOLLARS, SHIPPING_COST);
 export function updateCartUI() {
   const cartItemsDiv = document.getElementById("cart-items");
   const cartCount = document.getElementById("cart-count");
@@ -34,12 +36,12 @@ export function updateCartUI() {
     } else {
       if (removeAllBtn) removeAllBtn.style.display = "block";
       cartItemsDiv.innerHTML = "";
-      let total = 0;
+      let subtotal = 0;
       state.cart.forEach((item, index) => {
         if (!item) return;
         const itemPriceUSD = Number(item.price_cents) / 100;
         const itemPriceCRC = itemPriceUSD * EXCHANGE_RATE;
-        total += itemPriceUSD;
+        subtotal += itemPriceUSD;
 
         const thumbnailUrl = item.image_url.includes('cloudinary.com')
           ? item.image_url.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/')
@@ -100,50 +102,63 @@ export function updateCartUI() {
         discountSection = document.createElement("div");
         discountSection.id = "discount-section";
         discountSection.className = "discount-section";
+        discountSection.style.color = "black";
         shippingSection.insertAdjacentElement('afterend', discountSection);
       }
+      
+      const shippingCostCRC = SHIPPING_COST_DOLLARS * EXCHANGE_RATE;
+      let totalWithShipping = subtotal + SHIPPING_COST_DOLLARS;
+      let finalTotal = totalWithShipping;
+      let discountHtml = "";
 
-      let finalTotal = total;
+      // Subtotal Row
+      discountHtml += `
+        <div class="subtotal-row">
+            <span>${translations[state.currentLang].subtotal}:</span>
+            <span>$${subtotal.toFixed(2)} / ₡${(subtotal * EXCHANGE_RATE).toLocaleString()}</span>
+        </div>
+      `;
+
+      // Shipping Row
+      discountHtml += `
+        <div class="subtotal-row" style="color: black;">
+            <span>${translations[state.currentLang].labelShipping || 'Shipping'}:</span>
+            <span>$${SHIPPING_COST_DOLLARS.toFixed(2)} / ₡${shippingCostCRC.toLocaleString()}</span>
+        </div>
+      `;
+
       if (state.activeDiscount && state.activeDiscount.type === "percent") {
-        const discountAmountUSD = total * (state.activeDiscount.value / 100);
+        const discountAmountUSD = subtotal * (state.activeDiscount.value / 100);
         const discountAmountCRC = discountAmountUSD * EXCHANGE_RATE;
-        finalTotal = total - discountAmountUSD;
-        const finalTotalCRC = finalTotal * EXCHANGE_RATE;
+        finalTotal = subtotal - discountAmountUSD + SHIPPING_COST_DOLLARS;
 
-        discountSection.innerHTML = `
-                <div class="discount-row">
-                    <span class="discount-code">Code: <strong>${state.activeDiscount.code}</strong></span>
-                    <button onclick="removeDiscount(event)" class="remove-discount-btn" title="Remove discount">&times;</button>
+        discountHtml += `
+                <div class="discount-row" style="color: black;">
+                    <span class="discount-code">${translations[state.currentLang].labelCode}: <strong>${state.activeDiscount.code}</strong></span>
+                    <button onclick="removeDiscount(event)" class="remove-discount-btn" title="${translations[state.currentLang].removeDiscount}">&times;</button>
                 </div>
-                <div class="subtotal-row">
-                    <span>${translations[state.currentLang].subtotal}:</span>
-                    <span>$${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}</span>
-                </div>
-                <div class="discount-value-row">
+                <div class="discount-value-row" style="color: black;">
                     <span>${translations[state.currentLang].discount} (${state.activeDiscount.value}%):</span>
                     <span>-$${discountAmountUSD.toFixed(2)} / ₡${discountAmountCRC.toLocaleString()}</span>
                 </div>
             `;
-        cartTotal.innerText = `${finalTotal.toFixed(2)} / ₡${finalTotalCRC.toLocaleString()}`;
-      } else {
-        if (state.activeDiscount) {
-          // Handle other types like 'shipping'
-          discountSection.innerHTML = `
+      } else if (state.activeDiscount) {
+        // Handle other types like 'shipping'
+        discountHtml += `
                     <div class="discount-alert">
                         <span>${translations[state.currentLang].alertDiscountApplied} <strong>${state.activeDiscount.code}</strong></span>
                         <button onclick="removeDiscount(event)" class="remove-discount-btn" title="${translations[state.currentLang].removeDiscount}">&times;</button>
                     </div>
                 `;
-        } else {
-          discountSection.innerHTML = `
-                    <div class="discount-input-container">
-                        <input type="text" id="discount-code-input" class="discount-input" placeholder="${translations[state.currentLang].discountCode}" oninput="this.value = this.value.toUpperCase()" onkeydown="if(event.key==='Enter') applyDiscountCode()">
-                        <button onclick="applyDiscountCode()" class="apply-discount-btn">${translations[state.currentLang].apply}</button>
-                    </div>
-                `;
-        }
-        cartTotal.innerText = `${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}`;
+      } else if (state.currentUserData && state.currentUserData.discount_code) {
+        discountHtml += `<div class="discount-row"><span class="discount-code">${translations[state.currentLang].labelCode}: <strong>${state.currentUserData.discount_code}</strong></span></div>`;
+      } else {
+        discountHtml += `<div class="discount-row" style="justify-content: center; font-style: italic;"><span>No discount applied</span></div>`;
       }
+      
+      discountSection.innerHTML = discountHtml;
+      const finalTotalCRC = finalTotal * EXCHANGE_RATE;
+      cartTotal.innerText = `${finalTotal.toFixed(2)} / ₡${finalTotalCRC.toLocaleString()}`;
 
       // Update total header symbol
       const totalHeader = cartFooter.querySelector(".cart-total-header");
@@ -164,6 +179,9 @@ export function toggleCart() {
   if (sidebar.classList.contains("open")) {
     const helpDialog = document.getElementById("help-dialog");
     if (helpDialog) helpDialog.style.display = "none";
+    if (state.cart.length > 0 && !state.activeDiscount) {
+      autoApplyUserDiscount();
+    }
   } else {
     const paypalContainer = document.getElementById("paypal-button-container");
     if (paypalContainer) paypalContainer.innerHTML = "";
@@ -187,23 +205,28 @@ export async function toggleOtherPaymentModal(start_payment: boolean = false) {
         // Render summary
         const summaryDiv = document.getElementById("manual-order-summary");
         if (summaryDiv) {
-            let total = 0;
+            let subtotal = 0;
             let html = "";
             state.cart.forEach(item => {
                 const priceUSD = Number(item.price_cents) / 100;
                 const priceCRC = priceUSD * EXCHANGE_RATE;
-                total += priceUSD;
+                subtotal += priceUSD;
                 html += `<div class="manual-order-item"><span>${item.name}</span><span>$${priceUSD.toFixed(2)} / ₡${priceCRC.toLocaleString()}</span></div>`;
             });
             
+            const shippingCostCRC = SHIPPING_COST_DOLLARS * EXCHANGE_RATE;
+            let total = subtotal;
+            html += `<div class="manual-order-item" style="color: black;"><span>${translations[state.currentLang].labelShipping || 'Shipping'}</span><span>$${SHIPPING_COST_DOLLARS.toFixed(2)} / ₡${shippingCostCRC.toLocaleString()}</span></div>`;
+
             if (state.activeDiscount) {
-                 const discountAmountUSD = total * (state.activeDiscount.value / 100);
+                 const discountAmountUSD = subtotal * (state.activeDiscount.value / 100);
                  const discountAmountCRC = discountAmountUSD * EXCHANGE_RATE;
                  total -= discountAmountUSD;
-                 html += `<div class="manual-order-item" style="color: var(--success);"><span>Discount (${state.activeDiscount.code})</span><span>-$${discountAmountUSD.toFixed(2)} / ₡${discountAmountCRC.toLocaleString()}</span></div>`;
+                 html += `<div class="manual-order-item" style="color: var(--success);"><span>${translations[state.currentLang].discount} (${state.activeDiscount.code})</span><span>-$${discountAmountUSD.toFixed(2)} / ₡${discountAmountCRC.toLocaleString()}</span></div>`;
             }
             
-            html += `<div class="manual-order-item" style="font-weight: bold; border-top: 1px solid #ccc; margin-top: 5px; padding-top: 5px;"><span>Total</span><span>$${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}</span></div>`;
+            total += SHIPPING_COST_DOLLARS;
+            html += `<div class="manual-order-item" style="font-weight: bold; border-top: 1px solid #ccc; margin-top: 5px; padding-top: 5px;"><span>${translations[state.currentLang].labelTotal}</span><span>$${total.toFixed(2)} / ₡${(total * EXCHANGE_RATE).toLocaleString()}</span></div>`;
             summaryDiv.innerHTML = html;
         }
 

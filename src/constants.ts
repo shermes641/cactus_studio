@@ -2,6 +2,8 @@ import { Translations } from './types.js';
 
 export const APP_VERSION = '1.2.0';
 export const EXCHANGE_RATE = (window as any).env?.EXCHANGE_RATE || 525;
+export const SHIPPING_COST = (window as any).env?.SHIPPING_COST_CENTS || 100;
+export const MIN_CART_SUBTOTAL_CENTS = (window as any).env?.MIN_CART_SUBTOTAL_CENTS || 2000;
 export const DEFAULT_IMG_CACHE = 100;
 export const MAX_IMGS = 1000;
 export const MAX_IMG_CACHE_PERCENT = 0.25;
@@ -210,6 +212,15 @@ export const translations: Translations = {
         alertOrderCancelled: "Order cancelled and inventory restored.",
         confirmShip: "Mark this order as shipped?",
         confirmCancelOrder: "Are you sure you want to cancel this order? Inventory will be restored.",
+        alertMinSubtotal: "Cart subtotal must be at least ${usd} / ₡{crc}.",
+        labelCode: "Code",
+        labelTotal: "Total",
+        labelItems: "Items",
+        loadingItems: "Loading items...",
+        btnClose: "Close",
+        labelPayPalId: "PayPal ID",
+        noItemsInOrder: "No items found for this order.",
+        errorLoadingItems: "Error loading items.",
     },
     es: {
         logout: "Cerrar Sesión",
@@ -383,5 +394,14 @@ export const translations: Translations = {
         alertOrderCancelled: "Pedido cancelado e inventario restaurado.",
         confirmShip: "¿Marcar este pedido como enviado?",
         confirmCancelOrder: "¿Estás seguro de cancelar este pedido? El inventario será restaurado.",
+        alertMinSubtotal: "El subtotal del carrito debe ser de al menos ${usd} / ₡{crc}.",
+        labelCode: "Código",
+        labelTotal: "Total",
+        labelItems: "Artículos",
+        loadingItems: "Cargando artículos...",
+        btnClose: "Cerrar",
+        labelPayPalId: "ID PayPal",
+        noItemsInOrder: "No se encontraron artículos para este pedido.",
+        errorLoadingItems: "Error cargando artículos.",
     }
 };

@@ -2,7 +2,7 @@
 import { state } from './state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal as _toggleOtherPaymentModal, initManualPaymentUI, toggleOrdersModal, openReceiptModal, closeReceiptModal, refreshOrdersModal, openOrderDetailsModal, closeOrderDetailsModal, openReceiptImageModal } from './ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, applyDiscountCode, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder } from './actions.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder } from './actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -36,7 +36,6 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout,
 (window as any).toggleForgotPasswordForm = toggleForgotPasswordForm;
 (window as any).requestPasswordReset = requestPasswordReset;
 (window as any).handleSearch = handleSearch;
-(window as any).applyDiscountCode = applyDiscountCode;
 (window as any).removeDiscount = removeDiscount;
 (window as any).updateCurrency = updateCurrency;
 (window as any).updateShippingAddress = updateShippingAddress;

@@ -1231,10 +1231,11 @@ header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 5px;
+    color: black
 }
 
 .discount-code {
-    color: var(--success);
+    color: black;
 }
 
 .remove-discount-btn {
@@ -1244,13 +1245,16 @@ header {
     cursor: pointer;
     font-weight: bold;
     font-size: 1.2em;
+    display: none;
 }
 
 .subtotal-row {
     display: flex;
     justify-content: space-between;
     font-size: 0.9em;
-    color: var(--text-muted);
+    color: black;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .discount-value-row {
