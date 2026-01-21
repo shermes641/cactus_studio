@@ -231,6 +231,13 @@ export const translations: Translations = {
         alertRegistrationError: "Registration failed: ",
         alertVerificationSendError: "Failed to send verification code",
         unknownError: "Unknown error",
+        contactTitle: "Contact Us",
+        labelSubject: "Subject",
+        labelMessage: "Message",
+        btnSend: "Send",
+        alertMessageSent: "Message sent successfully!",
+        alertMessageFailed: "Failed to send message.",
+        contactBtn: "Contact Us",
     },
     es: {
         logout: "Cerrar Sesión",
@@ -423,5 +430,12 @@ export const translations: Translations = {
         alertRegistrationError: "Error de registro: ",
         alertVerificationSendError: "Error al enviar código de verificación",
         unknownError: "Error desconocido",
+        contactTitle: "Contáctanos",
+        labelSubject: "Asunto",
+        labelMessage: "Mensaje",
+        btnSend: "Enviar",
+        alertMessageSent: "¡Mensaje enviado exitosamente!",
+        alertMessageFailed: "Error al enviar mensaje.",
+        contactBtn: "Contáctanos",
     }
 };

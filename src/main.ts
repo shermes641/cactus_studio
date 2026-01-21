@@ -1,8 +1,8 @@
 
 import { state } from './state.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './utils.js';
-import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal as _toggleOtherPaymentModal, initManualPaymentUI, toggleOrdersModal, openReceiptModal, closeReceiptModal, refreshOrdersModal, openOrderDetailsModal, closeOrderDetailsModal, openReceiptImageModal } from './ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder } from './actions.js';
+import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal as _toggleOtherPaymentModal, initManualPaymentUI, toggleOrdersModal, openReceiptModal, closeReceiptModal, refreshOrdersModal, openOrderDetailsModal, closeOrderDetailsModal, openReceiptImageModal, toggleContactModal } from './ui.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder, sendContactMessage } from './actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -57,6 +57,8 @@ const toggleOtherPaymentModal = (start_payment: boolean = false) => {
 (window as any).openOrderDetailsModal = openOrderDetailsModal;
 (window as any).closeOrderDetailsModal = closeOrderDetailsModal;
 (window as any).openReceiptImageModal = openReceiptImageModal;
+(window as any).toggleContactModal = toggleContactModal;
+(window as any).sendContactMessage = sendContactMessage;
 
 (window as any).togglePasswordVisibility = togglePasswordVisibility;
 
@@ -152,6 +154,16 @@ const toggleOtherPaymentModal = (start_payment: boolean = false) => {
      injectLoginUI();
    }
 
+   // Add click listeners to logos
+   const logos = document.querySelectorAll('.header-logo, .sidebar-logo, .corner-logo');
+   logos.forEach(logo => {
+       logo.addEventListener('click', () => {
+           if (state.currentUser) {
+               toggleContactModal();
+           }
+       });
+       (logo as HTMLElement).style.cursor = 'pointer';
+   });
 
 
 

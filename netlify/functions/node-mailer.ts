@@ -20,10 +20,12 @@ export const handler: Handler = async (event) => {
       replyTo,
       fromName,
       attachments = [],
-      link: providedLink
+      link: providedLink,
+      subject: providedSubject,
+      message: providedMessage
     } = JSON.parse(event.body || "{}");
     console.log("Email request:", JSON.parse(event.body || "{}"));
-    if (!email || !token || !type) {
+    if (!email || (!token && type !== 'contact') || !type) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Missing email, token, or type" })
@@ -65,6 +67,15 @@ export const handler: Handler = async (event) => {
         <p style="font-size:13px;color:#666;margin-top:20px">
           This link expires in 1 hour.
         </p>
+      `);
+    } else if (type === "contact") {
+      subject = providedSubject || "New Contact Message";
+      html = baseTemplate(`
+        <h3>New Contact Message</h3>
+        <p><strong>From:</strong> ${fromName || "User"} (${replyTo})</p>
+        <p><strong>Subject:</strong> ${providedSubject}</p>
+        <hr/>
+        <p style="white-space: pre-wrap;">${(providedMessage || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
       `);
     } else {
       return {

@@ -3,7 +3,7 @@
 import { state } from '../state.js';
 import { translations } from '../constants.js';
 import { showLoadingMask, hideLoadingMask, showPromptModal, getStorageKey } from '../utils.js';
-import { updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, toggleProfileModal, injectLoginUI, setupPasswordStrengthMeter, updateCartUI } from '../ui.js';
+import { updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, toggleProfileModal, injectLoginUI, setupPasswordStrengthMeter, updateCartUI, toggleContactModal } from '../ui.js';
 import { fetchDataAndLoad } from './products.js';
 
 declare const window: any;
@@ -500,6 +500,55 @@ export async function saveProfile() {
   } catch (e: any) {
     hideLoadingMask();
     alert("Error: " + e.message);
+  }
+}
+
+export async function sendContactMessage() {
+  const subjectInput = document.getElementById("contact-subject") as HTMLInputElement;
+  const messageInput = document.getElementById("contact-message") as HTMLTextAreaElement;
+  
+  const subject = subjectInput.value.trim();
+  const message = messageInput.value.trim();
+  
+  if (!subject || !message) {
+      alert(translations[state.currentLang].alertFillFields);
+      return;
+  }
+  
+  if (!state.currentUser) {
+      alert("You must be logged in to send a message.");
+      return;
+  }
+
+  showLoadingMask(translations[state.currentLang].loadingSending);
+  
+  try {
+      const res = await fetch('/.netlify/functions/node-mailer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              email: 'cactus@cactusstudio.shop', // Recipient
+              type: 'contact',
+              replyTo: state.currentUser,
+              fromName: state.currentUserData?.name || state.currentUser,
+              subject: subject,
+              message: message
+          })
+      });
+      
+      const data = await res.json();
+      hideLoadingMask();
+      
+      if (res.ok) {
+          alert(translations[state.currentLang].alertMessageSent);
+          toggleContactModal();
+      } else {
+          alert(data.error || translations[state.currentLang].alertMessageFailed);
+      }
+  } catch (e) {
+      hideLoadingMask();
+      console.error(e);
+      alert(translations[state.currentLang].alertNetworkError);
   }
 }
 
