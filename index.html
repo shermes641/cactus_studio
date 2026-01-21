@@ -52,8 +52,9 @@
                 <button id="logout-btn" onclick="logoutUser()" data-i18n="logout">Logout</button>
                 <button id="profile-btn" onclick="openProfileModal()" class="hamburger-menu-item bg-green hidden" data-i18n="btnProfile">Profile</button>
                 <button id="help-btn" onclick="toggleHelp(); document.getElementById('help-content').scrollTop = 0;" class="hamburger-menu-item" data-i18n="help">Help</button>
+                <button id="contact-btn" onclick="toggleContactModal()" class="hamburger-menu-item bg-orange" data-i18n="contactBtn">Contact Us</button>
                 
-                <div class="hamburger-footer" style="margin-top: auto; padding: 15px 0; border-top: 1px solid #eee; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                <div class="hamburger-footer" style="padding: 15px 0; border-top: 1px solid #eee; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px;">
                     <img src="/logo.png" class="header-logo" style="height: auto; width: 90%;" alt="Cactus Studio Logo">
                     <div id="main-version" class="version-tag" style="position: static; padding: 0; color: #888;"></div>
                 </div>
@@ -193,6 +194,52 @@
                 <button class="add-btn" onclick="submitManualPayment(false, false)" data-i18n="btnConfirmPurchase">Confirm Purchase</button>
             </div>
         </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleContactModal()">&times;</span>
+            <h2 data-i18n="contactTitle">Contact Us</h2>
+            <div class="form-group">
+                <label data-i18n="labelUser">User</label>
+                <input type="text" id="contact-email" disabled style="background: #eee;">
+            </div>
+            <div class="form-group">
+                <label data-i18n="labelSubject">Subject</label>
+                <input type="text" id="contact-subject" data-i18n-placeholder="labelSubject">
+            </div>
+            <div class="form-group">
+                <label data-i18n="labelMessage">Message</label>
+                <textarea id="contact-message" rows="5" data-i18n-placeholder="labelMessage"></textarea>
+            </div>
+            <div class="manual-payment-actions">
+                <button class="add-btn" onclick="sendContactMessage()" data-i18n="btnSend">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Modal -->
+    <div id="orders-modal" class="modal" style="display: none;">
+      <div class="modal-content orders-modal-content">
+        <span class="close-btn" onclick="toggleOrdersModal()">&times;</span>
+        <div class="orders-header">
+            <h2 id="orders-modal-title" class="orders-title" data-i18n="statusActive">Action Required</h2>
+            <select id="orders-filter" onchange="refreshOrdersModal()" class="orders-filter">
+                <option value="active" selected data-i18n="statusActive">Action Required</option>
+                <option value="all" data-i18n="statusAll">All Orders</option>
+                <option value="manual_verification" data-i18n="statusManual">Manual Verification</option>
+                <option value="shipped" data-i18n="statusShipped">Shipped Orders</option>
+                <option value="cancelled" data-i18n="statusCancelled">Cancelled Orders</option>
+                <option value="refunded" data-i18n="statusRefunded">Refunded Orders</option>
+                <option value="pending" data-i18n="statusPending">Pending Payment</option>
+            </select>
+        </div>
+        <div id="orders-list" class="orders-list"></div>
+        <div class="manual-payment-actions orders-actions">
+           <button class="add-btn cancel-btn auto-width" onclick="toggleOrdersModal()" data-i18n="btnCancel">Cancel</button>
+        </div>
+      </div>
     </div>
 
     <!-- Help Dialog -->

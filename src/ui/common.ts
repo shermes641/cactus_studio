@@ -46,44 +46,15 @@ export function toggleHelp() {
 
 export function toggleContactModal() {
   let modal = document.getElementById("contact-modal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "contact-modal";
-    modal.className = "modal";
-    document.body.appendChild(modal);
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) toggleContactModal();
-    });
-  }
+  if (!modal) return;
 
   const isHidden = modal.style.display !== "flex";
   
   if (isHidden) {
-      const t = translations[state.currentLang];
       const userEmail = state.currentUser || "";
-      
-      modal.innerHTML = `
-        <div class="modal-content">
-            <span class="close-btn" onclick="toggleContactModal()">&times;</span>
-            <h2>${t.contactTitle}</h2>
-            <div class="form-group">
-                <label>${t.labelUser}</label>
-                <input type="text" value="${userEmail}" disabled style="background: #eee;">
-            </div>
-            <div class="form-group">
-                <label>${t.labelSubject}</label>
-                <input type="text" id="contact-subject" placeholder="${t.labelSubject}">
-            </div>
-            <div class="form-group">
-                <label>${t.labelMessage}</label>
-                <textarea id="contact-message" rows="5" placeholder="${t.labelMessage}"></textarea>
-            </div>
-            <div class="manual-payment-actions">
-                <button class="add-btn" onclick="sendContactMessage()">${t.btnSend}</button>
-            </div>
-        </div>
-      `;
+      const emailInput = document.getElementById("contact-email") as HTMLInputElement;
+      if (emailInput) emailInput.value = userEmail;
+
       modal.style.display = "flex";
   } else {
       modal.style.display = "none";
@@ -101,20 +72,6 @@ export function setupHamburgerMenu() {
 
   const langBtn = document.getElementById("lang-btn");
   const logoutBtn = document.getElementById("logout-btn");
-
-  // Check if contact button already exists to avoid duplicates
-  if (!document.getElementById("contact-btn")) {
-      const contactBtn = document.createElement("button");
-      contactBtn.id = "contact-btn";
-      contactBtn.className = "hamburger-menu-item bg-orange";
-      contactBtn.style.borderRadius = "20px";
-      contactBtn.setAttribute("onclick", "toggleContactModal()");
-      contactBtn.setAttribute("data-i18n", "contactBtn");
-      contactBtn.innerText = translations[state.currentLang].contactBtn || "Contact Us";
-      
-      // Insert before the lang/logout row if possible, or just append
-      dropdown.appendChild(contactBtn);
-  }
 
   const row = document.createElement("div");
   row.className = "hamburger-row";

@@ -222,7 +222,6 @@ export function injectOrdersButton() {
   btn.setAttribute("onclick", "toggleOrdersModal()");
   btn.setAttribute("data-i18n", "btnOrders");
   btn.innerText = t["btnOrders"] || "Orders";
-  btn.style.borderRadius = "20px";
 
   if (footer) dropdown.insertBefore(btn, footer);
   else dropdown.appendChild(btn);
@@ -250,7 +249,6 @@ export async function injectAdminButtons() {
     btn.setAttribute("onclick", onClick);
     btn.setAttribute("data-i18n", textKey);
     btn.innerText = t[textKey] || textKey;
-    btn.style.borderRadius = "20px";
     return btn;
   };
 
@@ -379,39 +377,7 @@ export async function refreshOrdersModal() {
 
 export async function toggleOrdersModal() {
   let modal = document.getElementById("orders-modal");
-  if (!modal) {
-    // Create modal structure
-    modal = document.createElement("div");
-    modal.id = "orders-modal";
-    modal.className = "modal";
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width: 800px; width: 95%; max-height: 70vh; display: flex; flex-direction: column;">
-        <span class="close-btn" onclick="toggleOrdersModal()">&times;</span>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; flex-shrink: 0;">
-            <h2 id="orders-modal-title" style="margin: 0;">${translations[state.currentLang].statusActive}</h2>
-            <select id="orders-filter" onchange="refreshOrdersModal()" style="padding: 5px; font-size: 1rem; border-radius: 4px; border: 1px solid #ccc;">
-                <option value="active" selected>${translations[state.currentLang].statusActive}</option>
-                <option value="all">${translations[state.currentLang].statusAll}</option>
-                <option value="manual_verification">${translations[state.currentLang].statusManual}</option>
-                <option value="shipped">${translations[state.currentLang].statusShipped}</option>
-                <option value="cancelled">${translations[state.currentLang].statusCancelled}</option>
-                <option value="refunded">${translations[state.currentLang].statusRefunded}</option>
-                <option value="pending">${translations[state.currentLang].statusPending}</option>
-            </select>
-        </div>
-        <div id="orders-list" style="overflow-y: auto; margin-bottom: 20px; flex-grow: 1;"></div>
-        <div class="manual-payment-actions" style="flex-shrink: 0;">
-           <button class="add-btn cancel-btn" style="width: auto;" onclick="toggleOrdersModal()" data-i18n="btnCancel">${translations[state.currentLang].btnCancel}</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    
-    // Close on outside click
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) toggleOrdersModal();
-    });
-  }
+  if (!modal) return;
 
   const isHidden = modal.style.display !== "flex";
   

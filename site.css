@@ -168,3 +168,51 @@
     filter: brightness(1.1);
     color: var(--black);
 }
+
+#contact-btn {
+    border-radius: 20px;
+}
+
+/* Orders Modal */
+.orders-modal-content {
+    max-width: 800px;
+    width: 95%;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.orders-title {
+    margin: 0;
+}
+
+.orders-filter {
+    padding: 5px;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.orders-list {
+    overflow-y: auto;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.orders-actions {
+    flex-shrink: 0;
+}
+
+.auto-width {
+    width: auto;
+}

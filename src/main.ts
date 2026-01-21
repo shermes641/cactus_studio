@@ -165,6 +165,21 @@ const toggleOtherPaymentModal = (start_payment: boolean = false) => {
        (logo as HTMLElement).style.cursor = 'pointer';
    });
 
+   // Contact modal close listener
+   const contactModal = document.getElementById('contact-modal');
+   if (contactModal) {
+       contactModal.addEventListener('click', (e) => {
+           if (e.target === contactModal) toggleContactModal();
+       });
+   }
+
+   // Orders modal close listener
+   const ordersModal = document.getElementById('orders-modal');
+   if (ordersModal) {
+       ordersModal.addEventListener('click', (e) => {
+           if (e.target === ordersModal) toggleOrdersModal();
+       });
+   }
 
 
   // Sidebar close listener
