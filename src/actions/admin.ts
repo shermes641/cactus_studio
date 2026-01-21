@@ -6,7 +6,7 @@ import { showLoadingMask, hideLoadingMask, getStorageKey } from '../utils.js';
 import { toggleAdminModal, ensureAdminFieldsExist, setupDropZone, toggleOrdersModal, closeReceiptModal, refreshOrdersModal } from '../ui.js';
 import { Product } from '../types.js';
 import { renderPage, fetchDataAndLoad } from './products.js';
-import { fileToBase64, uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal } from './shared.js';
+import { uploadFileToCloudinary, uploadFileToGoogleDrive, USE_CLOUDINARY, isLocal, genSku } from './shared.js';
 import { handlePaymentReset } from './cart.js';
 
 declare const window: any;
@@ -128,12 +128,14 @@ export async function addProduct() {
   if (state.pendingUploadFile) {
     showLoadingMask("Uploading file...");
     try {
-      const b64 = await fileToBase64(state.pendingUploadFile);
       const filename = state.pendingUploadFile.name;
       const mimeType = state.pendingUploadFile.type;
       console.dir(state.pendingUploadFile);
       if (USE_CLOUDINARY) {
-        image = await uploadFileToCloudinary(b64, 'cactus');
+        // Calculate ID to generate SKU for filename
+        const tempId = state.editingProductId || (state.products.length > 0 ? Math.max(...state.products.map(p => p.id)) + 1 : 1);
+        const sku = genSku(productClass, name, tempId);
+        image = await uploadFileToCloudinary(state.pendingUploadFile, 'cactus', sku);
       } else {
         image = await uploadFileToGoogleDrive(state.pendingUploadFile, 'cactus');
       }

@@ -40,14 +40,15 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export async function uploadFileToCloudinary(file: string, folder?: string): Promise<string> {
+export async function uploadFileToCloudinary(file: File, folder?: string, publicId?: string): Promise<string> {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (folder) formData.append('folder', folder);
+    if (publicId) formData.append('public_id', publicId);
+
     const res = await fetch("/.netlify/functions/upload-image-signed", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image: file,
-        folder: folder || "cactus",
-      })
+      body: formData
     });
     if (!res.ok) throw new Error("Upload failed");
     const data = await res.json();
@@ -98,9 +99,4 @@ export function disableCartButtonsTemporary(duration: number = 5000) {
     }, duration);
 }
 
-export const genSku = (productClass: any, id: any,) => { 
-          const cleanClass = (productClass || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-             //const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-             const sku = `${cleanClass}-${id}`;
-             return sku
-        }
+export { genSku } from '../sku.js';

@@ -645,7 +645,7 @@ export async function openOrderDetailsModal(orderId: number) {
              const priceUSD = Number(item.price_cents) / 100;
              const priceCRC = priceUSD * EXCHANGE_RATE;
             
-             const sku = genSku(item.class, item.product_id);
+             const sku = genSku(item.class, item.name, item.product_id);
 
              let imgHtml = "";
              if (item.image_url) {

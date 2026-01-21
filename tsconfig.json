@@ -11,11 +11,11 @@
     "types": ["node"]
   },
   "include": [
-    "main.ts",
-    "env.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "netlify"
+    "netlify",
+    "netlify/functions"
   ]
 }

@@ -12,7 +12,6 @@ import {
 import { Discount } from "../types.js";
 import { renderPage, fetchDataAndLoad } from "./products.js";
 import {
-  fileToBase64,
   uploadFileToCloudinary,
   uploadFileToGoogleDrive,
   USE_CLOUDINARY,
@@ -277,10 +276,9 @@ export async function submitManualPayment(
       if (!pendingReceiptFile) {
         throw new Error("Receipt file is missing.");
       }
-      const b64 = await fileToBase64(pendingReceiptFile);
       console.dir(pendingReceiptFile);
       if (USE_CLOUDINARY) {
-        receiptUrl = await uploadFileToCloudinary(b64, "receipts");
+        receiptUrl = await uploadFileToCloudinary(pendingReceiptFile, "receipts");
       } else {
         receiptUrl = await uploadFileToGoogleDrive(pendingReceiptFile, "receipts");
       }

@@ -187,7 +187,7 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         visibleProducts = visibleProducts.filter(p => {
             const price = (p.price_cents / 100).toFixed(2);
             
-            const sku = genSku(p.class, p.id).toLowerCase();
+            const sku = genSku(p.class, p.name, p.id).toLowerCase();
             return p.name.toLowerCase().includes(q) || 
                    price.includes(q) ||
                    sku.includes(q);
@@ -267,7 +267,7 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         if (price.includes(q)) matches.push(t.labelMatchPrice);
         
         
-        const gen_sku = genSku(product.class, product.id).toLowerCase();
+        const gen_sku = genSku(product.class, product.name, product.id).toLowerCase();
         if ((product.sku && product.sku.toLowerCase().includes(q)) || gen_sku.includes(q)) matches.push(t.labelMatchSku);
 
         if (matches.length > 0) {

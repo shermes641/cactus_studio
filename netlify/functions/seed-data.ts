@@ -127,7 +127,7 @@ export const handler: Handler = async (event: any, context: any) => {
       await sql`DELETE FROM inventory`;
       
       for (const item of data) {
-        const sku = genSku(item.class,item.id)
+        const sku = genSku(item.class, item.name, item.id);
         await sql`INSERT INTO inventory (sku, image_id, quantity) VALUES (${sku}, ${item.id}, 1)`;
       }
       messages.push("Inventory reset to quantity 1.");

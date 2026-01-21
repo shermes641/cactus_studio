@@ -212,9 +212,9 @@
       <form id="login-modal" onsubmit="event.preventDefault(); loginUserEmail()" style="display: block;">
         <h1 data-i18n="loginTitle">Cactus Studio Login</h1>
         <input type="email" id="login-email" placeholder="Email" data-i18n-placeholder="placeholderEmail" required autocomplete="username">
-        <div style="position: relative;">
-          <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="placeholderPassword" required autocomplete="current-password" style="padding-right: 40px; width: 100%;">
-          <span id="login-pass-toggle" onclick="togglePasswordVisibility('login-password', 'login-pass-toggle')" style="position: absolute;right: 10px;top: 20px;transform: translateY(-50%);cursor: pointer;user-select: none;font-size: 25px;">👁️</span>
+        <div style="position: relative; display: flex; align-items: center; margin-bottom: 15px;">
+          <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="placeholderPassword" required autocomplete="current-password" style="padding-right: 40px; width: 100%; margin-bottom: 0;">
+          <span id="login-pass-toggle" onclick="togglePasswordVisibility('login-password', 'login-pass-toggle')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; user-select: none; font-size: 2.0em;">👁️</span>
         </div>
         <button type="submit" id="login-btn" data-i18n="btnLogin">Login</button>
         <p style="text-align: right; margin-top: 5px;">
@@ -291,8 +291,8 @@
       </div>
     </div>
 
-    <script src="/env.js"></script>
-    <script type="module" src="/main.js"></script>
+    <script src="/src/env.js"></script>
+    <script type="module" src="/src/main.js"></script>
 
     <!-- Full Screen Image Modal -->
     <div id="image-modal" onclick="closeImageModal()">

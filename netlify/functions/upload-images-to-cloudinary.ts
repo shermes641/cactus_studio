@@ -2,6 +2,7 @@ import { Handler } from "@netlify/functions";
 import { neon } from "@neondatabase/serverless";
 import sharp from "sharp";
 import crypto from "crypto";
+import { genSku } from "./shared.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -43,7 +44,7 @@ export const handler: Handler = async (event) => {
     const sql = neon(DATABASE_URL);
 
     const products = await sql`
-      SELECT id, name, image_url
+      SELECT id, name, image_url, class
       FROM products
       WHERE id > ${lastId}
         AND (
@@ -84,7 +85,7 @@ export const handler: Handler = async (event) => {
         });
 
         if (imageRes.status === 429) {
-          console.warn(`429 Rate Limit for ${product.name}. Pausing 5s...`);
+          console.warn(`429 Rate Limit for ${product.name}. Pausing 5s...  ${product.image_url}`);
           await sleep(5000);
           imageRes = await fetch(product.image_url, {
             headers: { "User-Agent": "Mozilla/5.0 (ImageMigrator)" }
@@ -97,17 +98,26 @@ export const handler: Handler = async (event) => {
 
         const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
 
-        const optimized = await sharp(imageBuffer)
+        let quality = 85;
+        let optimized = await sharp(imageBuffer)
           .resize(1200, null, {
             fit: "inside",
             withoutEnlargement: true
           })
-          .webp({ quality: 85 })
+          .webp({ quality })
           .toBuffer();
 
-        const publicId =
-          `product_${product.id}_` +
-          product.name.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+        console.log(`Original size: ${imageBuffer.byteLength}, Optimized size: ${optimized.byteLength}`);
+        const opt = optimized.byteLength
+        while (optimized.byteLength > 1024 * 1024 && quality > 10) {
+          quality -= 10;
+          optimized = await sharp(imageBuffer)
+            .resize(1200, null, { fit: "inside", withoutEnlargement: true })
+            .webp({ quality })
+            .toBuffer();
+        }
+        console.log(`Original size: ${opt}, Optimized size: ${optimized.byteLength}`);
+        const publicId = genSku(product.class, product.name, product.id);
 
         const timestamp = Math.floor(Date.now() / 1000);
 

@@ -8,7 +8,6 @@
     "bcryptjs": "^2.4.3",
     "busboy": "^1.6.0",
     "googleapis": "^170.1.0",
-    "netlify-cli": "^23.13.3",
     "nodemailer": "^7.0.12",
     "sharp": "^0.34.5"
   },
@@ -16,6 +15,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/busboy": "^1.5.4",
     "@types/nodemailer": "^7.0.5",
+    "netlify-cli": "^23.13.5",
     "typescript": "^5.0.0"
   },
   "scripts": {

@@ -17,7 +17,7 @@ export const handler: Handler = async (event: any) => {
       `;
 
       // Update inventory SKU to match new name/class
-      const newSku = genSku(productClass, id)
+      const newSku = genSku(productClass, name, id);
       await sql`UPDATE inventory SET sku = ${newSku} WHERE image_id = ${id}`;
 
       return { statusCode: 200, body: JSON.stringify({ message: 'Product updated' }) };
@@ -44,7 +44,7 @@ export const handler: Handler = async (event: any) => {
 
       // Insert into inventory with default quantity 1
 
-      const sku = genSku(productClass,newId);
+      const sku = genSku(productClass, name, newId);
       await sql`
         INSERT INTO inventory (sku, image_id, quantity) 
         VALUES (${sku}, ${newId}, 1)

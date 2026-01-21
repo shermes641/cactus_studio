@@ -1,6 +1,7 @@
 import { Handler } from "@netlify/functions";
 import sharp from "sharp";
 import crypto from "crypto";
+import busboy from "busboy";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -20,48 +21,54 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const body = event.body ? JSON.parse(event.body) : {};
-    const { image, folder, public_id } = body;
+    // Parse multipart
+    const fields: any = {};
+    let imageBuffer: Buffer | undefined;
 
-    if (!image) {
+    try {
+        const parsed = await parseMultipartForm(event);
+        Object.assign(fields, parsed.fields);
+        imageBuffer = parsed.file;
+    } catch (e) {
+        // Fallback to JSON if not multipart (backward compatibility)
+        if (event.headers['content-type']?.includes('application/json')) {
+             const body = JSON.parse(event.body || '{}');
+             fields.folder = body.folder;
+             fields.public_id = body.public_id;
+             if (body.image && body.image.startsWith("data:")) {
+                 const base64 = body.image.split(",").pop();
+                 imageBuffer = Buffer.from(base64, "base64");
+             }
+        }
+    }
+
+    if (!imageBuffer) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "image is required" })
+        body: JSON.stringify({ error: "No image file provided" })
       };
     }
 
-    // Fetch image if URL
-    let imageBuffer: Buffer;
-
-    if (image.startsWith("http")) {
-      const res = await fetch(image, {
-        signal: AbortSignal.timeout(10000),
-        headers: {
-          "User-Agent": "Mozilla/5.0 (CloudinaryUploader)"
-        }
-      });
-
-      if (!res.ok) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: "Failed to fetch image" })
-        };
-      }
-
-      imageBuffer = Buffer.from(await res.arrayBuffer());
-    } else {
-      // base64
-      const base64 = image.split(",").pop();
-      imageBuffer = Buffer.from(base64, "base64");
-    }
+    const { folder, public_id } = fields;
 
     // Resize + optimize
-    const optimized = await sharp(imageBuffer)
+    let quality = 85;
+    let optimized = await sharp(imageBuffer)
       .resize(1200, null, { fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 85 })
+      .webp({ quality })
       .toBuffer();
 
-    const base64Image = optimized.toString("base64");
+    console.log(`Original size: ${imageBuffer.byteLength}, Optimized size: ${optimized.byteLength}`);
+    const opt = optimized.byteLength
+    // Shrink to < 1MB
+    while (optimized.byteLength > 1024 * 1024 && quality > 10) {
+      quality -= 10;
+      optimized = await sharp(imageBuffer)
+        .resize(1200, null, { fit: "inside", withoutEnlargement: true })
+        .webp({ quality })
+        .toBuffer();
+    }
+    console.log(`Original size: ${opt}, Optimized size: ${optimized.byteLength}`);
     const timestamp = Math.round(Date.now() / 1000);
 
     // Params to sign
@@ -83,20 +90,20 @@ export const handler: Handler = async (event) => {
       .update(paramsStr + apiSecret)
       .digest("hex");
 
+    const form = new FormData();
+    form.append("file", new Blob([new Uint8Array(optimized)], { type: "image/webp" }));
+    form.append("api_key", apiKey);
+    form.append("timestamp", String(timestamp));
+    form.append("signature", signature);
+    form.append("upload_preset", uploadPreset);
+    if (folder) form.append("folder", folder);
+    if (public_id) form.append("public_id", public_id);
+
     const uploadRes = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          file: `data:image/webp;base64,${base64Image}`,
-          api_key: apiKey,
-          timestamp,
-          signature,
-          upload_preset: uploadPreset,
-          folder,
-          public_id
-        }),
+        body: form,
         signal: AbortSignal.timeout(15000)
       }
     );
@@ -127,3 +134,44 @@ export const handler: Handler = async (event) => {
     };
   }
 };
+
+function parseMultipartForm(event: any): Promise<{ file?: Buffer, fields: any }> {
+  return new Promise((resolve, reject) => {
+    const contentType = event.headers['content-type'] || event.headers['Content-Type'];
+    if (!contentType || !contentType.includes('multipart/form-data')) {
+        return reject(new Error("Not multipart"));
+    }
+
+    const bb = busboy({ headers: { 'content-type': contentType } });
+    
+    let fileBuffer: Buffer | undefined;
+    const fields: any = {};
+
+    bb.on('file', (fieldname, file, info) => {
+      const chunks: Buffer[] = [];
+      file.on('data', (data) => chunks.push(data));
+      file.on('end', () => {
+        if (fieldname === 'image' || fieldname === 'file') {
+            fileBuffer = Buffer.concat(chunks);
+        }
+      });
+    });
+
+    bb.on('field', (fieldname, value) => {
+      fields[fieldname] = value;
+    });
+
+    bb.on('finish', () => {
+      resolve({ file: fileBuffer, fields });
+    });
+
+    bb.on('error', reject);
+
+    const body = event.isBase64Encoded 
+      ? Buffer.from(event.body, 'base64') 
+      : event.body;
+    
+    bb.write(body);
+    bb.end();
+  });
+}
