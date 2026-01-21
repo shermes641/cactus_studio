@@ -1,7 +1,7 @@
 // e:\_A_CACTUS\src\actions\products.ts
 
 import { state } from '../state.js';
-import { translations, EXCHANGE_RATE } from '../constants.js';
+import { translations, getExchangeRate } from '../constants.js';
 import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from '../utils.js';
 import { updatePaginationControls, renderFilterControls, injectLogoutButton, ensureAdminFieldsExist, setupDropZone, toggleAdminModal } from '../ui.js';
 import { Product } from '../types.js';
@@ -304,7 +304,7 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
       }
 
       const priceUSD = Number(product.price_cents) / 100;
-      const priceCRC = priceUSD * EXCHANGE_RATE;
+      const priceCRC = priceUSD * getExchangeRate();
       
       if (!displayImage.includes('?export=download&id=XXXXXXXXXXXX')){
         grid.innerHTML += `

@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { translations, EXCHANGE_RATE, SHIPPING_COST } from "../constants.js";
+import { translations, getExchangeRate, getShippingCost } from "../constants.js";
 import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems, restorePreOrder } from "../actions.js";
 import { genSku } from "../actions/shared.js";
 
@@ -628,7 +628,7 @@ export async function openOrderDetailsModal(orderId: number) {
                      itemsSubtotalCents += (item.price_cents * (item.quantity || 1));
                  });
                  
-                 const discountCents = itemsSubtotalCents + SHIPPING_COST - order.total_amount_cents;
+                 const discountCents = itemsSubtotalCents + getShippingCost() - order.total_amount_cents;
                  if (discountCents > 0) {
                     const discountVal = (discountCents / 100).toFixed(2);
                     discountHtml = `<div style="margin-bottom: 5px; color: black;"><strong>${t.discount} (${order.discount_code}):</strong> -$${discountVal}</div>`;
@@ -665,7 +665,7 @@ export async function openOrderDetailsModal(orderId: number) {
         let html = "";
         items.forEach((item: any) => {
              const priceUSD = Number(item.price_cents) / 100;
-             const priceCRC = priceUSD * EXCHANGE_RATE;
+             const priceCRC = priceUSD * getExchangeRate();
             
              const sku = genSku(item.class, item.name, item.product_id);
 

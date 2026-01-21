@@ -1,10 +1,11 @@
 import { state } from "../state.js";
-import { translations, EXCHANGE_RATE, SHIPPING_COST } from "../constants.js";
+import { translations, getExchangeRate, getShippingCost } from "../constants.js";
 import { handleReceiptFileSelect, submitManualPayment, monitorManualPayment, fetchDataAndLoad, internalOrderId, restorePreOrder, autoApplyUserDiscount } from "../actions.js";
 
-const SHIPPING_COST_DOLLARS = (SHIPPING_COST || 1000) / 100;
-console.log('XXXXXXXXXXXXXXXXXXXXXXXXUsing SHIPPING_COST_DOLLARS:', SHIPPING_COST_DOLLARS, SHIPPING_COST);
 export function updateCartUI() {
+  const SHIPPING_COST_DOLLARS = (getShippingCost() || 1000) / 100;
+  const EXCHANGE_RATE = getExchangeRate();
+
   const cartItemsDiv = document.getElementById("cart-items");
   const cartCount = document.getElementById("cart-count");
   const cartTotal = document.getElementById("cart-total");
@@ -191,6 +192,9 @@ export function toggleCart() {
 }
 
 export async function toggleOtherPaymentModal(start_payment: boolean = false) {
+    const SHIPPING_COST_DOLLARS = (getShippingCost() || 1000) / 100;
+    const EXCHANGE_RATE = getExchangeRate();
+
     const modal = document.getElementById("other-payment-modal");
     if (!modal) return;
     

@@ -1,9 +1,9 @@
 import { Translations } from './types.js';
 
 export const APP_VERSION = '1.2.0';
-export const EXCHANGE_RATE = (window as any).env?.EXCHANGE_RATE || 525;
-export const SHIPPING_COST = (window as any).env?.SHIPPING_COST_CENTS || 100;
-export const MIN_CART_SUBTOTAL_CENTS = (window as any).env?.MIN_CART_SUBTOTAL_CENTS || 2000;
+export const getExchangeRate = () => (window as any).env?.EXCHANGE_RATE || 0;
+export const getShippingCost = () => (window as any).env?.SHIPPING_COST_CENTS || 0;
+export const getMinCartSubtotal = () => (window as any).env?.MIN_CART_SUBTOTAL_CENTS || 0;
 export const DEFAULT_IMG_CACHE = 100;
 export const MAX_IMGS = 1000;
 export const MAX_IMG_CACHE_PERCENT = 0.25;

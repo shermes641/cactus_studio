@@ -1,7 +1,7 @@
 // e:\_A_CACTUS\src\actions\cart.ts
 
 import { state } from "../state.js";
-import { SHIPPING_COST, translations, EXCHANGE_RATE, MIN_CART_SUBTOTAL_CENTS } from "../constants.js";
+import { getShippingCost, translations, getExchangeRate, getMinCartSubtotal } from "../constants.js";
 import { getStorageKey, showLoadingMask, hideLoadingMask } from "../utils.js";
 import {
   updateCartUI,
@@ -324,7 +324,7 @@ export async function submitManualPayment(
         preOrder: preOrder,
         receiptUrl: receiptUrl,
         userId: state.currentUserData ? state.currentUserData.id : null,
-        shippingCents: SHIPPING_COST || 777,
+        shippingCents: getShippingCost() || 777,
       }),
     });
 
@@ -423,9 +423,9 @@ export async function checkout() {
     if (item) subtotal += Number(item.price_cents) / 100;
   });
 
-  const minUSD = (Number(MIN_CART_SUBTOTAL_CENTS) / 100);
+  const minUSD = (Number(getMinCartSubtotal()) / 100);
   if (subtotal < minUSD) {
-    const minCRC = (minUSD * EXCHANGE_RATE).toLocaleString();
+    const minCRC = (minUSD * getExchangeRate()).toLocaleString();
     alert(translations[state.currentLang].alertMinSubtotal.replace("{usd}", minUSD.toFixed(2)).replace("{crc}", minCRC));
     return;
   }
@@ -659,7 +659,7 @@ export async function checkout() {
               preOrder: true,
               currency: paymentCurrency,
               userId: state.currentUserData ? state.currentUserData.id : null,
-              shippingCents: SHIPPING_COST || 777,
+              shippingCents: getShippingCost() || 777,
             }),
           })
             .then(async (res) => {

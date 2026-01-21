@@ -130,6 +130,27 @@ export const handler: Handler = async (event: any, context: any) => {
     `;
     out.push('ensured email_logs table');
 
+    // 9) Ensure settings table
+    await sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`;
+    await sql`ALTER TABLE settings ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'string'`;
+    out.push('ensured settings table');
+
+    // 10) Seed settings
+    const settingsCount = await sql`SELECT COUNT(*) FROM settings`;
+    if (parseInt(settingsCount[0].count) === 0) {
+      await sql`
+        INSERT INTO settings (key, value, type) VALUES 
+        ('PAYPAL_SANDBOX_CLIENT_ID', 'AcmJhypFC4vPsDliPw-dFyklgWTFiPCvMGeyn6vvnfH0-pogwbS92nPbLQCbIiy5JUgW2q3LQZhc8cM7', 'string'),
+        ('EXCHANGE_RATE', '525', 'number'),
+        ('SHIPPING_COST_CENTS', '667', 'number'),
+        ('MIN_CART_SUBTOTAL_CENTS', '2000', 'number')
+      `;
+      out.push('seeded settings');
+    } else {
+      await sql`UPDATE settings SET type = 'number' WHERE key IN ('EXCHANGE_RATE', 'SHIPPING_COST_CENTS', 'MIN_CART_SUBTOTAL_CENTS')`;
+      out.push('updated settings types');
+    }
+
     return { statusCode: 200, body: JSON.stringify({ ok: true, actions: out }) };
   } catch (error: any) {
     console.error('Migration failed:', error);
