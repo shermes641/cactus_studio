@@ -149,7 +149,7 @@
     z-index: 2000;
 }
 .help-close-btn { position: absolute; top: 5px; right: 10px; color: red; cursor: pointer; font-weight: bold; font-size: 2rem; }
-.help-header { margin-top: 0; position: static; width: 25%; }
+.help-header { margin-top: 0; position: static; width: 90%; }
 .help-body { white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
 
 .no-results {

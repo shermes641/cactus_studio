@@ -1,5 +1,6 @@
 import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
+import { genSku } from "./shared.js";
 
 export const handler: Handler = async (event: any) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
@@ -16,10 +17,7 @@ export const handler: Handler = async (event: any) => {
       `;
 
       // Update inventory SKU to match new name/class
-      const cleanClass = (productClass || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-      const cleanName = (name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-      const newSku = `${cleanClass}-${id}-${cleanName}`;
-      
+      const newSku = genSku(productClass, id)
       await sql`UPDATE inventory SET sku = ${newSku} WHERE image_id = ${id}`;
 
       return { statusCode: 200, body: JSON.stringify({ message: 'Product updated' }) };
@@ -45,9 +43,8 @@ export const handler: Handler = async (event: any) => {
       const newId = rows[0].id;
 
       // Insert into inventory with default quantity 1
-      const cleanClass = (productClass || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-      const cleanName = (name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-      const sku = `${cleanClass}-${newId}-${cleanName}`;
+
+      const sku = genSku(productClass,newId);
       await sql`
         INSERT INTO inventory (sku, image_id, quantity) 
         VALUES (${sku}, ${newId}, 1)

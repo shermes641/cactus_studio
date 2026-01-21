@@ -1,6 +1,7 @@
 import { state } from "../state.js";
 import { translations, EXCHANGE_RATE } from "../constants.js";
 import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems, restorePreOrder } from "../actions.js";
+import { genSku } from "../actions/shared.js";
 
 export function handleFileSelect(file: File) {
   if (!file.type.startsWith("image/")) return;
@@ -643,10 +644,8 @@ export async function openOrderDetailsModal(orderId: number) {
         items.forEach((item: any) => {
              const priceUSD = Number(item.price_cents) / 100;
              const priceCRC = priceUSD * EXCHANGE_RATE;
-             
-             const cleanClass = (item.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-             const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-             const sku = `${cleanClass}-${item.product_id}-${cleanName}`;
+            
+             const sku = genSku(item.class, item.product_id);
 
              let imgHtml = "";
              if (item.image_url) {

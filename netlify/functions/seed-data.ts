@@ -9,6 +9,7 @@ import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 // @ts-ignore
 import localData from '../../data.json';
+import { genSku } from "./shared.js";
 
 export const handler: Handler = async (event: any, context: any) => {
   // Only allow POST requests to trigger this (or GET for testing in browser)
@@ -126,9 +127,7 @@ export const handler: Handler = async (event: any, context: any) => {
       await sql`DELETE FROM inventory`;
       
       for (const item of data) {
-        const cleanClass = (item.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-        const cleanName = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-        const sku = `${cleanClass}-${item.id}-${cleanName}`;
+        const sku = genSku(item.class,item.id)
         await sql`INSERT INTO inventory (sku, image_id, quantity) VALUES (${sku}, ${item.id}, 1)`;
       }
       messages.push("Inventory reset to quantity 1.");

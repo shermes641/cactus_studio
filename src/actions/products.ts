@@ -6,7 +6,7 @@ import { getStorageKey, showLoadingMask, hideLoadingMask, showPromptModal } from
 import { updatePaginationControls, renderFilterControls, injectLogoutButton, ensureAdminFieldsExist, setupDropZone, toggleAdminModal } from '../ui.js';
 import { Product } from '../types.js';
 import { addToCart } from '../actions/cart.js';
-import { USE_CLOUDINARY } from './shared.js';
+import { genSku,} from './shared.js';
 
 declare const window: any;
 
@@ -186,9 +186,8 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         const q = state.searchQuery.toLowerCase();
         visibleProducts = visibleProducts.filter(p => {
             const price = (p.price_cents / 100).toFixed(2);
-            const cleanClass = (p.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-            const cleanName = (p.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-            const sku = `${cleanClass}-${p.id}-${cleanName}`.toLowerCase();
+            
+            const sku = genSku(p.class, p.id).toLowerCase();
             return p.name.toLowerCase().includes(q) || 
                    price.includes(q) ||
                    sku.includes(q);
@@ -267,10 +266,9 @@ export async function renderPage(page: number, skipFetch = false, suppressLoadin
         const price = (Number(product.price_cents) / 100).toFixed(2);
         if (price.includes(q)) matches.push(t.labelMatchPrice);
         
-        const cleanClass = (product.class || 'NONE').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
-        const cleanName = (product.name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
-        const genSku = `${cleanClass}-${product.id}-${cleanName}`.toLowerCase();
-        if ((product.sku && product.sku.toLowerCase().includes(q)) || genSku.includes(q)) matches.push(t.labelMatchSku);
+        
+        const gen_sku = genSku(product.class, product.id).toLowerCase();
+        if ((product.sku && product.sku.toLowerCase().includes(q)) || gen_sku.includes(q)) matches.push(t.labelMatchSku);
 
         if (matches.length > 0) {
             matchInfo = `<span class="match-info">${t.labelMatchMatched}: ${matches.join(", ")}</span>`;
