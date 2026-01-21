@@ -54,6 +54,8 @@ export const handler: Handler = async (event: any, context: any) => {
     out.push('ensured orders.currency column');
     await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS receipt_url TEXT`;
     out.push('ensured orders.receipt_url column');
+    await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipped_at TIMESTAMPTZ`;
+    out.push('ensured orders.shipped_at column');
 
     await sql`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS sku TEXT`;
     out.push('ensured order_items.sku column');

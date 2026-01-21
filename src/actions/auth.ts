@@ -107,7 +107,7 @@ export async function loginUserEmail() {
                 alert(translations[state.currentLang].alertVerificationSent);
               }
             } else {
-              alert(resendData.error || "Failed to send verification code");
+              alert(resendData.error || translations[state.currentLang].alertVerificationSendError);
             }
           } catch (e) {
             hideLoadingMask();
@@ -206,7 +206,7 @@ export async function loginUserEmail() {
   } catch (e) {
     hideLoadingMask();
     console.error("Login error:", e);
-    alert("Login failed: " + (e instanceof Error ? e.message : "Unknown error"));
+    alert(translations[state.currentLang].alertLoginError + (e instanceof Error ? e.message : translations[state.currentLang].unknownError));
   }
 }
 
@@ -281,7 +281,7 @@ export async function registerUser() {
   } catch (e) {
     hideLoadingMask();
     console.error("Registration error:", e);
-    alert("Registration failed: " + (e instanceof Error ? e.message : "Unknown error"));
+    alert(translations[state.currentLang].alertRegistrationError + (e instanceof Error ? e.message : translations[state.currentLang].unknownError));
   }
 }
 

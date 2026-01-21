@@ -26,7 +26,12 @@ export const handler: Handler = async (event: any) => {
                  }
              }
         }
-        await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
+        
+        if (status === 'shipped') {
+            await sql`UPDATE orders SET status = ${status}, shipped_at = NOW() WHERE id = ${id}`;
+        } else {
+            await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
+        }
     }
     
     return { statusCode: 200, body: JSON.stringify({ message: "Order statuses updated successfully" }) };

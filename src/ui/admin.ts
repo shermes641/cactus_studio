@@ -490,7 +490,9 @@ function renderOrdersList(orders: any[]) {
             }
 
             if (o.status !== 'cancelled' && o.status !== 'shipped') {
-                 buttonsHtml += `<button class="add-btn" style="background-color: var(--info); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); shipOrder(${o.id})">${t.btnShip}</button>`;
+                 if (o.status !== 'manual_verification') {
+                     buttonsHtml += `<button class="add-btn" style="background-color: var(--info); color: #333; padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); shipOrder(${o.id})">${t.btnShip}</button>`;
+                 }
                  buttonsHtml += `<button class="add-btn cancel-btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); cancelOrder(${o.id})">${t.btnCancelOrder}</button>`;
             }
             
@@ -641,6 +643,7 @@ export async function openOrderDetailsModal(orderId: number) {
                         <span><strong>${t.headerStatus}:</strong> ${order.status}</span>
                         <span><strong>${t.labelTotal}:</strong> ${total} ${order.currency}</span>
                     </div>
+                    ${order.shipped_at ? `<div style="margin-bottom: 5px;"><strong>${t.labelShippedAt}:</strong> ${new Date(order.shipped_at).toLocaleString()}</div>` : ''}
                     <div style="margin-bottom: 5px;"><strong>${t.labelDate}:</strong> ${date}</div>
                     <div style="margin-bottom: 5px;"><strong>${t.headerCustomer}:</strong> ${order.customer_name || order.user_name || 'N/A'} (${order.customer_email || order.user_email || 'N/A'})</div>
                     <div style="margin-bottom: 5px;"><strong>${t.labelShipping}:</strong> ${order.shipping_addr || 'N/A'}</div>

@@ -303,7 +303,7 @@ export async function submitManualPayment(
     } catch (e: any) {
       isManualPaymentSubmitting = false;
       hideLoadingMask();
-      alert("Receipt upload failed: " + e.message);
+      alert(translations[state.currentLang].alertReceiptUploadFailed + e.message);
       return;
     }
   }
@@ -355,7 +355,7 @@ export async function submitManualPayment(
     }
   } catch (e: any) {
     console.error("Manual order error:", e);
-    alert("Failed to place order: " + e.message);
+    alert(translations[state.currentLang].alertOrderPlacementFailed + e.message);
   } finally {
     isManualPaymentSubmitting = false;
     hideLoadingMask();
@@ -578,7 +578,7 @@ export async function checkout() {
     // Loading mask is hidden when buttons render or on error
     if (typeof paypal === "undefined" || !paypal || !paypal.Buttons) {
       console.error("PayPal SDK not ready.");
-      alert("Payment system loading error. Please try again.");
+      alert(translations[state.currentLang].alertPaymentSystemError);
       if (checkoutBtn) checkoutBtn.style.display = "";
       return;
     }
@@ -829,7 +829,7 @@ export async function checkout() {
   // Load script if not present, otherwise render
   //if (!script) {
   if (!CLIENT_ID) {
-    alert("Payment configuration missing (Client ID).");
+    alert(translations[state.currentLang].alertPaymentConfigError);
     if (checkoutBtn) checkoutBtn.style.display = "";
     paypalContainer.innerHTML = "";
     return;

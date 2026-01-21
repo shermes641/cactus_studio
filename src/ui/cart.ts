@@ -234,7 +234,7 @@ export async function toggleOtherPaymentModal(start_payment: boolean = false) {
         if (shippingDiv) {
             const shippingInput = document.getElementById("cart-shipping-address") as HTMLTextAreaElement;
             const address = shippingInput ? shippingInput.value.trim() : (state.currentUserData?.shipping_addr || "");
-            shippingDiv.innerText = address || "No address provided";
+            shippingDiv.innerText = address || translations[state.currentLang].noAddressProvided;
         }
         updateReceiptDropZonePreview("");
     } else {
