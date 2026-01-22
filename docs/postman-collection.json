@@ -1,0 +1,746 @@
+{
+  "info": {
+    "name": "Cactus API",
+    "_postman_id": "cactus",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "add-plant-class",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/add-plant-class",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "add-plant-class"
+          ]
+        }
+      }
+    },
+    {
+      "name": "backup-database",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/backup-database",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "backup-database"
+          ]
+        }
+      }
+    },
+    {
+      "name": "cancel-order",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/cancel-order",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "cancel-order"
+          ]
+        }
+      }
+    },
+    {
+      "name": "capture-order",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/capture-order",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "capture-order"
+          ]
+        }
+      }
+    },
+    {
+      "name": "change-password",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/change-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "change-password"
+          ]
+        }
+      }
+    },
+    {
+      "name": "check-reset-token",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/check-reset-token",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "check-reset-token"
+          ]
+        }
+      }
+    },
+    {
+      "name": "create-order",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/create-order",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "create-order"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-cloudinary-config",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-cloudinary-config",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-cloudinary-config"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-discounts",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-discounts",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-discounts"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-order-items",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-order-items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-order-items"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-paypal-client-id",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-paypal-client-id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-paypal-client-id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-pending-orders",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-pending-orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-pending-orders"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-plant-classes",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-plant-classes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-plant-classes"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-products",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-products"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-public-settings",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-public-settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-public-settings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-user-data",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-user-data",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-user-data"
+          ]
+        }
+      }
+    },
+    {
+      "name": "get-users",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/get-users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "get-users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "identify-plant-gemini",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-gemini",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "identify-plant-gemini"
+          ]
+        }
+      }
+    },
+    {
+      "name": "identify-plant-grok",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-grok",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "identify-plant-grok"
+          ]
+        }
+      }
+    },
+    {
+      "name": "identify-plant-kindwise",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-kindwise",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "identify-plant-kindwise"
+          ]
+        }
+      }
+    },
+    {
+      "name": "identify-plant-ollama",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-ollama",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "identify-plant-ollama"
+          ]
+        }
+      }
+    },
+    {
+      "name": "identify-plant-openai",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-openai",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "identify-plant-openai"
+          ]
+        }
+      }
+    },
+    {
+      "name": "login-user",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/login-user",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "login-user"
+          ]
+        }
+      }
+    },
+    {
+      "name": "logout-user",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/logout-user",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "logout-user"
+          ]
+        }
+      }
+    },
+    {
+      "name": "migrate-schema",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/migrate-schema",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "migrate-schema"
+          ]
+        }
+      }
+    },
+    {
+      "name": "node-mailer",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/node-mailer",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "node-mailer"
+          ]
+        }
+      }
+    },
+    {
+      "name": "register-user",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/register-user",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "register-user"
+          ]
+        }
+      }
+    },
+    {
+      "name": "request-password-reset",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/request-password-reset",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "request-password-reset"
+          ]
+        }
+      }
+    },
+    {
+      "name": "resend-verification",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/resend-verification",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "resend-verification"
+          ]
+        }
+      }
+    },
+    {
+      "name": "reset-password-submit",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/reset-password-submit",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "reset-password-submit"
+          ]
+        }
+      }
+    },
+    {
+      "name": "reset-schema",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/reset-schema",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "reset-schema"
+          ]
+        }
+      }
+    },
+    {
+      "name": "restore-database",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/restore-database",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "restore-database"
+          ]
+        }
+      }
+    },
+    {
+      "name": "restore-preorder",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/restore-preorder",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "restore-preorder"
+          ]
+        }
+      }
+    },
+    {
+      "name": "save-user-data",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/save-user-data",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "save-user-data"
+          ]
+        }
+      }
+    },
+    {
+      "name": "seed-data",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/seed-data",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "seed-data"
+          ]
+        }
+      }
+    },
+    {
+      "name": "update-order-status",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/update-order-status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "update-order-status"
+          ]
+        }
+      }
+    },
+    {
+      "name": "update-product",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/update-product",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "update-product"
+          ]
+        }
+      }
+    },
+    {
+      "name": "update-user-profile",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/update-user-profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "update-user-profile"
+          ]
+        }
+      }
+    },
+    {
+      "name": "upload-image-signed",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/upload-image-signed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "upload-image-signed"
+          ]
+        }
+      }
+    },
+    {
+      "name": "upload-images-to-cloudinary",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/upload-images-to-cloudinary",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "upload-images-to-cloudinary"
+          ]
+        }
+      }
+    },
+    {
+      "name": "upload-to-google-drive",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/upload-to-google-drive",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "upload-to-google-drive"
+          ]
+        }
+      }
+    },
+    {
+      "name": "validate-discount",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/validate-discount",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "validate-discount"
+          ]
+        }
+      }
+    },
+    {
+      "name": "verify-email",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/.netlify/functions/verify-email",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".netlify",
+            "functions",
+            "verify-email"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8888"
+    }
+  ]
+}

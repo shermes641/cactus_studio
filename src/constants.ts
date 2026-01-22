@@ -1,6 +1,6 @@
 import { Translations } from './types.js';
 
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.5.0';
 export const getExchangeRate = () => (window as any).env?.EXCHANGE_RATE || 0;
 export const getShippingCost = () => (window as any).env?.SHIPPING_COST_CENTS || 0;
 export const getMinCartSubtotal = () => (window as any).env?.MIN_CART_SUBTOTAL_CENTS || 0;

@@ -125,7 +125,7 @@ export async function exportDatabase() {
     if (!res.ok) throw new Error("Failed to fetch products");
     
     const data = await res.json();
-    const products = data.products;
+    const { products } = data;
 
     if (!products || products.length === 0) {
         alert("No products to export.");

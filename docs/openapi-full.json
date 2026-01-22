@@ -1,0 +1,444 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Cactus API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/.netlify/functions"
+    }
+  ],
+  "paths": {
+    "/add-plant-class": {
+      "post": {
+        "summary": "add plant class",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/backup-database": {
+      "post": {
+        "summary": "backup database",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/cancel-order": {
+      "post": {
+        "summary": "cancel order",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/capture-order": {
+      "post": {
+        "summary": "capture order",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/change-password": {
+      "post": {
+        "summary": "change password",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/check-reset-token": {
+      "get": {
+        "summary": "check reset token",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/create-order": {
+      "post": {
+        "summary": "create order",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-cloudinary-config": {
+      "get": {
+        "summary": "get cloudinary config",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-discounts": {
+      "get": {
+        "summary": "get discounts",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-order-items": {
+      "get": {
+        "summary": "get order items",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-paypal-client-id": {
+      "get": {
+        "summary": "get paypal client id",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-pending-orders": {
+      "get": {
+        "summary": "get pending orders",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-plant-classes": {
+      "get": {
+        "summary": "get plant classes",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-products": {
+      "get": {
+        "summary": "get products",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-public-settings": {
+      "get": {
+        "summary": "get public settings",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-user-data": {
+      "get": {
+        "summary": "get user data",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/get-users": {
+      "get": {
+        "summary": "get users",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/identify-plant-gemini": {
+      "post": {
+        "summary": "identify plant gemini",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/identify-plant-grok": {
+      "post": {
+        "summary": "identify plant grok",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/identify-plant-kindwise": {
+      "post": {
+        "summary": "identify plant kindwise",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/identify-plant-ollama": {
+      "post": {
+        "summary": "identify plant ollama",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/identify-plant-openai": {
+      "post": {
+        "summary": "identify plant openai",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/login-user": {
+      "post": {
+        "summary": "login user",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/logout-user": {
+      "post": {
+        "summary": "logout user",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/migrate-schema": {
+      "post": {
+        "summary": "migrate schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/node-mailer": {
+      "post": {
+        "summary": "node mailer",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/register-user": {
+      "post": {
+        "summary": "register user",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/request-password-reset": {
+      "post": {
+        "summary": "request password reset",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/resend-verification": {
+      "post": {
+        "summary": "resend verification",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/reset-password-submit": {
+      "post": {
+        "summary": "reset password submit",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/reset-schema": {
+      "post": {
+        "summary": "reset schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/restore-database": {
+      "post": {
+        "summary": "restore database",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/restore-preorder": {
+      "post": {
+        "summary": "restore preorder",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/save-user-data": {
+      "post": {
+        "summary": "save user data",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/seed-data": {
+      "post": {
+        "summary": "seed data",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/update-order-status": {
+      "post": {
+        "summary": "update order status",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/update-product": {
+      "post": {
+        "summary": "update product",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/update-user-profile": {
+      "post": {
+        "summary": "update user profile",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/upload-image-signed": {
+      "post": {
+        "summary": "upload image signed",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/upload-images-to-cloudinary": {
+      "post": {
+        "summary": "upload images to cloudinary",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/upload-to-google-drive": {
+      "post": {
+        "summary": "upload to google drive",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/validate-discount": {
+      "post": {
+        "summary": "validate discount",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/verify-email": {
+      "post": {
+        "summary": "verify email",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}
