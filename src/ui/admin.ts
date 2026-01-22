@@ -483,36 +483,30 @@ function renderOrdersList(orders: any[]) {
 }
 
 export function openReceiptModal(orderId: number, url: string, showVerify: boolean = false) {
-    let modal = document.getElementById("receipt-modal");
-    if (!modal) {
-        modal = document.createElement("div");
-        modal.id = "receipt-modal";
-        modal.className = "modal";
-        document.body.appendChild(modal);
-    }
+    const modal = document.getElementById("receipt-modal");
+    if (!modal) return;
     
     const t = translations[state.currentLang];
     
-    let buttons = `<button class="add-btn cancel-btn" onclick="closeReceiptModal()">${t.btnCancel}</button>`;
-    if (showVerify) {
-        buttons = `
-            <button class="add-btn" onclick="verifyOrder(${orderId})">${t.btnVerify}</button>
-            ${buttons}
-        `;
+    const title = document.getElementById("receipt-modal-title");
+    if (title) title.innerText = `${t.receiptModalTitle} #${orderId}`;
+
+    const imgContainer = document.getElementById("receipt-image-container");
+    if (imgContainer) {
+        imgContainer.innerHTML = url 
+            ? `<img src="${url}" class="receipt-image">` 
+            : `<p>No receipt image available.</p>`;
     }
 
-    const imgHtml = url ? `<img src="${url}" style="max-width: 100%; max-height: 60vh; margin: 10px 0; border: 1px solid #ddd;">` : `<p>No receipt image available.</p>`;
+    const actions = document.getElementById("receipt-actions");
+    if (actions) {
+        let buttons = `<button class="add-btn cancel-btn" onclick="closeReceiptModal()">${t.btnCancel}</button>`;
+        if (showVerify) {
+            buttons = `<button class="add-btn" onclick="verifyOrder(${orderId})">${t.btnVerify}</button>${buttons}`;
+        }
+        actions.innerHTML = buttons;
+    }
 
-    modal.innerHTML = `
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-btn" onclick="closeReceiptModal()">&times;</span>
-            <h3>${t.receiptModalTitle} #${orderId}</h3>
-            ${imgHtml}
-            <div class="manual-payment-actions" style="justify-content: center; gap: 10px;">
-                ${buttons}
-            </div>
-        </div>
-    `;
     modal.style.display = "flex";
 }
 
@@ -544,30 +538,17 @@ export async function openOrderDetailsModal(orderId: number) {
     const t = translations[state.currentLang];
 
     let modal = document.getElementById("order-details-modal");
-    if (!modal) {
-        modal = document.createElement("div");
-        modal.id = "order-details-modal";
-        modal.className = "modal";
-        document.body.appendChild(modal);
+    if (!modal) return;
 
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeOrderDetailsModal();
-        });
-    }
-    
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px; width: 95%;">
-            <span class="close-btn" onclick="closeOrderDetailsModal()">&times;</span>
-            <h3>${t.headerOrder} #${orderId} ${t.labelItems}</h3>
-            <div id="order-details-header"></div>
-            <div id="order-items-content" style="max-height: 60vh; overflow-y: auto;">
-                <p>${t.loadingItems}</p>
-            </div>
-            <div class="manual-payment-actions" style="justify-content: flex-end; margin-top: 15px;">
-                <button class="add-btn" onclick="closeOrderDetailsModal()">${t.btnClose}</button>
-            </div>
-        </div>
-    `;
+    const title = document.getElementById("order-details-title");
+    if (title) title.innerText = `${t.headerOrder} #${orderId} ${t.labelItems}`;
+
+    const header = document.getElementById("order-details-header");
+    if (header) header.innerHTML = "";
+
+    const container = document.getElementById("order-items-content");
+    if (container) container.innerHTML = `<p>${t.loadingItems}</p>`;
+
     modal.style.display = "flex";
     
     try {

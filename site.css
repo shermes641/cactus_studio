@@ -216,3 +216,36 @@
 .auto-width {
     width: auto;
 }
+
+/* Order Details Modal */
+.order-details-content {
+    max-width: 600px;
+    width: 95%;
+}
+
+.order-items-scroll {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.order-details-actions {
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+/* Receipt Modal */
+.receipt-modal-content {
+    text-align: center;
+}
+
+.receipt-image {
+    max-width: 100%;
+    max-height: 60vh;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+}
+
+.receipt-actions {
+    justify-content: center;
+    gap: 10px;
+}

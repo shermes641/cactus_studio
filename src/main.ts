@@ -1,5 +1,6 @@
 
 import { state } from './state.js';
+import { loadEnvSettings } from './env.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal as _toggleOtherPaymentModal, initManualPaymentUI, toggleOrdersModal, openReceiptModal, closeReceiptModal, refreshOrdersModal, openOrderDetailsModal, closeOrderDetailsModal, openReceiptImageModal, toggleContactModal } from './ui.js';
 import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder, sendContactMessage } from './actions.js';
@@ -63,9 +64,12 @@ const toggleOtherPaymentModal = (start_payment: boolean = false) => {
 (window as any).togglePasswordVisibility = togglePasswordVisibility;
 
  // Initialize application on page load
- window.onload = function () {
+ window.onload = async function () {
    injectLoadingMask();
    showLoadingMask("Loading...");
+
+   await loadEnvSettings();
+
    setVersionDisplay();
    
    // Load language preference
@@ -181,6 +185,21 @@ const toggleOtherPaymentModal = (start_payment: boolean = false) => {
        });
    }
 
+   // Order Details modal close listener
+   const orderDetailsModal = document.getElementById('order-details-modal');
+   if (orderDetailsModal) {
+       orderDetailsModal.addEventListener('click', (e) => {
+           if (e.target === orderDetailsModal) closeOrderDetailsModal();
+       });
+   }
+
+   // Receipt modal close listener
+   const receiptModal = document.getElementById('receipt-modal');
+   if (receiptModal) {
+       receiptModal.addEventListener('click', (e) => {
+           if (e.target === receiptModal) closeReceiptModal();
+       });
+   }
 
   // Sidebar close listener
    document.addEventListener('click', function(event) {

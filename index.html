@@ -242,6 +242,31 @@
       </div>
     </div>
 
+    <!-- Order Details Modal -->
+    <div id="order-details-modal" class="modal" style="display: none;">
+        <div class="modal-content order-details-content">
+            <span class="close-btn" onclick="closeOrderDetailsModal()">&times;</span>
+            <h3 id="order-details-title"></h3>
+            <div id="order-details-header"></div>
+            <div id="order-items-content" class="order-items-scroll"></div>
+            <div class="manual-payment-actions order-details-actions">
+                <button class="add-btn" onclick="closeOrderDetailsModal()" data-i18n="btnClose">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="modal" style="display: none;">
+        <div class="modal-content receipt-modal-content">
+            <span class="close-btn" onclick="closeReceiptModal()">&times;</span>
+            <h3 id="receipt-modal-title"></h3>
+            <div id="receipt-image-container"></div>
+            <div id="receipt-actions" class="manual-payment-actions receipt-actions">
+                <button class="add-btn cancel-btn" onclick="closeReceiptModal()" data-i18n="btnCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Help Dialog -->
     <div id="help-dialog" class="help-dialog">
       <span onclick="toggleHelp()" class="help-close-btn">&times;</span>
@@ -338,7 +363,6 @@
       </div>
     </div>
 
-    <script src="/src/env.js"></script>
     <script type="module" src="/src/main.js"></script>
 
     <!-- Full Screen Image Modal -->
