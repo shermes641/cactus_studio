@@ -115,6 +115,130 @@ export async function uploadImagesToCloudinary(force: boolean = false) {
   }
 }
 
+export async function exportDatabase() {
+  if (!confirm("Download database export (products.json)?")) return;
+  
+  showLoadingMask("Exporting Database...");
+
+  try {
+    const res = await fetch('/.netlify/functions/get-products?limit=10000');
+    if (!res.ok) throw new Error("Failed to fetch products");
+    
+    const data = await res.json();
+    const products = data.products;
+
+    if (!products || products.length === 0) {
+        alert("No products to export.");
+        hideLoadingMask();
+        return;
+    }
+
+    const exportData = products.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price_cents: p.price_cents,
+        image_url: p.image_url,
+        scientific: p.scientific,
+        class: p.class,
+        notes: p.notes,
+        sku: p.sku
+    }));
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cactus_export_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+  } catch (e: any) {
+    console.error("Export failed:", e);
+    alert("Export failed: " + e.message);
+  } finally {
+    hideLoadingMask();
+  }
+}
+
+export async function backupDatabase() {
+  if (!confirm("Download full database backup (all tables)?")) return;
+  
+  showLoadingMask("Backing up Database...");
+
+  try {
+    const res = await fetch('/.netlify/functions/backup-database');
+    if (!res.ok) throw new Error("Failed to fetch backup");
+    
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cactus_full_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+  } catch (e: any) {
+    console.error("Backup failed:", e);
+    alert("Backup failed: " + e.message);
+  } finally {
+    hideLoadingMask();
+  }
+}
+
+export async function restoreDatabase() {
+  const file = await new Promise<File | null>((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e: any) => {
+          resolve(e.target.files && e.target.files.length > 0 ? e.target.files[0] : null);
+      };
+      input.click();
+  });
+
+  if (!file) return;
+
+  if (!confirm("DANGER: This will OVERWRITE the entire database with the backup file. Current data will be lost. Are you sure?")) return;
+
+  showLoadingMask("Restoring Database...");
+
+  try {
+      const text = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = (e) => reject(e);
+          reader.readAsText(file);
+      });
+      
+      const backupData = JSON.parse(text);
+      
+      const res = await fetch('/.netlify/functions/restore-database', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(backupData)
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || "Restore failed");
+      
+      alert("Restore Successful: " + data.message);
+      window.location.reload();
+
+  } catch (e: any) {
+      console.error("Restore error:", e);
+      alert("Restore failed: " + e.message);
+  } finally {
+      hideLoadingMask();
+  }
+}
 
 export async function addProduct() {
   const name = (document.getElementById("new-name") as HTMLInputElement).value;
@@ -226,18 +350,60 @@ export async function addProduct() {
 }
 
 export async function syncDatabase() {
-  if (!confirm("Are you sure you want to sync data.json to the database?")) return;
+  if (!confirm("Start Database Sync Process?")) return;
+
+  const useFile = confirm("Do you want to upload a local JSON file?\n\nClick OK to select a file.\nClick Cancel to use the server's default data.json.");
   
+  let productsToSync: any[] = [];
+
+  if (useFile) {
+      const file = await new Promise<File | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.json';
+          input.onchange = (e: any) => {
+              resolve(e.target.files && e.target.files.length > 0 ? e.target.files[0] : null);
+          };
+          input.click();
+      });
+
+      if (!file) return;
+
+      try {
+          const text = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target?.result as string);
+              reader.onerror = (e) => reject(e);
+              reader.readAsText(file);
+          });
+          productsToSync = JSON.parse(text);
+          if (!Array.isArray(productsToSync)) throw new Error("JSON must be an array of products");
+      } catch (e: any) {
+          alert("Invalid JSON file: " + e.message);
+          return;
+      }
+  } else {
+      try {
+        const response = await fetch('/data.json');
+        if (!response.ok) throw new Error("Failed to fetch data.json");
+        productsToSync = await response.json();
+      } catch (e: any) {
+          alert("Error loading default data: " + e.message);
+          return;
+      }
+  }
+
   showLoadingMask("Syncing Database...");
 
   const btn = document.getElementById("sync-btn") as HTMLButtonElement;
-  const originalText = btn.innerText;
-  btn.innerText = "Syncing...";
-  btn.disabled = true;
+  const originalText = btn ? btn.innerText : "Sync DB";
+  if (btn) {
+    btn.innerText = "Syncing...";
+    btn.disabled = true;
+  }
 
   try {
-    const response = await fetch('/data.json');
-    state.allProducts = await response.json();
+    state.allProducts = productsToSync;
     state.defaultProducts = JSON.parse(JSON.stringify(state.allProducts));
     
     let res = await fetch('/.netlify/functions/seed-data', { 
@@ -274,8 +440,10 @@ export async function syncDatabase() {
     alert("Error syncing: " + err.message);
   } finally {
     hideLoadingMask();
-    btn.innerText = originalText;
-    btn.disabled = false;
+    if (btn) {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
   }
 }
 

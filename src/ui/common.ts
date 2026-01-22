@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { translations } from "../constants.js";
+import { translations, THEME } from "../constants.js";
 import { setVersionDisplay } from "../utils.js";
 
 export function applyTranslations() {
@@ -79,11 +79,15 @@ export function setupHamburgerMenu() {
   if (langBtn) {
     row.appendChild(langBtn);
     langBtn.classList.add("hamburger-menu-item", "hamburger-custom-btn", "btn-lang");
+    langBtn.style.backgroundColor = THEME.secondary;
+    langBtn.style.color = THEME.white;
   }
 
   if (logoutBtn) {
     row.appendChild(logoutBtn);
     logoutBtn.classList.add("hamburger-menu-item", "hamburger-custom-btn", "btn-logout");
+    logoutBtn.style.backgroundColor = THEME.danger;
+    logoutBtn.style.color = THEME.white;
   }
 
   if (row.children.length > 0) {

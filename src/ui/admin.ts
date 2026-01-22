@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { translations, getExchangeRate, getShippingCost } from "../constants.js";
+import { translations, getExchangeRate, getShippingCost, THEME } from "../constants.js";
 import { identifyPlant, openProfileModal, shipOrder, cancelOrder, fetchOrderItems, restorePreOrder } from "../actions.js";
 import { genSku } from "../actions/shared.js";
 
@@ -218,10 +218,12 @@ export function injectOrdersButton() {
 
   const btn = document.createElement("button");
   btn.id = "orders-btn";
-  btn.className = "hamburger-menu-item bg-blue";
+  btn.className = "hamburger-menu-item";
   btn.setAttribute("onclick", "toggleOrdersModal()");
   btn.setAttribute("data-i18n", "btnOrders");
   btn.innerText = t["btnOrders"] || "Orders";
+  btn.style.backgroundColor = THEME.info;
+  btn.style.color = THEME.white;
 
   if (footer) dropdown.insertBefore(btn, footer);
   else dropdown.appendChild(btn);
@@ -241,7 +243,8 @@ export async function injectAdminButtons() {
     id: string,
     textKey: string,
     onClick: string,
-    classes: string
+    classes: string,
+    bgColor?: string
   ) => {
     const btn = document.createElement("button");
     btn.id = id;
@@ -249,6 +252,10 @@ export async function injectAdminButtons() {
     btn.setAttribute("onclick", onClick);
     btn.setAttribute("data-i18n", textKey);
     btn.innerText = t[textKey] || textKey;
+    if (bgColor) {
+        btn.style.backgroundColor = bgColor;
+        btn.style.color = THEME.white;
+    }
     return btn;
   };
 
@@ -257,25 +264,50 @@ export async function injectAdminButtons() {
       "admin-btn",
       "addItem",
       "toggleAdminModal()",
-      "hamburger-menu-item bg-green"
+      "hamburger-menu-item",
+      THEME.success
     ),
     createBtn(
       "sync-btn",
       "btnSync",
       "syncDatabase()",
-      "add-btn hamburger-menu-item bg-blue"
+      "add-btn hamburger-menu-item",
+      THEME.info
+    ),
+    createBtn(
+      "export-btn",
+      "btnExport",
+      "exportDatabase()",
+      "add-btn hamburger-menu-item",
+      THEME.secondary
+    ),
+    createBtn(
+      "backup-btn",
+      "btnBackup",
+      "backupDatabase()",
+      "add-btn hamburger-menu-item",
+      THEME.secondary
+    ),
+    createBtn(
+      "restore-btn",
+      "btnRestore",
+      "restoreDatabase()",
+      "add-btn hamburger-menu-item",
+      THEME.danger
     ),
     createBtn(
       "run-migrate-btn",
       "btnMigrate",
       "runMigration()",
-      "add-btn hamburger-menu-item bg-purple-dark"
+      "add-btn hamburger-menu-item",
+      THEME.secondary
     ),
     createBtn(
       "upload-images-btn",
       "btnUploadImages",
       "uploadImagesToCloudinary()",
-      "add-btn hamburger-menu-item bg-orange"
+      "add-btn hamburger-menu-item",
+      THEME.warning
     ),
   ];
 
@@ -289,8 +321,10 @@ export async function injectAdminButtons() {
 
   // Admin User Select
   const userSelectContainer = document.createElement("div");
-  userSelectContainer.className = "hamburger-menu-item bg-purple admin-user-select-container";
+  userSelectContainer.className = "hamburger-menu-item admin-user-select-container";
   userSelectContainer.id = "admin-user-select-container";
+  userSelectContainer.style.backgroundColor = THEME.secondary;
+  userSelectContainer.style.color = THEME.white;
 
   const select = document.createElement("select");
   select.id = "admin-user-select";
@@ -327,7 +361,7 @@ export async function injectAdminButtons() {
 }
 
 export function removeAdminButtons() {
-  const ids = ["admin-btn", "sync-btn", "run-migrate-btn", "upload-images-btn", "orders-btn", "admin-user-select-container"];
+  const ids = ["admin-btn", "sync-btn", "export-btn", "backup-btn", "restore-btn", "run-migrate-btn", "upload-images-btn", "orders-btn", "admin-user-select-container"];
   ids.forEach((id) => {
     const btn = document.getElementById(id);
     if (btn) btn.remove();

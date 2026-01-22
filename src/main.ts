@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { loadEnvSettings } from './env.js';
 import { setVersionDisplay, injectLoadingMask, showLoadingMask, hideLoadingMask, togglePasswordVisibility } from './utils.js';
 import { applyTranslations, renderFilterControls, toggleCart, toggleHelp, toggleAdminModal, toggleProfileModal, closeImageModal, updateCartUI, injectLoginUI, toggleForgotPasswordForm, updateHamburgerUserInfo, injectAdminButtons, injectOrdersButton, removeAdminButtons, setupHamburgerMenu, toggleOtherPaymentModal as _toggleOtherPaymentModal, initManualPaymentUI, toggleOrdersModal, openReceiptModal, closeReceiptModal, refreshOrdersModal, openOrderDetailsModal, closeOrderDetailsModal, openReceiptImageModal, toggleContactModal } from './ui.js';
-import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder, sendContactMessage } from './actions.js';
+import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout, loginUser, logoutUser, addProduct, syncDatabase, exportDatabase, backupDatabase, restoreDatabase, resetDatabaseSchema, applyFilter, changeItemsPerPage, renderPage, toggleLanguage, openImageModal, loginUserEmail, registerUser, toggleRegisterForm, runMigration, fetchDataAndLoad, uploadImagesToCloudinary, fetchPlantClasses, openProfileModal, saveProfile, changePassword, requestPasswordReset, handleSearch, removeDiscount, updateCurrency, updateShippingAddress, submitManualPayment, verifyOrder, unverifyOrder, shipOrder, cancelOrder, restoreSession, restorePreOrder, sendContactMessage } from './actions.js';
 
 // Expose functions to window for HTML event handlers
 (window as any).toggleLanguage = toggleLanguage;
@@ -17,6 +17,9 @@ import { addToCart, removeFromCart, removeAllFromCart, checkout, cancelCheckout,
 (window as any).checkout = checkout;
 (window as any).cancelCheckout = cancelCheckout;
 (window as any).syncDatabase = syncDatabase;
+(window as any).exportDatabase = exportDatabase;
+(window as any).backupDatabase = backupDatabase;
+(window as any).restoreDatabase = restoreDatabase;
 (window as any).resetDatabaseSchema = resetDatabaseSchema;
 (window as any).toggleAdminModal = toggleAdminModal;
 (window as any).toggleProfileModal = toggleProfileModal;

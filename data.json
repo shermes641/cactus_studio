@@ -1,388 +1,432 @@
 [
   {
-    "id": 1,
+    "id": "1",
     "name": "Golden Barrel",
-    "scientific": "Echinocactus grusonii",
     "price_cents": 250,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Echinocactus_grusonii.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012859/cactus/1-OPUN-GOLDENBA.webp",
+    "scientific": "Echinocactus grusonii",
     "class": "Opuntia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "1-OPUN-GOLDENBA"
   },
   {
-    "id": 2,
+    "id": "2",
     "name": "Bunny Ears",
-    "scientific": "Opuntia microdasys",
     "price_cents": 1850,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Opuntia_microdasys.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012861/cactus/2-EUPH-BUNNYEAR.webp",
+    "scientific": "Opuntia microdasys",
     "class": "Euphorbia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "2-EUPH-BUNNYEAR"
   },
   {
-    "id": 3,
+    "id": "3",
     "name": "Saguaro Giant",
+    "price_cents": 1450,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012864/cactus/3-MAMM-SAGUAROG.webp",
     "scientific": "Carnegiea gigantea",
-    "price_cents": 1450,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Carnegiea_gigantea.jpg?width=500",
     "class": "Mammillaria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "3-MAMM-SAGUAROG"
   },
   {
-    "id": 4,
+    "id": "4",
     "name": "Old Man Cactus",
+    "price_cents": 350,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012866/cactus/4-AIZO-OLDMANCA.webp",
     "scientific": "Cephalocereus senilis",
-    "price_cents": 350,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cephalocereus_senilis.jpg?width=500",
     "class": "Aizoaceae",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "4-AIZO-OLDMANCA"
   },
   {
-    "id": 6,
+    "id": "6",
     "name": "Prickly Pear",
+    "price_cents": 220,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012870/cactus/6-ALOE-PRICKLYP.webp",
     "scientific": "Opuntia ficus-indica",
-    "price_cents": 220,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Opuntia_ficus-indica.jpg?width=500",
     "class": "Aloe",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "6-ALOE-PRICKLYP"
   },
   {
-    "id": 7,
+    "id": "7",
     "name": "Christmas Cactus",
-    "scientific": "Schlumbergera truncata",
     "price_cents": 2250,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Schlumbergera_truncata.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012872/cactus/7-CRAS-CHRISTMA.webp",
+    "scientific": "Schlumbergera truncata",
     "class": "Crassula",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "7-CRAS-CHRISTMA"
   },
   {
-    "id": 8,
+    "id": "8",
     "name": "Fairy Castle",
-    "scientific": "Acanthocereus tetragonus",
     "price_cents": 290,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Acanthocereus_tetragonus.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012875/cactus/8-ECHE-FAIRYCAS.webp",
+    "scientific": "Acanthocereus tetragonus",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "8-ECHE-FAIRYCAS"
   },
   {
-    "id": 9,
+    "id": "9",
     "name": "Bishop's Cap",
-    "scientific": "Astrophytum myriostigma",
     "price_cents": 340,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Astrophytum_myriostigma.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012877/cactus/9-HAWO-BISHOPSC.webp",
+    "scientific": "Astrophytum myriostigma",
     "class": "Haworthia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "9-HAWO-BISHOPSC"
   },
   {
-    "id": 10,
+    "id": "10",
     "name": "Crown of Thorns",
-    "scientific": "Euphorbia milii",
     "price_cents": 270,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Euphorbia_milii.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012879/cactus/10-ECHE-CROWNOFT.webp",
+    "scientific": "Euphorbia milii",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "10-ECHE-CROWNOFT"
   },
   {
-    "id": 11,
+    "id": "11",
     "name": "Rat Tail Cactus",
-    "scientific": "Disocactus flagelliformis",
     "price_cents": 190,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Disocactus_flagelliformis.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012881/cactus/11-SANS-RATTAILC.webp",
+    "scientific": "Disocactus flagelliformis",
     "class": "Sansevieria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "11-SANS-RATTAILC"
   },
   {
-    "id": 13,
+    "id": "13",
     "name": "Ladyfinger",
-    "scientific": "Mammillaria elongata",
     "price_cents": 220,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mammillaria_elongata.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012884/cactus/13-SEDU-LADYFING.webp",
+    "scientific": "Mammillaria elongata",
     "class": "Sedum",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "13-SEDU-LADYFING"
   },
   {
-    "id": 14,
+    "id": "14",
     "name": "Sand Dollar",
-    "scientific": "Astrophytum asterias",
     "price_cents": 400,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Astrophytum_asterias.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012887/cactus/14-SEMP-SANDDOLL.webp",
+    "scientific": "Astrophytum asterias",
     "class": "Sempervivum",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "14-SEMP-SANDDOLL"
   },
   {
-    "id": 15,
+    "id": "15",
     "name": "Peanut Cactus",
-    "scientific": "Echinopsis chamaecereus",
     "price_cents": 1950,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Echinopsis_chamaecereus.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012889/cactus/15-OPUN-PEANUTCA.webp",
+    "scientific": "Echinopsis chamaecereus",
     "class": "Opuntia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "15-OPUN-PEANUTCA"
   },
   {
-    "id": 16,
+    "id": "16",
     "name": "Thimble Cactus",
-    "scientific": "Mammillaria gracilis",
     "price_cents": 1450,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mammillaria_gracilis.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012891/cactus/16-ECHE-THIMBLEC.webp",
+    "scientific": "Mammillaria gracilis",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "16-ECHE-THIMBLEC"
   },
   {
-    "id": 17,
+    "id": "17",
     "name": "Silver Torch",
-    "scientific": "Cleistocactus strausii",
     "price_cents": 480,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cleistocactus_strausii.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012893/cactus/17-MAMM-SILVERTO.webp",
+    "scientific": "Cleistocactus strausii",
     "class": "Mammillaria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "17-MAMM-SILVERTO"
   },
   {
-    "id": 18,
+    "id": "18",
     "name": "Mexican Fence Post",
-    "scientific": "Pachycereus marginatus",
     "price_cents": 600,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pachycereus_marginatus.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012896/cactus/18-AIZO-MEXICANF.webp",
+    "scientific": "Pachycereus marginatus",
     "class": "Aizoaceae",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "18-AIZO-MEXICANF"
   },
   {
-    "id": 19,
+    "id": "19",
     "name": "Snowball Cactus",
+    "price_cents": 300,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012901/cactus/19-ALOE-SNOWBALL.webp",
     "scientific": "Mammillaria candida",
-    "price_cents": 300,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mammillaria_candida.jpg?width=500",
     "class": "Aloe",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "19-ALOE-SNOWBALL"
   },
   {
-    "id": 20,
+    "id": "20",
     "name": "Balloon Cactus",
-    "scientific": "Parodia magnifica",
     "price_cents": 370,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Parodia_magnifica.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012903/cactus/20-CRAS-BALLOONC.webp",
+    "scientific": "Parodia magnifica",
     "class": "Crassula",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "20-CRAS-BALLOONC"
   },
   {
-    "id": 22,
+    "id": "22",
     "name": "Paper Spine",
-    "scientific": "Tephrocactus articulatus",
     "price_cents": 2650,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tephrocactus_articulatus.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012905/cactus/22-ECHE-PAPERSPI.webp",
+    "scientific": "Tephrocactus articulatus",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "22-ECHE-PAPERSPI"
   },
   {
-    "id": 24,
+    "id": "24",
     "name": "Devil's Tongue",
-    "scientific": "Ferocactus latispinus",
     "price_cents": 330,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ferocactus_latispinus.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012908/cactus/24-ECHE-DEVILSTO.webp",
+    "scientific": "Ferocactus latispinus",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "24-ECHE-DEVILSTO"
   },
   {
-    "id": 25,
+    "id": "25",
     "name": "Beavertail",
+    "price_cents": 280,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012911/cactus/25-ECHE-BEAVERTA.webp",
     "scientific": "Opuntia basilaris",
-    "price_cents": 280,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Opuntia_basilaris.jpg?width=500",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "25-ECHE-BEAVERTA"
   },
   {
-    "id": 26,
+    "id": "26",
     "name": "Easter Cactus",
+    "price_cents": 210,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012913/cactus/26-HAWO-EASTERCA.webp",
     "scientific": "Hatiora gaertneri",
-    "price_cents": 210,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Hatiora_gaertneri.jpg?width=500",
     "class": "Haworthia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "26-HAWO-EASTERCA"
   },
   {
-    "id": 27,
+    "id": "27",
     "name": "Mistletoe Cactus",
-    "scientific": "Rhipsalis baccifera",
     "price_cents": 350,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rhipsalis_baccifera.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012915/cactus/27-SEDU-MISTLETO.webp",
+    "scientific": "Rhipsalis baccifera",
     "class": "Sedum",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "27-SEDU-MISTLETO"
   },
   {
-    "id": 28,
+    "id": "28",
     "name": "Tiger Jaws",
-    "scientific": "Faucaria tigrina",
     "price_cents": 160,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Faucaria_tigrina.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012917/cactus/28-SEMP-TIGERJAW.webp",
+    "scientific": "Faucaria tigrina",
     "class": "Sempervivum",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "28-SEMP-TIGERJAW"
   },
   {
-    "id": 29,
+    "id": "29",
     "name": "Moon Cactus",
+    "price_cents": 150,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012920/cactus/29-OPUN-MOONCACT.webp",
     "scientific": "Gymnocalycium mihanovichii",
-    "price_cents": 150,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Gymnocalycium_mihanovichii.jpg?width=500",
     "class": "Opuntia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "29-OPUN-MOONCACT"
   },
   {
-    "id": 30,
+    "id": "30",
     "name": "Apple Cactus",
+    "price_cents": 450,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012922/cactus/30-EUPH-APPLECAC.webp",
     "scientific": "Cereus repandus",
-    "price_cents": 450,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cereus_repandus.jpg?width=500",
     "class": "Euphorbia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "30-EUPH-APPLECAC"
   },
   {
-    "id": 31,
+    "id": "31",
     "name": "Aloe Vera",
+    "price_cents": 150,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012925/cactus/31-MAMM-ALOEVERA.webp",
     "scientific": "Aloe vera",
-    "price_cents": 150,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aloe_vera.jpg?width=500",
     "class": "Mammillaria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "31-MAMM-ALOEVERA"
   },
   {
-    "id": 32,
+    "id": "32",
     "name": "Jade Plant",
-    "scientific": "Crassula ovata",
     "price_cents": 240,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Crassula_ovata.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012927/cactus/32-AIZO-JADEPLAN.webp",
+    "scientific": "Crassula ovata",
     "class": "Aizoaceae",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "32-AIZO-JADEPLAN"
   },
   {
-    "id": 33,
+    "id": "33",
     "name": "Mexican Snowball",
-    "scientific": "Echeveria elegans",
     "price_cents": 1250,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Echeveria_elegans.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012929/cactus/33-ECHE-MEXICANS.webp",
+    "scientific": "Echeveria elegans",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "33-ECHE-MEXICANS"
   },
   {
-    "id": 34,
+    "id": "34",
     "name": "Zebra Haworthia",
+    "price_cents": 140,
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012932/cactus/34-HAWO-ZEBRAHAW.webp",
     "scientific": "Haworthia fasciata",
-    "price_cents": 140,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Haworthia_fasciata.jpg?width=500",
     "class": "Haworthia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "34-HAWO-ZEBRAHAW"
   },
   {
-    "id": 35,
+    "id": "35",
     "name": "String of Pearls",
-    "scientific": "Senecio rowleyanus",
     "price_cents": 300,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Senecio_rowleyanus.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012935/cactus/35-ECHE-STRINGOF.webp",
+    "scientific": "Senecio rowleyanus",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "35-ECHE-STRINGOF"
   },
   {
-    "id": 36,
+    "id": "36",
     "name": "Pencil Cactus",
-    "scientific": "Euphorbia tirucalli",
     "price_cents": 280,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Euphorbia_tirucalli.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012937/cactus/36-HAWO-PENCILCA.webp",
+    "scientific": "Euphorbia tirucalli",
     "class": "Haworthia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "36-HAWO-PENCILCA"
   },
   {
-    "id": 37,
+    "id": "37",
     "name": "Ghost Plant",
-    "scientific": "Graptopetalum paraguayense",
     "price_cents": 140,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Graptopetalum_paraguayense.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012939/cactus/37-ECHE-GHOSTPLA.webp",
+    "scientific": "Graptopetalum paraguayense",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "37-ECHE-GHOSTPLA"
   },
   {
-    "id": 39,
+    "id": "39",
     "name": "Snake Plant",
-    "scientific": "Sansevieria trifasciata",
     "price_cents": 380,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sansevieria_trifasciata.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012941/cactus/39-SANS-SNAKEPLA.webp",
+    "scientific": "Sansevieria trifasciata",
     "class": "Sansevieria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "39-SANS-SNAKEPLA"
   },
   {
-    "id": 40,
+    "id": "40",
     "name": "Burro's Tail",
-    "scientific": "Sedum morganianum",
     "price_cents": 230,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sedum_morganianum.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012943/cactus/40-SEDU-BURROSTA.webp",
+    "scientific": "Sedum morganianum",
     "class": "Sedum",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "40-SEDU-BURROSTA"
   },
   {
-    "id": 41,
+    "id": "41",
     "name": "Panda Plant",
-    "scientific": "Kalanchoe tomentosa",
     "price_cents": 1750,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kalanchoe_tomentosa.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012945/cactus/41-SEMP-PANDAPLA.webp",
+    "scientific": "Kalanchoe tomentosa",
     "class": "Sempervivum",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "41-SEMP-PANDAPLA"
   },
   {
-    "id": 43,
+    "id": "43",
     "name": "Pink Lady",
-    "scientific": "Callisia repens",
     "price_cents": 130,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Callisia_repens.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012948/cactus/43-OPUN-PINKLADY.webp",
+    "scientific": "Callisia repens",
     "class": "Opuntia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "43-OPUN-PINKLADY"
   },
   {
-    "id": 44,
+    "id": "44",
     "name": "Hens and Chicks",
-    "scientific": "Sempervivum tectorum",
     "price_cents": 110,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sempervivum_tectorum.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012950/cactus/44-EUPH-HENSANDC.webp",
+    "scientific": "Sempervivum tectorum",
     "class": "Euphorbia",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "44-EUPH-HENSANDC"
   },
   {
-    "id": 45,
+    "id": "45",
     "name": "Blue Chalksticks",
-    "scientific": "Senecio serpens",
     "price_cents": 210,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Senecio_serpens.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012952/cactus/45-MAMM-BLUECHAL.webp",
+    "scientific": "Senecio serpens",
     "class": "Mammillaria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "45-MAMM-BLUECHAL"
   },
   {
-    "id": 46,
+    "id": "46",
     "name": "Coral Cactus",
-    "scientific": "Euphorbia lactea",
     "price_cents": 450,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Euphorbia_lactea.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012954/cactus/46-AIZO-CORALCAC.webp",
+    "scientific": "Euphorbia lactea",
     "class": "Aizoaceae",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "46-AIZO-CORALCAC"
   },
   {
-    "id": 47,
+    "id": "47",
     "name": "Jelly Bean",
-    "scientific": "Sedum rubrotinctum",
     "price_cents": 120,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sedum_rubrotinctum.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012957/cactus/47-ALOE-JELLYBEA.webp",
+    "scientific": "Sedum rubrotinctum",
     "class": "Aloe",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "47-ALOE-JELLYBEA"
   },
   {
-    "id": 49,
+    "id": "49",
     "name": "Lipstick Echeveria",
-    "scientific": "Echeveria agavoides",
     "price_cents": 150,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Echeveria_agavoides.jpg?width=500",
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012959/cactus/49-ECHE-LIPSTICK.webp",
+    "scientific": "Echeveria agavoides",
     "class": "Echeveria",
-    "notes": "abc"
+    "notes": "abc",
+    "sku": "49-ECHE-LIPSTICK"
   },
   {
-    "id": 50,
+    "id": "50",
     "name": "Tree Houseleek",
-    "scientific": "Aeonium arboreum",
     "price_cents": 320,
-    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aeonium_arboreum.jpg?width=500",
-    "class": "Echeveria"
+    "image_url": "https://res.cloudinary.com/dy0uiavbv/image/upload/v1769012962/cactus/50-ECHE-TREEHOUS.webp",
+    "scientific": "Aeonium arboreum",
+    "class": "Echeveria",
+    "notes": null,
+    "sku": "50-ECHE-TREEHOUS"
   }
 ]

@@ -1035,9 +1035,8 @@ header {
 
 /* Hamburger Menu Items Styling */
 .hamburger-dropdown .hamburger-menu-item {
-    background-color: var(--white);
     color: var(--text);
-    width: 100%;    
+    width: 95%;    
     text-align: center;
     padding: 12px 15px;
     border: none;
@@ -1091,6 +1090,14 @@ header {
     color: var(--white);
 }
 .hamburger-dropdown .hamburger-menu-item.bg-purple-dark:hover {
+    filter: brightness(90%);
+}
+
+.hamburger-dropdown .hamburger-menu-item.bg-purple {
+    background-color: var(--primary);
+    color: var(--white);
+}
+.hamburger-dropdown .hamburger-menu-item.bg-purple-dark {
     filter: brightness(90%);
 }
 
