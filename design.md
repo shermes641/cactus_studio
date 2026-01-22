@@ -1,287 +1,308 @@
-# PHASE 1 — Introduce Neon (without breaking anything)
+# System Design
 
-## 1.1 Create Neon DB
+This document reflects the **actual current database schema and architecture**
+detected directly from the codebase.  
+It also lists staged improvements that can be added incrementally.
 
-Go to Neon
+For diagrams → `docs/diagrams.md`
 
-Create project
+---
 
-Copy pooled connection string
+## Current Architecture
 
-Add to Netlify:
+## Stack
 
-NETLIFY_DATABASE_URL=postgresql://...
+- Netlify Functions (TypeScript)
+- Neon PostgreSQL
+- React + Tailwind
+- PayPal Checkout
+- Cloudinary storage
+- Plant AI provider
 
-1.2 Install Neon client
-npm install @netlify/neon
+## Responsibilities
 
-Create a shared DB helper:
+Functions:
 
-src/lib/db.ts
-import { neon } from "@netlify/neon";
+- auth
+- orders
+- payments
+- products
+- admin
+- uploads
 
-export const sql = neon(); // auto-reads NETLIFY_DATABASE_URL
+Database is the single source of truth.
 
-✅ No code uses it yet
+---
 
-PHASE 2 — Create schema (foundation)
+## Database Schema (Auto-synced)
 
-Run this once (Neon SQL editor).
+## ER Diagram
 
-2.1 Products (image-based catalog)
-CREATE TABLE products (
-  id BIGSERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  image_url TEXT NOT NULL,
-  scientific TEXT NOT NULL,
-  type TEXT,
-  price_cents INTEGER NOT NULL,
-  hidden BOOLEAN DEFAULT false,
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+```mermaid
+erDiagram
 
-2.2 Inventory (multi-SKU per image)
-CREATE TABLE inventory (
-  sku TEXT PRIMARY KEY,
-  image_id BIGINT REFERENCES products(id),
-  color TEXT,
-  size TEXT,
-  price_cents INTEGER,
-  quantity INTEGER NOT NULL DEFAULT 0,
-  active BOOLEAN DEFAULT true
-);
+  USERS {
+    bigint id PK
+    text email
+    text password_hash
+    text name
+    text phone
+    text shipping_addr
+    jsonb cart
+    bool is_admin
+    bool is_verified
+    text verification_token
+    timestamptz verification_token_expires
+    text reset_token
+    timestamptz reset_token_expires
+    text session_token
+    text discount_code FK
+    timestamptz created_at
+  }
 
-2.3 Inventory event ledger (NO direct mutation)
-CREATE TABLE inventory_events (
-  id BIGSERIAL PRIMARY KEY,
-  sku TEXT REFERENCES inventory(sku),
-  delta INTEGER NOT NULL,
-  reason TEXT NOT NULL,
-  ref TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+  PRODUCTS {
+    bigint id PK
+    text name
+    text image_url
+    text scientific
+    text class
+    int price_cents
+    text notes
+    text sku
+    timestamptz created_at
+  }
 
-2.4 Users & Discounts
-CREATE TABLE users (
-  id BIGSERIAL PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  name TEXT,
-  phone TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+  INVENTORY {
+    text sku PK
+    bigint image_id FK
+    text color
+    text size
+    int price_cents
+    int quantity
+    bool active
+  }
 
-CREATE TABLE discounts (
-  code TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK (type IN ('percent', 'shipping')),
-  value INTEGER NOT NULL,
-  active BOOLEAN DEFAULT true
-);
+  INVENTORY_EVENTS {
+    bigint id PK
+    text sku FK
+    int delta
+    text reason
+    text ref
+    timestamptz created_at
+  }
 
--- Seed: 5%, 10%, 15%, 20%, Free Shipping
-INSERT INTO discounts (code, type, value) VALUES ('SAVE5', 'percent', 5), ('SAVE10', 'percent', 10), ('SAVE15', 'percent', 15), ('SAVE20', 'percent', 20), ('FREESHIP', 'shipping', 0);
+  DISCOUNTS {
+    text code PK
+    text type
+    int value
+    bool active
+  }
 
-2.5 Orders & payments (provider-agnostic)
-CREATE TABLE orders (
-  id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT REFERENCES users(id),
-  discount_code TEXT REFERENCES discounts(code),
-  status TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+  STATUSES {
+    text code PK
+    text description
+  }
 
-CREATE TABLE payments (
-  id BIGSERIAL PRIMARY KEY,
-  order_id BIGINT REFERENCES orders(id),
-  provider TEXT,
-  provider_id TEXT,
-  amount_cents INTEGER,
-  currency TEXT,
-  status TEXT,
-  captured_at TIMESTAMPTZ
-);
+  ORDER_ITEMS {
+    bigint id PK
+    bigint order_id FK
+    bigint product_id FK
+    text name
+    int price_cents
+    int quantity
+    text sku
+  }
 
-2.6 Webhook idempotency
-CREATE TABLE webhook_events (
-  provider TEXT,
-  event_id TEXT,
-  payload JSONB,
-  received_at TIMESTAMPTZ DEFAULT now(),
-  PRIMARY KEY (provider, event_id)
-);
+  ORDERS {
+    bigint id PK
+    bigint user_id FK
+    text paypal_order_id
+    text customer_email
+    text customer_name
+    text discount_code FK
+    int total_amount_cents
+    text status FK
+    text shipping_addr
+    text currency
+    text receipt_url
+    timestamptz shipped_at
+    timestamptz created_at
+  }
 
-PHASE 1.5 — Data Seeding (One-off)
-Create a script to push your existing `data.json` into Neon.
+  PAYMENTS {
+    bigint id PK
+    bigint order_id FK
+    text provider
+    text provider_payment_id
+    int amount_cents
+    text currency
+    text status
+    timestamptz captured_at
+  }
 
-1. Read `data.json`
-2. Insert into `products` (name, price, image_url, type)
-3. Insert into `inventory` (sku, quantity)
-   - Generate SKU: `BOT-{ID}-STD`
-   - Default quantity: 10
+  PLANT_CLASSES {
+    bigint id PK
+    text name
+  }
 
-PHASE 4 — PayPal flow (wrapped, not replaced)
-4.1 Frontend checkout (unchanged UX)
+  AUDIT_LOGS {
+    uuid id PK
+    bigint user_id FK
+    text user_email
+    text action
+    text entity_type
+    text entity_id
+    bool success
+    text message
+    inet ip_address
+    text user_agent
+    jsonb metadata
+    timestamptz created_at
+  }
 
-**Step A: Replace data.json**
-Currently, the frontend loads static data. Create a function:
-`GET /.netlify/functions/get-products`
+  SETTINGS {
+    text key PK
+    text value
+    text type
+  }
 
-Returns:
+  WEBHOOK_EVENTS {
+    text provider
+    text event_id
+    jsonb payload
+    timestamptz received_at
+  }
 
-```json
-[ { "id": 1, "name": "...", "price": 1000, "available": 5 } ]
+  USERS ||--o{ ORDERS : places
+  USERS ||--o{ AUDIT_LOGS : generates
+  ORDERS ||--o{ PAYMENTS : has
+  ORDERS ||--o{ ORDER_ITEMS : contains
+  ORDERS }o--|| STATUSES : has_status
+  PRODUCTS ||--o{ ORDER_ITEMS : included_in
+  PRODUCTS ||--o{ INVENTORY : variants
+  INVENTORY ||--o{ INVENTORY_EVENTS : logs
+  DISCOUNTS ||--o{ ORDERS : applies
+  DISCOUNTS ||--o{ USERS : assigned_to
 ```
 
-Update `main.ts` to fetch this instead of `data.json`.
+---
 
-**Step B: Checkout**
-Your PayPal button stays the same.
+## Runtime Flow
 
-BUT instead of creating the order directly, you call:
+### Checkout
 
-POST /.netlify/functions/create-order
+1. create-order
+2. order stored in DB
+3. PayPal order created
+4. webhook confirms capture
+5. inventory decremented inside transaction
+6. inventory event logged
 
-4.2 create-order.ts
-import { sql } from "../lib/db";
+Inventory authority lives only in Neon.
 
-export async function handler(event) {
-  const { sku, quantity, discountCode, userId } = JSON.parse(event.body);
+---
 
-  // 1. Check inventory (Simple check, no lock)
-  const [row] = await sql`SELECT quantity FROM inventory WHERE sku=${sku}`;
-  
-  if (!row || row.quantity < quantity) {
-    throw new Error("Out of stock");
-  }
+## Staged Improvements Roadmap
 
-  // 2. Validate Discount
-  if (discountCode) {
-    const [discount] = await sql`SELECT * FROM discounts WHERE code=${discountCode} AND active=true`;
-    if (!discount) throw new Error("Invalid discount code");
-    // Apply discount logic here (reduce total)
-  }
+These build on the current system safely.
 
-  // 3. Create Order record
-  const [order] = await sql`INSERT INTO orders (user_id, discount_code, status) VALUES (${userId}, ${discountCode}, 'pending') RETURNING id`;
+---
 
-  // 4. Create PayPal order (existing code)
-}
+### Phase 1 — Database Integrity & Performance
 
-4.3 PayPal capture webhook
-paypal-webhook.ts
+- **Indexes**:
+  - `orders(user_id)` for fast customer history lookups.
+  - `orders(created_at)` for sorting and reporting.
+  - `inventory(sku)` for rapid stock checks.
+  - `products(hidden)` for catalog filtering.
+- **Constraints**:
+  - Enforce `users.email` UNIQUE constraint.
+  - Enforce `inventory.quantity >= 0` check constraint.
+- **Foreign Keys**:
+  - Ensure `ON DELETE RESTRICT` for `order_items -> products` to prevent deleting sold products.
 
-```typescript
-// 1. Idempotency
-const exists =
-  await sql`SELECT 1 FROM webhook_events WHERE provider='paypal' AND event_id=${event.id}`;
+---
 
-if (exists.length) return;
+### Phase 2 — Strong Inventory Guarantees
 
-// 2. Store webhook - INSERT record
-// (SQL: INSERT INTO webhook_events VALUES ('paypal', event.id, event))
+Prevent overselling using atomic database operations.
 
-// 3. Capture → Decrement Stock
-await sql.begin(async (tx) => {
-  // Decrement only if stock exists (prevents negative inventory)
-  // (SQL: UPDATE inventory SET quantity = quantity - qty WHERE sku = sku AND quantity >= qty RETURNING quantity)
-  const [updated] = await tx`...`;
+**Atomic Decrement:**
 
-  if (!updated) {
-    console.error("OVERSOLD: Manual refund needed for", sku);
-    return;
-  }
-
-  // (SQL: INSERT INTO inventory_events (sku, delta, reason) VALUES (sku, -qty, 'sale'))
-  await tx`...`;
-});
+```sql
+UPDATE inventory
+SET quantity = quantity - $qty
+WHERE sku = $sku
+AND quantity >= $qty
+RETURNING quantity;
 ```
 
-PHASE 6 — Admin React dashboard
-6.1 Queries (read-only)
--- Top SKUs
-SELECT sku, SUM(-delta) sold
-FROM inventory_events
-WHERE reason='sale'
-GROUP BY sku
-ORDER BY sold DESC;
+Log:
 
--- Dead stock
-SELECT sku, quantity
-FROM inventory
-WHERE quantity > 0
-  AND sku NOT IN (
-    SELECT sku FROM inventory_events
-    WHERE created_at > now() - interval '30 days'
-  );
+```sql
+INSERT INTO inventory_events (sku, delta, reason)
+VALUES ($sku, -$qty, 'sale');
+```
 
-6.2 Charts
+---
 
-Revenue over time
+### Phase 3 — Admin Analytics
 
-Inventory levels
+- top SKUs
+- dead stock
+- revenue charts
+- fraud indicators
 
-Fraud score histogram
+Stack:
 
-Currency mix
+- Recharts
+- TanStack Table
+- protected admin routes
 
-Use:
+---
 
-Recharts
+### Phase 4 — Refunds & Chargebacks
 
-TanStack Table
+Refund:
 
-Admin-only Netlify route
+- add stock back
+- inventory event (+qty)
 
-PHASE 7 — Fraud, chargebacks, refunds (Post-Launch)
-7.1 Refund webhook
+Chargebacks:
 
-Insert refund
+- flag order
+- manual review
 
-Add inventory back
+---
 
-Log event
+### Phase 5 — Accounting
 
-7.2 Chargebacks
+- CSV exports
+- QuickBooks format
+- currency normalization
+- monthly revenue rollups
 
-Insert into chargebacks
+---
 
-Flag SKU
+### Phase 6 — Security Hardening
 
-Manual review only
+- webhook signature verification
+- JWT expiry rotation
+- rate limiting
+- row-level security
+- admin-only policies
 
-PHASE 8 — Exports & accounting (Post-Launch)
+---
 
-CSV export function
+## Final State
 
-QuickBooks-formatted CSV
+Cactus operates as a production-grade commerce backend:
 
-Revenue recognition query
+- Neon-backed authority
+- append-only ledger
+- idempotent webhooks
+- refund-safe inventory
+- analytics dashboards
+- serverless scaling
 
-Multi-currency normalization
-
-PHASE 9 — Security
-Row-level security
-ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY admin_only
-ON inventory
-FOR ALL
-USING (current_setting('app.role') = 'admin');
-
-Set role in admin functions only.
-
-FINAL RESULT
-
-You now have:
-
-✅ PayPal (unchanged UX)
-✅ Neon-backed inventory authority
-✅ Multi-SKU catalog
-✅ Webhook idempotency
-✅ Refund-safe inventory rollback
-✅ Real-time admin dashboards
-✅ Accounting exports
-✅ Fraud & chargeback visibility
-
-This is not a demo system anymore — it’s what real commerce platforms do.
+No frontend UX changes required.

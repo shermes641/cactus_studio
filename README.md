@@ -2,6 +2,15 @@
 
 Full-stack Netlify + TypeScript + PostgreSQL (Timescale) + PayPal + AI plant identification platform.
 
+## Quick Start
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
 Includes:
 
 - Serverless API (Netlify Functions)
@@ -62,13 +71,14 @@ See diagrams → `docs/diagrams.md`
 ├─ netlify/
 │  └─ functions/
 ├─ docs/
-│  ├─ diagrams.md
-│  ├─ openapi-full.json
-│  ├─ function-db-graph.md
-│  └─ postman.json
 ├─ src/
+│  ├─ actions/
+│  ├─ lib/
+│  ├─ ui/
 ├─ package.json
-└─ README.md
+├─ tsconfig.json
+├─ netlify.toml
+
 ```
 
 ---
@@ -89,15 +99,15 @@ netlify dev
 
 Server:
 
-```html
+```text
 http://localhost:8888/.netlify/functions/*
 ```
 
 ---
 
-## 2. Configure env
+## Environment Variables
 
-Create `.env` for local testing (these values are not committed to git, and most you can see in Netlify, otherwise get from .config.txt file):
+Create `.env` for local testing (these values are not committed to git, and Most values are configured in Netlify or stored in `.config.txt`.):
 
 ```bash
 PAYPAL_SANDBOX_CLIENT_ID=
@@ -212,16 +222,6 @@ See:
 docs/diagrams.md
 ```
 
-### Example tables
-
-```sql
-users
-orders
-order_items
-products
-discounts
-```
-
 ---
 
 ## Deployment (Netlify)
@@ -333,8 +333,11 @@ Automatically available at:
 
 - Diagrams → `docs/diagrams.md`
 - OpenAPI → `docs/openapi-full.json`
-- Postman → `docs/postman.json`
+- Postman → `docs/postman-collection.json`
 - DB usage graph → `docs/function-db-graph.md`
+- Dependencies → `docs/function-dependencies.md`
+- Curl examples → `docs/curl-examples.sh`
+- DB SQL → `docs/schema.sql`
 
 ---
 

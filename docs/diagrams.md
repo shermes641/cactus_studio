@@ -140,64 +140,147 @@ sequenceDiagram
 
 ```mermaid
 erDiagram
-
     users ||--o{ orders : places
+    users ||--o{ audit_logs : generates
     orders ||--o{ order_items : contains
-    products ||--o{ order_items : referenced_by
-    discounts ||--o{ orders : applied_to
+    orders ||--o{ payments : "paid by"
+    products ||--o{ order_items : "ordered as"
+    products ||--o{ inventory : "stored as"
+    plant_classes ||--o{ products : categorizes
+    inventory ||--o{ inventory_events : "tracked by"
+    discounts ||--o{ orders : "applied to"
+    discounts ||--o{ users : "assigned to"
 
     users {
-        int id PK
-        text email
+        bigint id PK
+        text email UK
         text password_hash
+        text name
+        text phone
         timestamp created_at
+        text shipping_addr
+        jsonb cart
+        boolean is_admin
+        boolean is_verified
+        text verification_token
+        text reset_token
+        timestamp reset_token_expires
+        timestamp verification_token_expires
+        text discount_code FK
+        text session_token
     }
 
     orders {
-        int id PK
-        int user_id FK
+        bigint id PK
+        bigint user_id FK
+        text paypal_order_id
+        text customer_email
+        text customer_name
+        text discount_code FK
+        integer total_amount_cents
+        text currency
         text status
         timestamp created_at
+        text shipping_addr
+        text receipt_url
+        timestamp shipped_at
     }
 
     order_items {
-        int id PK
-        int order_id FK
-        int product_id FK
-        int qty
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        text name
+        integer price_cents
+        integer quantity
+        text sku
     }
 
     products {
-        int id PK
+        bigint id PK
         text name
-        numeric price
+        text image_url
+        text scientific
+        text class FK
+        integer price_cents
+        text notes
+        timestamp created_at
+        text sku
+    }
+
+    inventory {
+        text sku PK
+        bigint image_id
+        text color
+        text size
+        integer price_cents
+        integer quantity
+        boolean active
+    }
+
+    inventory_events {
+        bigint id PK
+        text sku FK
+        integer delta
+        text reason
+        text ref
+        timestamp created_at
+    }
+
+    payments {
+        bigint id PK
+        bigint order_id FK
+        text provider
+        text provider_payment_id
+        integer amount_cents
+        text currency
+        text status
+        timestamp captured_at
+    }
+
+    plant_classes {
+        bigint id PK
+        text name UK
     }
 
     discounts {
-        int id PK
-        text code
-        int percent
+        text code PK
+        text type
+        integer value
+        boolean active
     }
-```
 
----
+    audit_logs {
+        uuid id PK
+        bigint user_id FK
+        text user_email
+        text action
+        text entity_type
+        text entity_id
+        boolean success
+        text message
+        inet ip_address
+        text user_agent
+        jsonb metadata
+        timestamp created_at
+    }
 
-## Function → Database Usage
+    settings {
+        text key PK
+        text value
+        text type
+    }
 
-```mermaid
-flowchart LR
+    statuses {
+        text code PK
+        text description
+    }
 
-    create-order -->|INSERT| orders
-    create-order -->|INSERT| order_items
+    webhook_events {
+        text provider
+        text event_id
+        jsonb payload
+        timestamp received_at
+    }
 
-    capture-order -->|UPDATE| orders
-
-    update-order-status -->|UPDATE| orders
-
-    login-user -->|SELECT| users
-    register-user -->|INSERT| users
-
-    validate-discount -->|SELECT| discounts
-
-    update-product -->|UPDATE| products
 ```
