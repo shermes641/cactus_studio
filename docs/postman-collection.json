@@ -9,738 +9,1708 @@
       "name": "add-plant-class",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"className\": \"Cactaceae\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/add-plant-class",
+          "raw": "{{baseUrl}}/add-plant-class",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "add-plant-class"
           ]
+        },
+        "description": "add plant class"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "backup-database",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/backup-database",
+          "raw": "{{baseUrl}}/backup-database",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "backup-database"
           ]
+        },
+        "description": "backup database"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "cancel-order",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ord_12345\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/cancel-order",
+          "raw": "{{baseUrl}}/cancel-order",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "cancel-order"
           ]
+        },
+        "description": "cancel order"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "capture-order",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ord_12345\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/capture-order",
+          "raw": "{{baseUrl}}/capture-order",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "capture-order"
           ]
+        },
+        "description": "capture order"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "change-password",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"oldPassword\": \"secret-old\",\n  \"newPassword\": \"secret-new\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/change-password",
+          "raw": "{{baseUrl}}/change-password",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "change-password"
           ]
+        },
+        "description": "change password"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "check-reset-token",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/check-reset-token",
+          "raw": "{{baseUrl}}/check-reset-token?token=123",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "check-reset-token"
+          ],
+          "query": [
+            {
+              "key": "token",
+              "value": "123"
+            }
           ]
+        },
+        "description": "check reset token"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "create-order",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\n      \"id\": \"1\",\n      \"quantity\": 2\n    }\n  ],\n  \"total\": 500\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/create-order",
+          "raw": "{{baseUrl}}/create-order",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "create-order"
           ]
+        },
+        "description": "create order"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"OK\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "get-cloudinary-config",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-cloudinary-config",
+          "raw": "{{baseUrl}}/get-cloudinary-config",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-cloudinary-config"
           ]
+        },
+        "description": "get cloudinary config"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"cloudName\": \"demo\",\n  \"apiKey\": \"12345\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "get-discounts",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-discounts",
+          "raw": "{{baseUrl}}/get-discounts",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-discounts"
           ]
+        },
+        "description": "get discounts"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[\n  {\n    \"code\": \"SUMMER2025\",\n    \"amount\": 10\n  }\n]"
         }
-      }
+      ]
     },
     {
       "name": "get-order-items",
       "request": {
         "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-order-items",
+          "raw": "{{baseUrl}}/get-order-items",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-order-items"
           ]
+        },
+        "description": "get order items"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[]"
         }
-      }
+      ]
     },
     {
       "name": "get-paypal-client-id",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-paypal-client-id",
+          "raw": "{{baseUrl}}/get-paypal-client-id",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-paypal-client-id"
           ]
+        },
+        "description": "get paypal client id"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"clientId\": \"sb\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "get-pending-orders",
       "request": {
         "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-pending-orders",
+          "raw": "{{baseUrl}}/get-pending-orders",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-pending-orders"
           ]
+        },
+        "description": "get pending orders"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[]"
         }
-      }
+      ]
     },
     {
       "name": "get-plant-classes",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-plant-classes",
+          "raw": "{{baseUrl}}/get-plant-classes",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-plant-classes"
           ]
+        },
+        "description": "get plant classes"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[\n  \"Cactaceae\",\n  \"Succulent\"\n]"
         }
-      }
+      ]
     },
     {
       "name": "get-products",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-products",
+          "raw": "{{baseUrl}}/get-products",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-products"
           ]
+        },
+        "description": "get products"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": \"1\",\n    \"name\": \"Golden Barrel\",\n    \"price_cents\": 250\n  }\n]"
         }
-      }
+      ]
     },
     {
       "name": "get-public-settings",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-public-settings",
+          "raw": "{{baseUrl}}/get-public-settings",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-public-settings"
           ]
+        },
+        "description": "get public settings"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"maintenanceMode\": false\n}"
         }
-      }
+      ]
     },
     {
       "name": "get-user-data",
       "request": {
         "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-user-data",
+          "raw": "{{baseUrl}}/get-user-data",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-user-data"
           ]
+        },
+        "description": "get user data"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"email\": \"user@example.com\",\n  \"preferences\": {}\n}"
         }
-      }
+      ]
     },
     {
       "name": "get-users",
       "request": {
         "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/get-users",
+          "raw": "{{baseUrl}}/get-users",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "get-users"
           ]
+        },
+        "description": "get users"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": \"u_1\",\n    \"email\": \"user@example.com\"\n  }\n]"
         }
-      }
+      ]
     },
     {
       "name": "identify-plant-gemini",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"image\": \"base64string...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-gemini",
+          "raw": "{{baseUrl}}/identify-plant-gemini",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "identify-plant-gemini"
           ]
+        },
+        "description": "identify plant gemini"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"identification\": \"Cactus\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "identify-plant-grok",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"image\": \"base64string...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-grok",
+          "raw": "{{baseUrl}}/identify-plant-grok",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "identify-plant-grok"
           ]
+        },
+        "description": "identify plant grok"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"identification\": \"Cactus\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "identify-plant-kindwise",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"image\": \"base64string...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-kindwise",
+          "raw": "{{baseUrl}}/identify-plant-kindwise",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "identify-plant-kindwise"
           ]
+        },
+        "description": "identify plant kindwise"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"identification\": \"Cactus\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "identify-plant-ollama",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"image\": \"base64string...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-ollama",
+          "raw": "{{baseUrl}}/identify-plant-ollama",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "identify-plant-ollama"
           ]
+        },
+        "description": "identify plant ollama"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"identification\": \"Cactus\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "identify-plant-openai",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"image\": \"base64string...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/identify-plant-openai",
+          "raw": "{{baseUrl}}/identify-plant-openai",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "identify-plant-openai"
           ]
+        },
+        "description": "identify plant openai"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"identification\": \"Cactus\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "login-user",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/login-user",
+          "raw": "{{baseUrl}}/login-user",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "login-user"
           ]
+        },
+        "description": "login user"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"token\": \"sess_12345\",\n  \"user\": {\n    \"email\": \"user@example.com\"\n  }\n}"
         }
-      }
+      ]
     },
     {
       "name": "logout-user",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/logout-user",
+          "raw": "{{baseUrl}}/logout-user",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "logout-user"
           ]
+        },
+        "description": "logout user"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Logged out\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "migrate-schema",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/migrate-schema",
+          "raw": "{{baseUrl}}/migrate-schema",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "migrate-schema"
           ]
+        },
+        "description": "migrate schema"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Schema migrated\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "node-mailer",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"user@example.com\",\n  \"subject\": \"Hello\",\n  \"text\": \"Welcome!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/node-mailer",
+          "raw": "{{baseUrl}}/node-mailer",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "node-mailer"
           ]
+        },
+        "description": "node mailer"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Email sent\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "register-user",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/register-user",
+          "raw": "{{baseUrl}}/register-user",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "register-user"
           ]
+        },
+        "description": "register user"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"User registered\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "request-password-reset",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/request-password-reset",
+          "raw": "{{baseUrl}}/request-password-reset",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "request-password-reset"
           ]
+        },
+        "description": "request password reset"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Reset email sent\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "resend-verification",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/resend-verification",
+          "raw": "{{baseUrl}}/resend-verification",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "resend-verification"
           ]
+        },
+        "description": "resend verification"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Verification email sent\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "reset-password-submit",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"abc123token\",\n  \"newPassword\": \"newPassword123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/reset-password-submit",
+          "raw": "{{baseUrl}}/reset-password-submit",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "reset-password-submit"
           ]
+        },
+        "description": "reset password submit"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Password reset\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "reset-schema",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/reset-schema",
+          "raw": "{{baseUrl}}/reset-schema",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "reset-schema"
           ]
+        },
+        "description": "reset schema"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Schema reset\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "restore-database",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/restore-database",
+          "raw": "{{baseUrl}}/restore-database",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "restore-database"
           ]
+        },
+        "description": "restore database"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Database restored\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "restore-preorder",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ord_12345\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/restore-preorder",
+          "raw": "{{baseUrl}}/restore-preorder",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "restore-preorder"
           ]
+        },
+        "description": "restore preorder"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Preorder restored\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "save-user-data",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"data\": {\n    \"preferences\": {\n      \"theme\": \"dark\"\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/save-user-data",
+          "raw": "{{baseUrl}}/save-user-data",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "save-user-data"
           ]
+        },
+        "description": "save user data"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Data saved\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "seed-data",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/seed-data",
+          "raw": "{{baseUrl}}/seed-data",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "seed-data"
           ]
+        },
+        "description": "seed data"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Data seeded\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "update-order-status",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ord_12345\",\n  \"status\": \"shipped\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/update-order-status",
+          "raw": "{{baseUrl}}/update-order-status",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "update-order-status"
           ]
+        },
+        "description": "update order status"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Order status updated\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "update-product",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"1\",\n  \"updates\": {\n    \"price_cents\": 300\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/update-product",
+          "raw": "{{baseUrl}}/update-product",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "update-product"
           ]
+        },
+        "description": "update product"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Product updated\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "update-user-profile",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jane Doe\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/update-user-profile",
+          "raw": "{{baseUrl}}/update-user-profile",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "update-user-profile"
           ]
+        },
+        "description": "update user profile"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Profile updated\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "upload-image-signed",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"image\": \"base64...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/upload-image-signed",
+          "raw": "{{baseUrl}}/upload-image-signed",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "upload-image-signed"
           ]
+        },
+        "description": "upload image signed"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"url\": \"https://...\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "upload-images-to-cloudinary",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"images\": [\n    \"base64...\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/upload-images-to-cloudinary",
+          "raw": "{{baseUrl}}/upload-images-to-cloudinary",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "upload-images-to-cloudinary"
           ]
+        },
+        "description": "upload images to cloudinary"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"urls\": [\"https://...\"]\n}"
         }
-      }
+      ]
     },
     {
       "name": "upload-to-google-drive",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"file\": \"base64...\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/upload-to-google-drive",
+          "raw": "{{baseUrl}}/upload-to-google-drive",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "upload-to-google-drive"
           ]
+        },
+        "description": "upload to google drive"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"fileId\": \"12345\"\n}"
         }
-      }
+      ]
     },
     {
       "name": "validate-discount",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sessionId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"SUMMER2025\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/validate-discount",
+          "raw": "{{baseUrl}}/validate-discount",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "validate-discount"
           ]
+        },
+        "description": "validate discount"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"valid\": true,\n  \"amount\": 10\n}"
         }
-      }
+      ]
     },
     {
       "name": "verify-email",
       "request": {
         "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"abc123token\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/.netlify/functions/verify-email",
+          "raw": "{{baseUrl}}/verify-email",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
-            ".netlify",
-            "functions",
             "verify-email"
           ]
+        },
+        "description": "verify email"
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Email verified\"\n}"
         }
-      }
+      ]
     }
   ],
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8888"
+      "value": "http://localhost:8888/.netlify/functions"
+    },
+    {
+      "key": "adminToken",
+      "value": "your_admin_secret_here"
+    },
+    {
+      "key": "sessionId",
+      "value": "test_session_99"
     }
   ]
 }
