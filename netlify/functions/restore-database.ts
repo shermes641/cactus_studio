@@ -61,7 +61,7 @@ export const handler: Handler = async (event, context) => {
                  const placeholders = cols.map((_, idx) => `$${idx + 1}`).join(', ');
                  
                  try {
-                    await sql(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`, vals);
+                    await sql.query(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`, vals);
                     totalRows++;
                  } catch (err: any) {
                      console.error(`Error inserting into ${table}:`, err);

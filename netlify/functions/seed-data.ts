@@ -59,7 +59,7 @@ export const handler: Handler = async (event: any, context: any) => {
 
     // 1.5 Truncate Table (Clean Sync)
     try {
-      const check = await sql(`SELECT 1 FROM information_schema.tables WHERE table_name = $1`, [tableName]);
+      const check = await sql`SELECT 1 FROM information_schema.tables WHERE table_name = ${tableName}`;
       if (check.length > 0) {
         await sql(`TRUNCATE TABLE ${tableName} CASCADE`);
         messages.push("Truncated products table.");
@@ -67,11 +67,11 @@ export const handler: Handler = async (event: any, context: any) => {
     } catch (e) { console.error("Truncate error:", e); }
 
     // 2. Schema Check & Fix (Products)
-    const tableCheckRes = await sql(`
+    const tableCheckRes = await sql`
       SELECT column_name, data_type 
       FROM information_schema.columns 
-      WHERE table_name = $1
-    `, [tableName]);
+      WHERE table_name = ${tableName}
+    `;
 
     if (tableCheckRes.length === 0) {
       await sql(CREATE_PRODUCTS_TABLE);
@@ -96,12 +96,12 @@ export const handler: Handler = async (event: any, context: any) => {
     // 3. Sync Products Data
     let insertedCount = 0;
     for (const item of data) {
-      const checkRes = await sql(`SELECT id FROM ${tableName} WHERE id = $1`, [item.id]);
+      const checkRes = await sql`SELECT id FROM ${tableName} WHERE id = ${item.id}`;
       if (checkRes.length === 0) {
         const keys = Object.keys(item);
         const values = Object.values(item);
         const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
-        await sql(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders})`, values);
+        await sql.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders})`, values);
         insertedCount++;
       }
     }

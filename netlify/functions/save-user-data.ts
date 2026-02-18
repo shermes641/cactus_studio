@@ -8,7 +8,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const { email, cart, shipping_addr } = body;
     if (!email) return { statusCode: 400, body: JSON.stringify({ error: 'Missing email' }) };
     const sql = neon(process.env.NETLIFY_DATABASE_URL!);
-    await sql('UPDATE users SET cart = $1::jsonb, shipping_addr = $2 WHERE email = $3', [JSON.stringify(cart || []), shipping_addr || null, email]);
+    await sql`UPDATE users SET cart = ${JSON.stringify(cart || [])}::jsonb, shipping_addr = ${shipping_addr || null} WHERE email = ${email}`;
     return { statusCode: 200, body: JSON.stringify({ message: 'Saved' }) };
   } catch (e: any) {
     console.error('save-user-data error', e);

@@ -27,7 +27,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const sql = neon(connectionString);
 
     // Get user by email
-    const users = await sql('SELECT id, email, password_hash, name, phone, shipping_addr, cart, is_admin, is_verified, reset_token, discount_code FROM users WHERE email = $1', [email]);
+    const users = await sql`SELECT id, email, password_hash, name, phone, shipping_addr, cart, is_admin, is_verified, reset_token, discount_code FROM users WHERE email = ${email}`;
 
     if (users.length === 0) {
       console.error('Login error: Invalid email or password');
@@ -61,7 +61,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const token = `${payload}.${signature}`;
 
     // Save token to DB
-    await sql('UPDATE users SET session_token = $1 WHERE id = $2', [token, user.id]);
+    await sql`UPDATE users SET session_token = ${token} WHERE id = ${user.id}`;
 
     return {
       statusCode: 200,

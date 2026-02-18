@@ -36,7 +36,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const sql = neon(connectionString);
 
     // Check if user already exists
-    const existingUser = await sql('SELECT id FROM users WHERE email = $1', [email]);
+    const existingUser = await sql`SELECT id FROM users WHERE email = ${email}`;
     if (existingUser.length > 0) {
       return { statusCode: 409, body: JSON.stringify({ error: 'Email already registered' }) };
     }
@@ -48,10 +48,10 @@ export const handler: Handler = async (event: any, context: any) => {
     expiry.setDate(expiry.getDate() + 5); // 5 days
 
     // Insert new user
-    const result = await sql(
-      'INSERT INTO users (email, password_hash, name, shipping_addr, phone, cart, verification_token, verification_token_expires, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, email, name, shipping_addr, phone, cart',
-      [email, hashed, name || null, shipping_addr, phone, JSON.stringify([]), verificationToken, expiry.toISOString(), false]
-    );
+    const result = await sql`
+      INSERT INTO users (email, password_hash, name, shipping_addr, phone, cart, verification_token, verification_token_expires, is_verified) 
+      VALUES (${email}, ${hashed}, ${name || null}, ${shipping_addr}, ${phone}, ${JSON.stringify([])}, ${verificationToken}, ${expiry.toISOString()}, false) 
+      RETURNING id, email, name, shipping_addr, phone, cart`;
 
     // Trigger verification email
     const siteUrl = process.env.URL || 'http://localhost:8888';

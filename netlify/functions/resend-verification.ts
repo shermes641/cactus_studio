@@ -21,7 +21,7 @@ export const handler: Handler = async (event: any, context: any) => {
     const sql = neon(connectionString);
 
     // Check if user exists and is not verified
-    const users = await sql('SELECT id, name, is_verified FROM users WHERE email = $1', [email]);
+    const users = await sql`SELECT id, name, is_verified FROM users WHERE email = ${email}`;
     
     if (users.length === 0) {
       return { statusCode: 404, body: JSON.stringify({ error: 'User not found' }) };
@@ -38,10 +38,9 @@ export const handler: Handler = async (event: any, context: any) => {
     expiry.setDate(expiry.getDate() + 5); // 5 days
 
     // Update DB
-    await sql(
-      'UPDATE users SET verification_token = $1, verification_token_expires = $2 WHERE id = $3',
-      [verificationToken, expiry.toISOString(), user.id]
-    );
+    await sql`
+      UPDATE users SET verification_token = ${verificationToken}, verification_token_expires = ${expiry.toISOString()} WHERE id = ${user.id}
+    `;
 
     // Send email
     const siteUrl = process.env.URL || 'http://localhost:8888';
