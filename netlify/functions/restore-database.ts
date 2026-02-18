@@ -27,7 +27,7 @@ export const handler: Handler = async (event, context) => {
         try {
              const check = await sql`SELECT 1 FROM information_schema.tables WHERE table_name = ${table}`;
              if (check.length > 0) {
-                 await sql(`TRUNCATE TABLE ${table} CASCADE`);
+                 await sql.query(`TRUNCATE TABLE ${table} CASCADE`);
              }
         } catch (e) {
             console.warn(`Failed to truncate ${table}`, e);
@@ -77,7 +77,7 @@ export const handler: Handler = async (event, context) => {
     for (const table of tablesWithId) {
         try {
             // Reset sequence to max(id) + 1
-            await sql(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE(max(id), 1)) FROM ${table}`);
+            await sql.query(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE(max(id), 1)) FROM ${table}`);
         } catch (e) {
             // Ignore errors if table/sequence doesn't exist or id is not serial
         }

@@ -73,7 +73,7 @@ export const handler: Handler = async (event, context) => {
             const check = await sql`SELECT 1 FROM information_schema.tables WHERE table_name = ${table}`;
             if (check.length > 0) {
                  // Use string concatenation for table name as it is from a trusted hardcoded list
-                 const rows = await sql(`SELECT * FROM ${table}`);
+                 const rows = await sql.query(`SELECT * FROM ${table}`);
                  backup[table] = rows;
             }
         } catch (e) {

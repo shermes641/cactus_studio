@@ -61,7 +61,7 @@ export const handler: Handler = async (event: any, context: any) => {
     try {
       const check = await sql`SELECT 1 FROM information_schema.tables WHERE table_name = ${tableName}`;
       if (check.length > 0) {
-        await sql(`TRUNCATE TABLE ${tableName} CASCADE`);
+        await sql.query(`TRUNCATE TABLE ${tableName} CASCADE`);
         messages.push("Truncated products table.");
       }
     } catch (e) { console.error("Truncate error:", e); }
@@ -74,7 +74,7 @@ export const handler: Handler = async (event: any, context: any) => {
     `;
 
     if (tableCheckRes.length === 0) {
-      await sql(CREATE_PRODUCTS_TABLE);
+      await sql.query(CREATE_PRODUCTS_TABLE);
       messages.push("Created products table from canonical schema.");
     } else {
       // Check for missing columns
@@ -87,7 +87,7 @@ export const handler: Handler = async (event: any, context: any) => {
           let type = 'TEXT';
           if (typeof val === 'number') type = 'INTEGER';
           if (typeof val === 'boolean') type = 'BOOLEAN';
-          await sql(`ALTER TABLE ${tableName} ADD COLUMN ${col} ${type}`);
+          await sql.query(`ALTER TABLE ${tableName} ADD COLUMN ${col} ${type}`);
         }
         messages.push(`Added missing columns: ${missingColumns.join(', ')}.`);
       }
@@ -109,7 +109,7 @@ export const handler: Handler = async (event: any, context: any) => {
 
     // 3.5 Fix Sequence (Critical for BIGSERIAL to work after manual inserts)
     try {
-      await sql(`SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), COALESCE(max(id), 1)) FROM ${tableName}`);
+      await sql.query(`SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), COALESCE(max(id), 1)) FROM ${tableName}`);
       messages.push("Updated ID sequence.");
     } catch (e) { console.error("Sequence fix error:", e); }
 

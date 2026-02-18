@@ -37,11 +37,11 @@ export const handler: Handler = async (event: any) => {
     }
 
     if (status === 'active') {
-        query = sql(baseQuery + (whereClause ? whereClause + " AND" : " WHERE") + ` o.status IN ('processing', 'manual_verification') ORDER BY o.created_at DESC`, args);
+        query =sql.query(baseQuery + (whereClause ? whereClause + " AND" : " WHERE") + ` o.status IN ('processing', 'manual_verification') ORDER BY o.created_at DESC`, args);
     } else if (status === 'all') {
-        query = sql(baseQuery + whereClause + ` ORDER BY o.created_at DESC`, args);
+        query =sql.query(baseQuery + whereClause + ` ORDER BY o.created_at DESC`, args);
     } else {
-        query = sql(baseQuery + (whereClause ? whereClause + " AND" : " WHERE") + ` o.status = $${args.length + 1} ORDER BY o.created_at DESC`, [...args, status]);
+        query =sql.query(baseQuery + (whereClause ? whereClause + " AND" : " WHERE") + ` o.status = $${args.length + 1} ORDER BY o.created_at DESC`, [...args, status]);
     }
 
     const orders = await query;

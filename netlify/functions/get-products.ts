@@ -71,8 +71,8 @@ export const handler: Handler = async (event: any, context: any) => {
     
     baseQuery += ` ORDER BY p.id LIMIT ${limit} OFFSET ${offset}`;
     
-    const totalRes = await sql(countQuery, args);
-    const rows = await sql(baseQuery, args);
+    const totalRes = await sql.query(countQuery, args);
+    const rows = await sql.query(baseQuery, args);
 
     const total = parseInt(totalRes[0].count);
 

@@ -62,7 +62,7 @@ export const handler: Handler = async (event: any, context: any) => {
       const check = await sql`SELECT 1 FROM information_schema.tables WHERE table_name = ${t.name}`;
       if (check.length === 0) {
         // Table doesn't exist, create it using canonical schema
-        await sql(t.sql);
+         await sql.query(t.sql);
         createdTables.add(t.name);
         out.push(`Created table ${t.name}`);
       } else {
@@ -159,7 +159,7 @@ export const handler: Handler = async (event: any, context: any) => {
     out.push('dropped obsolete user_discounts table');
 
     // 4. Data seeding and FK constraints (idempotent operations)
-    await sql(SEED_STATUSES);
+     await sql.query(SEED_STATUSES);
     out.push('inserted default statuses');
 
     const rows: any[] = await sql`SELECT DISTINCT status FROM orders WHERE status IS NOT NULL`;
@@ -187,13 +187,13 @@ export const handler: Handler = async (event: any, context: any) => {
       out.push('foreign key on orders.status already exists');
     }
 
-    await sql(SEED_PLANT_CLASSES);
+     await sql.query(SEED_PLANT_CLASSES);
     out.push('seeded plant_classes');
 
-    await sql(SEED_SETTINGS);
+     await sql.query(SEED_SETTINGS);
     out.push('seeded settings');
 
-    await sql(UPDATE_SETTINGS_TYPES);
+     await sql.query(UPDATE_SETTINGS_TYPES);
     out.push('updated settings types');
 
     return { statusCode: 200, body: JSON.stringify({ ok: true, actions: out }) };

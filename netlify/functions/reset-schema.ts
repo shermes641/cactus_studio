@@ -20,22 +20,22 @@ export const handler: Handler = async (event: any, context: any) => {
   try {
     // 1. Drop Tables (Reverse Dependency Order)
     for (const table of dropOrder) {
-      await sql(`DROP TABLE IF EXISTS ${table} CASCADE`);
+       await sql.query(`DROP TABLE IF EXISTS ${table} CASCADE`);
     }
 
     // 2. Create Tables (Dependency Order)
     for (const createSql of creationOrder) {
-      await sql(createSql);
+       await sql.query(createSql);
     }
 
     // 3. Seed Initial Data
-    await sql(SEED_DISCOUNTS);
+     await sql.query(SEED_DISCOUNTS);
 
-    await sql(SEED_PLANT_CLASSES);
+     await sql.query(SEED_PLANT_CLASSES);
 
-    await sql(SEED_STATUSES);
+     await sql.query(SEED_STATUSES);
 
-    await sql(SEED_SETTINGS);
+     await sql.query(SEED_SETTINGS);
 
     return {
       statusCode: 200,
