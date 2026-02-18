@@ -9,6 +9,7 @@ import { Handler } from "@netlify/functions";
 import { neon } from '@netlify/neon';
 // @ts-ignore
 import localData from '../../data.json';
+import { CREATE_PRODUCTS_TABLE } from "./schema.js";
 import { genSku } from "./shared.js";
 
 export const handler: Handler = async (event: any, context: any) => {
@@ -73,17 +74,8 @@ export const handler: Handler = async (event: any, context: any) => {
     `, [tableName]);
 
     if (tableCheckRes.length === 0) {
-      // Create table if it doesn't exist (without dropping others)
-      const colDefs = jsonColumns.map(key => {
-        const val = sampleItem[key];
-        let type = 'TEXT';
-        if (typeof val === 'number') type = 'INTEGER';
-        if (typeof val === 'boolean') type = 'BOOLEAN';
-        if (key === 'id') return `${key} ${type} PRIMARY KEY`;
-        return `${key} ${type}`;
-      }).join(', ');
-      await sql(`CREATE TABLE ${tableName} (${colDefs})`);
-      messages.push("Created products table.");
+      await sql(CREATE_PRODUCTS_TABLE);
+      messages.push("Created products table from canonical schema.");
     } else {
       // Check for missing columns
       const dbColumns = tableCheckRes.map((row: any) => row.column_name);

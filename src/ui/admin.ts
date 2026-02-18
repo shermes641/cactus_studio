@@ -274,13 +274,13 @@ export async function injectAdminButtons() {
       "add-btn hamburger-menu-item",
       THEME.info
     ),
-    createBtn(
-      "export-btn",
-      "btnExport",
-      "exportDatabase()",
-      "add-btn hamburger-menu-item",
-      THEME.secondary
-    ),
+    // createBtn(           // this was just products, not sure we need it any more
+    //   "export-btn",
+    //   "btnExport",
+    //   "exportDatabase()",
+    //   "add-btn hamburger-menu-item",
+    //   THEME.secondary
+    // ),
     createBtn(
       "backup-btn",
       "btnBackup",

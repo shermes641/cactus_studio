@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { translations } from "../constants.js";
+import { translations, THEME } from "../constants.js";
 import { isLocal } from "../actions/shared.js";
 
 export function injectLoginUI() {
@@ -23,22 +23,41 @@ export function injectLoginUI() {
     const content = modal.querySelector(".modal-content") || modal;
     console.log("injectLoginUI: isLocal check", is_local, window.location.hostname);
 
-    if (is_local && content && !document.getElementById("recovery-migrate-btn")) {
-        const btn = document.createElement("button");
-        btn.id = "recovery-migrate-btn";
-        btn.type = "button";
-        btn.innerText = "Run DB Migration (Recovery)";
-        btn.className = "add-btn";
-        btn.style.marginTop = "15px";
-        btn.style.backgroundColor = "#607d8b";
-        btn.style.width = "100%";
-        btn.onclick = (e) => {
-            e.preventDefault();
-            if ((window as any).runMigration) {
-                (window as any).runMigration();
-            }
-        };
-        content.appendChild(btn);
+    if (is_local && content) {
+        if (!document.getElementById("recovery-migrate-btn")) {
+            const btn = document.createElement("button");
+            btn.id = "recovery-migrate-btn";
+            btn.type = "button";
+            btn.innerText = "Run DB Migration (Recovery)";
+            btn.className = "add-btn";
+            btn.style.marginTop = "15px";
+            btn.style.backgroundColor = "#bf1e43";
+            btn.style.width = "100%";
+            btn.onclick = (e) => {
+                e.preventDefault();
+                if ((window as any).runMigration) {
+                    (window as any).runMigration();
+                }
+            };
+            content.appendChild(btn);
+        }
+        if (!document.getElementById("recovery-restore-btn")) {
+            const btn = document.createElement("button");
+            btn.id = "recovery-restore-btn";
+            btn.type = "button";
+            btn.innerText = "Restore DB (Recovery)";
+            btn.className = "add-btn";
+            btn.style.marginTop = "10px";
+            btn.style.backgroundColor = THEME.danger;
+            btn.style.width = "100%";
+            btn.onclick = (e) => {
+                e.preventDefault();
+                if ((window as any).restoreDatabase) {
+                    (window as any).restoreDatabase();
+                }
+            };
+            content.appendChild(btn);
+        }
     }
   }
   const registerForm = document.getElementById("register-modal");
