@@ -1,4 +1,6 @@
-import { MAX_IMG_CACHE_PERCENT, MAX_IMGS, DEFAULT_IMG_CACHE, APP_VERSION, THEME } from './constants.js';
+import { MAX_IMG_CACHE_PERCENT, MAX_IMGS, DEFAULT_IMG_CACHE, THEME } from './constants.js';
+
+let APP_VERSION = '';
 
 export const calculateMaxImgCache = () => {
   try {
@@ -11,7 +13,15 @@ export const calculateMaxImgCache = () => {
   }
 };
 
-export const setVersionDisplay = () => {
+export async function getVersion() {
+  const res = await fetch("/.netlify/functions/version");
+  return (await res.json()).version;
+}
+
+export const setVersionDisplay = async () => {
+  if (APP_VERSION == '') {
+    APP_VERSION = await getVersion();
+  }
   const versionElements = document.querySelectorAll('.version-tag');
   versionElements.forEach(element => {
     element.textContent = `© 2026 \n🌵 Cactus Studio. 🌵\nAll rights reserved.\nv${APP_VERSION}`;

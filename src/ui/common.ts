@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { translations, THEME } from "../constants.js";
-import { setVersionDisplay } from "../utils.js";
+//import { setVersionDisplay } from "../utils.js";
 
 export function applyTranslations() {
   const t = translations[state.currentLang];
@@ -26,7 +26,7 @@ export function toggleHelp() {
   if (!dialog) return;
   if (dialog.style.display === "none") {
     dialog.style.display = "block";
-    setVersionDisplay();
+    //setVersionDisplay();
     const helpFile =
       state.currentLang === "es" ? "/user_es.html" : "/user.html";
     fetch(helpFile)
