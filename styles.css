@@ -79,30 +79,6 @@ header {
     }
 }
 
-@media (max-width: 480px) {
-
-    header {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    #pagination-header {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .nav-links {
-        order: 2;
-        margin-left: 0;
-    }
-
-    .header-title-container {
-        display: none;   /* optional — keeps header compact */
-    }
-}
-
 .header-logo {
     height: 50px;
     width: 50px;
@@ -1687,7 +1663,7 @@ header {
 
     #pagination-header {
         order: 3;
-        width: 100%;
+        width: 60%;
         justify-content: center;
         gap: 6px;
         margin-top: 4px;
@@ -1793,6 +1769,10 @@ header {
 
     .hamburger-dropdown.open {
         right: 0;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
 }
