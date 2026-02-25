@@ -1,6 +1,7 @@
 /* CSS Variables for consistent theming */
 :root {
     --primary: #5a9460;
+    --header: #2343f3;
     --secondary: #F19C79;
     --accent: #a45d3f;
     --text: #333333;
@@ -50,19 +51,56 @@ body {
 
 /* Header & Navigation Bar */
 header {
-    background-color: var(--primary);
+    background-color: var(--header);
     color: var(--white);
-    padding: 1rem 2rem;
+    padding: 0.75rem 1.25rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 14px;
     position: fixed;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;          /* never wrap */
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 950px) {
+    header {
+        font-size: 0.92rem;
+    }
+
+    .page-btn {
+        padding: 6px 10px;
+    }
+
+    #items-per-page-select {
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    header {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    #pagination-header {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .nav-links {
+        order: 2;
+        margin-left: 0;
+    }
+
+    .header-title-container {
+        display: none;   /* optional — keeps header compact */
+    }
 }
 
 .header-logo {
@@ -81,6 +119,8 @@ header {
 .nav-links {
     display: flex;
     align-items: center;
+    gap: 10px;
+    margin-left: auto;    /* pushes to right */
 }
 
 .nav-links button {
@@ -143,7 +183,7 @@ header {
 }
 
 #cart-toggle-btn {
-    background-color: var(--primary);
+    background-color: var(--header);
     border-radius: 4px;
     padding: 5px 10px;
 }
@@ -191,15 +231,11 @@ header {
     height: 100px;
 }
 
-@media (max-width: 768px) {
-    .sidebar-logo-container {
-        top: 75px;
-        left: 10px;
-    }
-}
-
 @media (max-width: 1200px) {
     header .sidebar-logo,
+    .header-logo {
+        display: none;
+    }
     .header-title-container {
         display: none;
     }
@@ -814,25 +850,10 @@ header {
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        padding: 1rem;
-    }
-
-    .header-title-container {
-        margin: 10px 0;
-    }
-
-    .nav-links {
-        width: 100%;
-        justify-content: space-around;
-    }
-
     .product-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 5px;
     }
-
     .product-image {
         height: 100px;
     }
@@ -862,15 +883,18 @@ header {
 }
 
 /* Pagination Controls */
-.pagination-container {
+#pagination-header {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-top: 30px;
-    flex-wrap: wrap;
-    top: -15px;
-    position: relative;
+    gap: 8px;
+    min-width: 0;         /* VERY important */
+    width: 270px;
+    justify-content: center;
+}
+
+.pagination-container {
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 
 .page-btn {
@@ -1633,4 +1657,142 @@ header {
     border-bottom: 1px solid #eee;
     text-align: left;
     vertical-align: top;
+}
+
+/* =========================================
+   MOBILE BREAKPOINT — 480px and below
+   ========================================= */
+
+@media (max-width: 480px) {
+
+    /* ----- HEADER ----- */
+
+    header {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .header-logo {
+        height: 36px;
+        width: 36px;
+    }
+
+    .header-title-container {
+        display: none; /* Hide subtitle/title on very small screens */
+    }
+
+    /* ----- PAGINATION ----- */
+
+    #pagination-header {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 4px;
+    }
+
+    .page-btn {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+
+    #items-per-page-select {
+        padding: 6px 6px;
+        font-size: 0.8rem;
+    }
+
+    /* Optional: shorten text appearance */
+    #items-per-page-select option {
+        font-size: 0.8rem;
+    }
+
+    /* ----- NAV LINKS (Cart + Hamburger) ----- */
+
+    .nav-links {
+        order: 2;
+        width: auto;
+        margin-left: auto;
+        gap: 6px;
+    }
+
+    #cart-toggle-btn {
+        padding: 4px 8px;
+        font-size: 0.85rem;
+    }
+
+    .cart-count {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+
+    .hamburger-btn {
+        font-size: 1.5rem !important;
+        margin: 0 !important;
+    }
+
+    /* ----- PRODUCT GRID ----- */
+
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        left: 0;
+        width: 100%;
+    }
+
+    .product-image {
+        height: 120px;
+    }
+
+    .product-name {
+        font-size: 0.9rem;
+    }
+
+    .product-price {
+        font-size: 1rem;
+    }
+
+    .add-btn {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+
+    /* ----- CONTAINER FIX ----- */
+
+    .container {
+        padding: 0 10px;
+    }
+
+    /* ----- CART SIDEBAR ----- */
+
+    .cart-sidebar {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        border-radius: 0;
+    }
+
+    .cart-buttons {
+        flex-direction: column;
+    }
+
+    .remove-all-btn,
+    .checkout-btn {
+        width: 100%;
+    }
+
+    /* ----- HAMBURGER DROPDOWN ----- */
+
+    .hamburger-dropdown {
+        width: 100%;
+        height: 100%;
+        right: -100%;
+        border-radius: 0;
+    }
+
+    .hamburger-dropdown.open {
+        right: 0;
+    }
+
 }

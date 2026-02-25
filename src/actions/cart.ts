@@ -258,6 +258,63 @@ export function handleReceiptFileSelect(file: File) {
   reader.readAsDataURL(file);
 }
 
+/**
+ * Resizes an image file to a maximum width while maintaining aspect ratio.
+ * @param {File} file - The image file to be resized.
+ * @param {number} [maxWidth=800] - The maximum width of the resized image.
+ * @param {number} [quality=0.8] - The quality of the resized image (0-1), where 1 is lossless and 0 is very lossy.
+ * @returns {Promise<File>} A promise that resolves with the resized image file.
+ */
+async function resizeImage(file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<File> {
+  if (!file.type.match(/image.*/)) return file;
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (readerEvent: any) => {
+      const image = new Image();
+      image.onload = () => {
+        let { width, height } = image;
+
+        if (width > maxWidth || height > maxWidth) {
+          if (width > height) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          } else {
+            width *= maxWidth / height;
+            height = maxWidth;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(image, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          const resizedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          });
+          resolve(resizedFile);
+        }, 'image/jpeg', quality);
+      };
+      image.onerror = () => resolve(file);
+      image.src = readerEvent.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function submitManualPayment(
   allow_no_reciept: boolean,
   preOrder: boolean = false,
@@ -294,11 +351,17 @@ export async function submitManualPayment(
       if (!pendingReceiptFile) {
         throw new Error("Receipt file is missing.");
       }
-      console.dir(pendingReceiptFile);
+      
+      let fileToUpload = pendingReceiptFile;
+      if (fileToUpload.size > 800 * 800) {
+          fileToUpload = await resizeImage(fileToUpload);
+      }
+
+      console.dir(fileToUpload);
       if (USE_CLOUDINARY) {
-        receiptUrl = await uploadFileToCloudinary(pendingReceiptFile, "receipts");
+        receiptUrl = await uploadFileToCloudinary(fileToUpload, "receipts");
       } else {
-        receiptUrl = await uploadFileToGoogleDrive(pendingReceiptFile, "receipts");
+        receiptUrl = await uploadFileToGoogleDrive(fileToUpload, "receipts");
       }
     } catch (e: any) {
       isManualPaymentSubmitting = false;
